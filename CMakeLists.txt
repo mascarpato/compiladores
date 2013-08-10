@@ -10,3 +10,10 @@ ADD_EXECUTABLE(main
   src/comp_tree.c
   src/comp_graph.c
 )
+
+# Marcelo -- Tests Lists Functions
+ADD_EXECUTABLE(test_list
+  tests/test_list.c
+  src/comp_list.c)
+# Marcelo -- Enables Debug information
+ADD_DEFINITIONS(-g)
