@@ -15,5 +15,11 @@ ADD_EXECUTABLE(main
 ADD_EXECUTABLE(test_list
   tests/test_list.c
   src/comp_list.c)
+  
+# Mauricio -- Tests Tree Functions
+ADD_EXECUTABLE(test_tree
+  tests/test_tree.c
+  src/comp_tree.c)
+  
 # Marcelo -- Enables Debug information
 ADD_DEFINITIONS(-g)
