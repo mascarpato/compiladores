@@ -174,6 +174,8 @@ ListNode *list_terminate(ListNode *begin) {
 			free(pAux);
 			pAux = NULL;
 		}
+		// v 2.0
+		return NULL;
 	}
 }
 

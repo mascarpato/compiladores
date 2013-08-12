@@ -67,7 +67,7 @@ extern ListNode *list_concatenate(ListNode *list1, ListNode *list2);
 
 /** \brief Terminates a list, freeing all nodes.
  * 
- * 	Usage: list_terminate(list);
+ * 	Usage: list = list_terminate(list);
  */
 extern ListNode *list_terminate(ListNode *begin);
 

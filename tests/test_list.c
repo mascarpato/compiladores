@@ -60,7 +60,7 @@ int main() {
 	// Should return null here, because element doesnt exist.
   assert(list_get(list2, 2) == NULL); 
   
-  list_terminate(list2);
+  list2 = list_terminate(list2);
   
   // New test ---------------------------------
   ListNode *list3 = list_create();
@@ -74,6 +74,6 @@ int main() {
   list3 = list_remove(list3, &vector[2]);
   list3 = list_remove(list3, &vector[0]);
   assert(list_size(list3) == 1);
-  list_terminate(list3);
+  list3 = list_terminate(list3);
   
 }

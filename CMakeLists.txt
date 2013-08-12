@@ -11,9 +11,13 @@ ADD_EXECUTABLE(main
   src/comp_graph.c
 )
 
-# Marcelo -- Tests Lists Functions
+# Marcelo -- Tests List Functions
 ADD_EXECUTABLE(test_list
   tests/test_list.c
   src/comp_list.c)
+# Marcelo -- Tests Dictionary Functions
+ADD_EXECUTABLE(test_dic
+	tests/test_dict.c
+	src/comp_dict.c)
 # Marcelo -- Enables Debug information
 ADD_DEFINITIONS(-g)
