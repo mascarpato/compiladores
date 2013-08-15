@@ -71,7 +71,7 @@ true { inc_charc(); return TK_LIT_TRUE; }
 "*/"      BEGIN(INITIAL);
 [^*\n]+   // eat comment in chunks
 "*"       // eat the lone star
-\n        yylineno++;
+\n        num_lines++;
 }
 
 "//".*"\n" { }

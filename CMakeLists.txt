@@ -28,6 +28,10 @@ ADD_EXECUTABLE(test_dic
 ADD_EXECUTABLE(test_tree
   tests/test_tree.c
   src/comp_tree.c)
+# Diego -- Tests Graph
+ADD_EXECUTABLE(test_graph
+  tests/test_graph.c
+  src/comp_graph.c)
 # Marcelo -- Enables Debug information
 ADD_DEFINITIONS(-g)
 

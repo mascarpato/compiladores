@@ -20,7 +20,7 @@ Dict *dict_create(int size) {
 	return dict;
 }
 
-Dict *dict_insert(Dict *dict, char *key, char *data) {
+Dict *dict_insert(Dict *dict, char *key, char *data, int occLine) {
 	int i=0, found = 0;
 	
 		// Checks if key is already on the table
@@ -50,6 +50,7 @@ Dict *dict_insert(Dict *dict, char *key, char *data) {
 		
 		dict->begin[i-1].key = malloc(sizeof(char)*strlen(key)+1);
 		dict->begin[i-1].data = malloc(sizeof(char)*strlen(data)+1);
+		dict->begin[i-1].occLine = occLine;
 		dict->begin[i-1].valid=1;
 		
 		strcpy(dict->begin[i-1].key, key);

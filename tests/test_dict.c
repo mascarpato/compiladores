@@ -22,7 +22,7 @@ int main (int argc, char *argv[]) {
 			sprintf(str2, "data %d", j);
 			
 			//printf("Adding new(%d) value  to a dict with size (%d, %d)\n",j, dict->size, dict_getmaxsize(dict));
-			dict_insert(dict,str1, str2);
+			dict_insert(dict,str1, str2, 0);
 			assert(dict_getsize(dict) == j+1);
 		}
 		
@@ -36,9 +36,9 @@ int main (int argc, char *argv[]) {
 	dict2 = dict_create(20);
 	assert(dict_getsize(dict2) == 0);
 	assert(dict_getmaxsize(dict2) == 20);
-	dict_insert(dict2, "key1", "data1");
-	dict_insert(dict2, "key2", "data2");
-	dict_insert(dict2, "key3", "data3");
+	dict_insert(dict2, "key1", "data1",0);
+	dict_insert(dict2, "key2", "data2",0);
+	dict_insert(dict2, "key3", "data3",0);
 	assert(dict_getsize(dict2) == 3);
 	assert(dict_getmaxsize(dict2) == 20);
 	assert(strcmp(dict_get(dict2, "key1"), "data1") == 0);
@@ -46,9 +46,10 @@ int main (int argc, char *argv[]) {
 	assert(strcmp(dict_get(dict2, "key3"), "data2") != 0);
 	
 	dict_remove(dict2, "key2");
-	dict_insert(dict2, "key2new", "data2new");
+	dict_insert(dict2, "key2new", "data2new",0);
 	assert(dict_get(dict2, "key2") == NULL);
 	assert(strcmp(dict_get(dict2, "key2new"), "data2new") == 0);
 	assert(dict2->size == 3);
 	dict2 = dict_terminate(dict2);
+	printf("It worked. be happy");
 }
