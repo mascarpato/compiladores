@@ -1,3 +1,9 @@
+/**
+ * Compiladores 2013/2
+ * 
+ * Group: Marcelo Brandalero, Diego Chim, Maurício Altieri.
+ */
+
 #include "../include/comp_list.h"
 
 ListNode *list_create() {
@@ -189,4 +195,23 @@ int list_size(ListNode *begin) {
 	}
 	
 	return i;
+}
+
+void list_print(ListNode *begin) {
+	ListNode *ptAux = begin;
+	int i=0;
+	
+	if (begin == NULL) {
+		printf("begin == NULL.\n");
+		return;
+	} else {
+		printf("-------- Printing list --------\n");
+		while (ptAux != NULL) {
+			printf("---- Item %d ----\n", i);
+			printf("-- data : %d\n", *((int*) ptAux->data));
+			printf("--------\n");
+			ptAux = ptAux->next;
+			i++;
+		}
+	}
 }

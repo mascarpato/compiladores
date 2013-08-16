@@ -1,3 +1,12 @@
+/*! 
+ * Compiladores 2013/2
+ * 
+ * Group: Marcelo Brandalero, Diego Chim, Maurício Altieri.
+ * 
+ * @file comp_list.h
+ * 
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -74,3 +83,7 @@ extern ListNode *list_terminate(ListNode *begin);
 /** \brief Returns the size of the list.
  */
 extern int list_size(ListNode *begin);
+
+/** \brief Prints a human-readable representation of the list.
+ */
+extern void list_print(ListNode *begin);

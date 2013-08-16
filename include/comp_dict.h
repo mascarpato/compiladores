@@ -1,5 +1,9 @@
-/*! @file comp_dict.h
+/*! 
+ * Compiladores 2013/2
  * 
+ * Group: Marcelo Brandalero, Diego Chim, Maurício Altieri.
+ * 
+ * @file comp_dict.h
  */
 
 #include <stdio.h>
@@ -71,3 +75,6 @@ extern int dict_getsize(Dict *dict);
 /*! \brief Gets the current maximum size of the dictionary.
  */
 extern int dict_getmaxsize(Dict *dict);
+
+/*! \brief Prints to stdout a human-readable representation of the dictionary. */
+extern void dict_print(Dict *dict);

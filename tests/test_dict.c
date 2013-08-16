@@ -10,7 +10,7 @@ int main (int argc, char *argv[]) {
 	char str2[10];
 	
 // 	for (i = 1; i < 20; i++) {
-	for (i = 1; i < 10; i++) {
+	for (i = 1; i < 20; i++) {
 		maxsize = i*100;
 		printf("\n\n%d th run: trying for a size of %d words\n", i, maxsize);
 		dict = dict_create(maxsize);
@@ -50,6 +50,7 @@ int main (int argc, char *argv[]) {
 	assert(dict_get(dict2, "key2") == NULL);
 	assert(strcmp(dict_get(dict2, "key2new"), "data2new") == 0);
 	assert(dict2->size == 3);
+	dict_print(dict2);
 	dict2 = dict_terminate(dict2);
-	printf("It worked. be happy");
+	printf("It worked. be happy\n");
 }

@@ -1,5 +1,11 @@
-/*! @FILE comp_graph.h 
-*/
+/*! 
+ * Compiladores 2013/2
+ * 
+ * Group: Marcelo Brandalero, Diego Chim, Maurício Altieri.
+ * 
+ * @file comp_graph.h
+ * 
+ */
 #include <stdio.h>
 #include <stdlib.h>
 

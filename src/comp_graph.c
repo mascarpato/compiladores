@@ -1,3 +1,9 @@
+/**
+ * Compiladores 2013/2
+ * 
+ * Group: Marcelo Brandalero, Diego Chim, Maurício Altieri.
+ */
+
 #include "../include/comp_graph.h"
 
 // A utility function to create a new adjacency list node

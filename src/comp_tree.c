@@ -1,3 +1,9 @@
+/**
+ * Compiladores 2013/2
+ * 
+ * Group: Marcelo Brandalero, Diego Chim, Maurício Altieri.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include "comp_tree.h"

@@ -76,7 +76,8 @@ true { inc_charc(); return TK_LIT_TRUE; }
 
 "//".*"\n" { }
      
-. { inc_charc(); return TOKEN_ERRO; }
+. { inc_charc(); printf("Unexpected %s at line %d.\n", strlen(yytext), 
+num_lines); return TOKEN_ERRO; }
 %%
 int getCharCount(void) {
 	return num_chars;
@@ -84,4 +85,8 @@ int getCharCount(void) {
 
 int getLineNumber(void) {
   return num_lines;
+}
+
+char *getTokenValue(void) {
+	return yytext;
 }
