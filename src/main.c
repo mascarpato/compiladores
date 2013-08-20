@@ -44,6 +44,6 @@ int main (int argc, char **argv)
 	}
   }
   
-  dict_print(sym_table);
+  //dict_print(sym_table);
   return 0;
 }

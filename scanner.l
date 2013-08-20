@@ -1,7 +1,7 @@
 %{
 #include "tokens.h"
 #include <string.h>
-int num_lines=0;
+int num_lines=1;
 int pos_in_line = 0;
 int num_chars=0;
 void inc_charc() {
@@ -13,7 +13,8 @@ void inc_charc() {
 %x IN_COMMENT
 
 %%
-" " { inc_charc(); num_chars++; }
+" " { inc_charc(); }
+"	" { inc_charc(); }
 "int" { inc_charc(); return TK_PR_INT; }
 "float" { inc_charc(); return TK_PR_FLOAT; }
 "bool" { inc_charc(); return TK_PR_BOOL; }
@@ -74,10 +75,9 @@ true { inc_charc(); return TK_LIT_TRUE; }
 \n        num_lines++;
 }
 
-"//".*"\n" { }
+"//".*"\n" { pos_in_line=0; num_lines++; }
      
-. { inc_charc(); printf("Unexpected %s at line %d.\n", strlen(yytext), 
-num_lines); return TOKEN_ERRO; }
+. { inc_charc(); return TOKEN_ERRO; } //printf("Unexpected %s at line %d.\n", yytext, num_lines); 
 %%
 int getCharCount(void) {
 	return num_chars;
