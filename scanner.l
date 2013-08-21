@@ -66,16 +66,16 @@ true { inc_charc(); return TK_LIT_TRUE; }
 "\n" { inc_charc(); pos_in_line=0; num_lines++; }
 
 <INITIAL>{
-"/*"              BEGIN(IN_COMMENT);
+"/*"   { BEGIN(IN_COMMENT); }
 }
 <IN_COMMENT>{
-"*/"      BEGIN(INITIAL);
-[^*\n]+   // eat comment in chunks
-"*"       // eat the lone star
-\n        num_lines++;
+"*/"      { BEGIN(INITIAL); }
+[^*\n]+   { inc_charc(); } // eat comment in chunks
+"*"       { inc_charc(); } // eat the lone star
+\n        { num_lines++; pos_in_line=0; }
 }
 
-"//".*"\n" { pos_in_line=0; num_lines++; }
+"//".*"\n" { inc_charc(); pos_in_line=0; num_lines++; }
      
 . { inc_charc(); return TOKEN_ERRO; } //printf("Unexpected %s at line %d.\n", yytext, num_lines); 
 %%
@@ -85,8 +85,4 @@ int getCharCount(void) {
 
 int getLineNumber(void) {
   return num_lines;
-}
-
-char *getTokenValue(void) {
-	return yytext;
 }

@@ -35,3 +35,12 @@ ADD_EXECUTABLE(test_graph
 # Marcelo -- Enables Debug information
 ADD_DEFINITIONS(-g)
 
+ADD_EXECUTABLE(auto_test_e1
+  ${FLEX_scanner_OUTPUTS}
+  tests/main_aval_e1.c
+  src/comp_dict.c
+  src/comp_list.c
+  src/comp_tree.c
+  src/comp_graph.c
+)
+TARGET_LINK_LIBRARIES(auto_test_e1 ${FLEX_LIBRARIES})

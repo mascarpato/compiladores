@@ -55,8 +55,12 @@ Dict *dict_insert(Dict *dict, char *key, char *data, int occLine) {
 			found = 1; // Will insert new
 		} else {
 			if (dict->begin[i].key != NULL)
-				if (strcmp(dict->begin[i].key, key) == 0)
+				if (strcmp(dict->begin[i].key, key) == 0) {
 					found = 1; // Will replace
+					// frees old space in memory. will later alloc again.
+					free(dict->begin[i].key);
+					free(dict->begin[i].data);
+				}
 		}
 	}
 	
