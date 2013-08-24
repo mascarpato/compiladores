@@ -1,5 +1,5 @@
 %{
-#include "tokens.h"
+#include "parser.h"
 #include <string.h>
 int num_lines=1;
 int pos_in_line = 0;
@@ -8,6 +8,7 @@ void inc_charc() {
 	num_chars += strlen(yytext);
 	pos_in_line += strlen(yytext);
 }
+
 %}
 
 %x IN_COMMENT
