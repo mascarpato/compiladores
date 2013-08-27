@@ -1,6 +1,13 @@
+/**
+ * Compiladores 2013/2
+ * 
+ * Group: Marcelo Brandalero, Diego Chim, Mauricio Altieri.
+ */
+
 #include "../include/comp_dict.h"
 
 void dict_augment(Dict *dict);
+int dict_hashentry(char *key); 
 
 Dict *dict_create(int size) {
 	Dict *dict = malloc(sizeof(Dict));
@@ -20,44 +27,53 @@ Dict *dict_create(int size) {
 	return dict;
 }
 
-Dict *dict_insert(Dict *dict, char *key, char *data) {
+Dict *dict_insert(Dict *dict, char *key, char *data, int occLine) {
 	int i=0, found = 0;
 	
-		// Checks if key is already on the table
-	for (i = 0; i < dict->max_size && !found; i++) {
-		if (dict->begin[i].valid)
-			if (strcmp(dict->begin[i].key, key) == 0) {
-				// Already on the table.
-				found = 1;
-			}
-	}
-	if (found)
-		return;
-	else {
-			// Data is not on the dictionary. Should insert.
+	int pos = dict_hashentry(key) % dict->max_size;
 	
-		if (dict->size == dict->max_size) {
-			dict_augment(dict);
-		}
-		
-		found = 0;
-			// Gets insertion position
-		for (i = 0; i < dict->max_size && !found; i++) {
-			if (dict->begin[i].valid == 0) {
-				found = 1;
-			}
-		}
-		
-		dict->begin[i-1].key = malloc(sizeof(char)*strlen(key)+1);
-		dict->begin[i-1].data = malloc(sizeof(char)*strlen(data)+1);
-		dict->begin[i-1].valid=1;
-		
-		strcpy(dict->begin[i-1].key, key);
-		strcpy(dict->begin[i-1].data, data);
-		dict->size = dict->size+1;
-		
-		return dict;
+		// Checks if key is already on the table
+		// Marcelo -- Commented out as we now replace the data
+		// with the new values.
+// 	for (i = pos; i < dict->max_size && !found; i++) {
+// 		if (dict->begin[i].valid)
+// 			if (strcmp(dict->begin[i].key, key) == 0) {
+// 				// Already on the table.
+// 				found = 1;
+// 			}
+// 	}
+	
+	// Inserts or replaces data
+	if (dict->size == dict->max_size) {
+		dict_augment(dict);
 	}
+	
+	found = 0;
+		// Gets insertion position
+	for (i = pos; i < dict->max_size && !found; i++) {
+		if (dict->begin[i].valid == 0) {
+			found = 1; // Will insert new
+		} else {
+			if (dict->begin[i].key != NULL)
+				if (strcmp(dict->begin[i].key, key) == 0) {
+					found = 1; // Will replace
+					// frees old space in memory. will later alloc again.
+					free(dict->begin[i].key);
+					free(dict->begin[i].data);
+				}
+		}
+	}
+	
+	dict->begin[i-1].key = malloc(sizeof(char)*strlen(key)+1);
+	dict->begin[i-1].data = malloc(sizeof(char)*strlen(data)+1);
+	dict->begin[i-1].occLine = occLine;
+	dict->begin[i-1].valid=1;
+	
+	strcpy(dict->begin[i-1].key, key);
+	strcpy(dict->begin[i-1].data, data);
+	dict->size = dict->size+1;
+	
+	return dict;
 }
 
 Dict *dict_remove(Dict *dict, char *key) {
@@ -104,9 +120,9 @@ void dict_augment(Dict *dict) {
 	int i=0;
 	int newSize;
 	
-	printf("------ Expanding...\n \
-		------ Current size: %d out of %d\n", dict->size, dict->max_size
-	);
+// 	printf("------ Expanding...\n \
+// 		------ Current size: %d out of %d\n", dict->size, dict->max_size
+// 	);
 	DictItem *ptAux = dict->begin;
 	do {
 		i++;
@@ -119,9 +135,9 @@ void dict_augment(Dict *dict) {
 	dict->max_size = newSize;
 	for(i = dict->size; i < newSize; i++)
 		dict->begin[i].valid = 0;
-	printf("------ Expanded.\n \
-		------ Current size: %d out of %d\n", dict->size, dict->max_size
-	);
+// 	printf("------ Expanded.\n \
+// 		------ Current size: %d out of %d\n", dict->size, dict->max_size
+// 	);
 }
 
 int dict_getsize(Dict *dict) {
@@ -153,87 +169,43 @@ char *dict_get(Dict *dict, char *key) {
 		return NULL;
 }
 
-// 
-// /* Create a key-value pair. */
-// entry_t *dict_newpair( char *key, char *value ) {
-// 	entry_t *newpair;
-// 	
-// 	if( ( newpair = malloc( sizeof( entry_t ) ) ) == NULL ) {
-// 		return NULL;
-// 	}
-// 	
-// 	if( ( newpair->key = strdup( key ) ) == NULL ) {
-// 		return NULL;
-// 	}
-// 	
-// 	if( ( newpair->value = strdup( value ) ) == NULL ) {
-// 		return NULL;
-// 	}
-// 	
-// 	newpair->next = NULL;
-// 	
-// 	return newpair;
-// }
-// 
-// /* Insert a key-value pair into a hash table. */
-// void dict_set( hashtable_t *hashtable, char *key, char *value ) {
-// 	int bin = 0;
-// 	entry_t *newpair = NULL;
-// 	entry_t *next = NULL;
-// 	entry_t *last = NULL;
-// 	
-// 	bin = dict_hash( hashtable, key );
-// 	
-// 	next = hashtable->table[ bin ];
-// 	
-// 	while( next != NULL && next->key != NULL && strcmp( key, next->key ) > 0 ) {
-// 		last = next;
-// 		next = next->next;
-// 	}
-// 	
-// 	/* There's already a pair. Let's replace that string. */
-// 	if( next != NULL && next->key != NULL && strcmp( key, next->key ) == 0 ) {
-// 		
-// 		free( next->value );
-// 		next->value = strdup( value );
-// 		
-// 		/* Nope, could't find it. Time to grow a pair. */
-// 	} else {
-// 		newpair = dict_newpair( key, value );
-// 		
-// 		/* We're at the start of the linked list in this bin. */
-// 		if( next == hashtable->table[ bin ] ) {
-// 			newpair->next = next;
-// 			hashtable->table[ bin ] = newpair;
-// 			/* We're at the end of the linked list in this bin. */
-// 		} else if ( next == NULL ) {
-// 			last->next = newpair;
-// 			/* We're in the middle of the list. */
-// 		} else {
-// 			newpair->next = next;
-// 			last->next = newpair;
-// 		}
-// 	}
-// }
-// 
-// /* Retrieve a key-value pair from a hash table. */
-// char *dict_get( hashtable_t *hashtable, char *key ) {
-// 	int bin = 0;
-// 	entry_t *pair;
-// 	
-// 	bin = dict_hash( hashtable, key );
-// 	
-// 	/* Step through the bin, looking for our value. */
-// 	pair = hashtable->table[ bin ];
-// 	while( pair != NULL && pair->key != NULL && strcmp( key, pair->key ) > 0 ) {
-// 		pair = pair->next;
-// 	}
-// 	
-// 	/* Did we actually find anything? */
-// 	if( pair == NULL || pair->key == NULL || strcmp( key, pair->key ) != 0 ) {
-// 		return NULL;
-// 		
-// 	} else {
-// 		return pair->value;
-// 	}
-// }
+int dict_hashentry(char *key) {
+	int i=0, hash=0;
+	
+	if (key == NULL)
+		return 0;
+	
+		// Yet Another Hash Function
+	for(i == 0; i < strlen(key); i++) {
+		hash = (hash << 3) + (int) 3*key[i];
+	}
+	if (hash > 0)
+		return hash;
+	else
+		return -hash;
+}
+
+void dict_print(Dict *dict) {
+	int i;
+	if (dict == NULL) {
+		printf("dict == NULL.\n");
+		return;
+	} else if (dict->begin == NULL) {
+		printf("dict->begin == NULL.\n");
+		return;
+	} else {
+		printf("-------- Printing dictionary --------\n");
+		for (i = 0; i < dict->max_size; i++) {
+			printf("---- Item %d ----\n", i);
+			printf("-- valid : %d\n", dict->begin[i].valid);
+			if (dict->begin[i].key != NULL)
+				printf("-- key : %s\n", dict->begin[i].key);
+			if (dict->begin[i].data != NULL)
+				printf("-- data : %s\n", dict->begin[i].data);
+			printf("-- occLine : %d\n", dict->begin[i].occLine);
+			if (dict->begin[i].key != NULL)
+				printf("-- hashval = %d\n", dict_hashentry(dict->begin[i].key));
+			printf("--------\n");
+		}
+	}
+}

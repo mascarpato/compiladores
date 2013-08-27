@@ -1,19 +1,21 @@
 %{
-#include "tokens.h"
+#include "parser.h"
 #include <string.h>
-int num_lines=0;
+int num_lines=1;
 int pos_in_line = 0;
 int num_chars=0;
 void inc_charc() {
 	num_chars += strlen(yytext);
 	pos_in_line += strlen(yytext);
 }
+
 %}
 
 %x IN_COMMENT
 
 %%
-" " { inc_charc(); num_chars++; }
+" " { inc_charc(); }
+"	" { inc_charc(); }
 "int" { inc_charc(); return TK_PR_INT; }
 "float" { inc_charc(); return TK_PR_FLOAT; }
 "bool" { inc_charc(); return TK_PR_BOOL; }
@@ -65,18 +67,18 @@ true { inc_charc(); return TK_LIT_TRUE; }
 "\n" { inc_charc(); pos_in_line=0; num_lines++; }
 
 <INITIAL>{
-"/*"              BEGIN(IN_COMMENT);
+"/*"   { BEGIN(IN_COMMENT); }
 }
 <IN_COMMENT>{
-"*/"      BEGIN(INITIAL);
-[^*\n]+   // eat comment in chunks
-"*"       // eat the lone star
-\n        yylineno++;
+"*/"      { BEGIN(INITIAL); }
+[^*\n]+   { inc_charc(); } // eat comment in chunks
+"*"       { inc_charc(); } // eat the lone star
+\n        { num_lines++; pos_in_line=0; }
 }
 
-"//".*"\n" { }
+"//".*"\n" { inc_charc(); pos_in_line=0; num_lines++; }
      
-. { inc_charc(); return TOKEN_ERRO; }
+. { inc_charc(); return TOKEN_ERRO; } //printf("Unexpected %s at line %d.\n", yytext, num_lines); 
 %%
 int getCharCount(void) {
 	return num_chars;

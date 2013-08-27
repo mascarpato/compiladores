@@ -1,15 +1,30 @@
+/**
+ * Compiladores 2013/2
+ * 
+ * Group: Marcelo Brandalero, Diego Chim, Maurício Altieri.
+ */
+
+/*
+   main.c
+
+   Arquivo principal do analisador sintÃ¡tico.
+*/
+
 #include <stdio.h>
 #include "comp_dict.h"
 #include "comp_list.h"
 #include "comp_tree.h"
 #include "comp_graph.h"
-#include "tokens.h"
+
+
+void yyerror (char const *mensagem)
+{
+  fprintf (stderr, "%s\n", mensagem);
+}
 
 int main (int argc, char **argv)
 {
-  int token = TOKEN_ERRO;
-  while (token = yylex()){
-    printf ("token <%d> at %d\n", token, getLineNumber());
-  }
-  return 0;
+  int resultado = yyparse();
+  return resultado;
 }
+

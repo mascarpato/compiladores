@@ -1,4 +1,8 @@
 /**
+ * Compiladores 2013/2
+ * 
+ * Group: Marcelo Brandalero, Diego Chim, Maurício Altieri.
+ * 
  * @file comp_tree.h
  * @brief Tree data structure.
  *

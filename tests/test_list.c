@@ -38,6 +38,8 @@ int main() {
   assert(list_contains(list1, &(vector[2])));
   assert(!list_contains(list1, &(vector[3])));
   
+  list_print(list1);
+  
 	// Creates new empty list
   list2 = list_create();
   // Concatenates to new empty list the previous list.
@@ -60,6 +62,8 @@ int main() {
 	// Should return null here, because element doesnt exist.
   assert(list_get(list2, 2) == NULL); 
   
+  list_print(list2);
+  
   list2 = list_terminate(list2);
   
   // New test ---------------------------------
@@ -74,6 +78,11 @@ int main() {
   list3 = list_remove(list3, &vector[2]);
   list3 = list_remove(list3, &vector[0]);
   assert(list_size(list3) == 1);
+  
+  
+  list_print(list3);
+  
   list3 = list_terminate(list3);
+	printf("It worked. be happy\n");
   
 }

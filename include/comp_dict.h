@@ -1,3 +1,11 @@
+/*! 
+ * Compiladores 2013/2
+ * 
+ * Group: Marcelo Brandalero, Diego Chim, Maurício Altieri.
+ * 
+ * @file comp_dict.h
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,8 +17,9 @@
  */
 typedef struct comp_dict_item_t {
 	short valid; //!< Do not mess with me.
-	char *key;
-	char *data;
+	char *key; //! Symbol key
+	char *data; //! Symbol value
+	int occLine; //! Occurrence line
 } DictItem;
 
 /*! \brief Dictionary Data Type.
@@ -36,7 +45,7 @@ extern Dict *dict_create(int size);
  * 
  * Usage: dict = dict_insert(dict, "key", "data");
  */
-extern Dict *dict_insert(Dict *dict, char *key, char *data);
+extern Dict *dict_insert(Dict *dict, char *key, char *data, int occLine);
 
 /*! \brief Gets the word with specified key.
  * 
@@ -66,3 +75,6 @@ extern int dict_getsize(Dict *dict);
 /*! \brief Gets the current maximum size of the dictionary.
  */
 extern int dict_getmaxsize(Dict *dict);
+
+/*! \brief Prints to stdout a human-readable representation of the dictionary. */
+extern void dict_print(Dict *dict);
