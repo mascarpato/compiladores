@@ -1,6 +1,7 @@
 #include <stdio.h>
-#include "tokens.h"
 
+int main(){}
+/*
 extern char *yytext;
 extern int getLineNumber();
 #define print_nome(TOKEN) printf("%d " #TOKEN " [%s]\n", getLineNumber(), yytext);
@@ -63,3 +64,4 @@ break;
   }
   return 0;
 }
+*/
