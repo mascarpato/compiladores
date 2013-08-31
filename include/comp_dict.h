@@ -18,7 +18,7 @@
 typedef struct comp_dict_item_t {
 	short valid; //!< Do not mess with me.
 	char *key; //! Symbol key
-	char *data; //! Symbol value
+	int data; //! Symbol value
 	int occLine; //! Occurrence line
 } DictItem;
 
@@ -43,9 +43,9 @@ extern Dict *dict_create(int size);
 
 /*! \brief Inserts a new (key, data) pair in the dictionary.
  * 
- * Usage: dict = dict_insert(dict, "key", "data");
+ * Usage: dict = dict_insert(dict, "key", "data", "occurrence line");
  */
-extern Dict *dict_insert(Dict *dict, char *key, char *data, int occLine);
+extern DictItem *dict_insert(char *key, int data, int occLine);
 
 /*! \brief Gets the word with specified key.
  * 
@@ -53,28 +53,28 @@ extern Dict *dict_insert(Dict *dict, char *key, char *data, int occLine);
  * 
  * Note: Returns NULL if no word has the specified key.
  */
-extern char *dict_get(Dict *dict, char *key);
+extern int dict_get(char *key);
 
 /*! \brief Removes the word with key (key) from the dictionary. Nothing happens if the word is not found.
  * 
  * Usage: dict = dict_remove(dict, "key");
  * 
  */
-extern Dict *dict_remove(Dict *dict, char *key);
+extern Dict *dict_remove(char *key);
 
 /*! \brief Finishes the use of the dictionary. Call this when you are done.
  * 
  * Usage: dict = dict_terminate(dict)
  */
-extern Dict *dict_terminate(Dict *dict);
+extern Dict *dict_terminate();
 
 /*! \brief Gets the number of used slots in the dictionary.
  */
-extern int dict_getsize(Dict *dict);
+extern int dict_getsize();
 
 /*! \brief Gets the current maximum size of the dictionary.
  */
-extern int dict_getmaxsize(Dict *dict);
+extern int dict_getmaxsize();
 
 /*! \brief Prints to stdout a human-readable representation of the dictionary. */
-extern void dict_print(Dict *dict);
+extern void dict_print();

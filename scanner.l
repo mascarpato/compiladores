@@ -1,9 +1,22 @@
 %{
 #include "parser.h"
 #include <string.h>
+#include "comp_dict.h"
+#define SYM_TABLE_INITSIZE 100
+#define YY_USER_ACTION dict_create(SYM_TABLE_INITSIZE);
+
+#define IKS_SIMBOLO_INDEFINIDO 0
+#define IKS_SIMBOLO_LITERAL_INT 1
+#define IKS_SIMBOLO_LITERAL_FLOAT 2
+#define IKS_SIMBOLO_LITERAL_CHAR 3
+#define IKS_SIMBOLO_LITERAL_STRING 4
+#define IKS_SIMBOLO_LITERAL_BOOL 5
+#define IKS_SIMBOLO_IDENTIFICADOR 6
+
 int num_lines=1;
 int pos_in_line = 0;
 int num_chars=0;
+
 void inc_charc() {
 	num_chars += strlen(yytext);
 	pos_in_line += strlen(yytext);
@@ -57,13 +70,29 @@ void inc_charc() {
 "&" { inc_charc(); return (int) yytext[0]; }
 "$" { inc_charc(); return (int) yytext[0]; }
 
--?[[:digit:]]+ { inc_charc(); return TK_LIT_INT; }
--?[[:digit:]]+"."[[:digit:]]+ { inc_charc(); return TK_LIT_FLOAT; }
-false { inc_charc(); return TK_LIT_FALSE; }
-true { inc_charc(); return TK_LIT_TRUE; }
-'[[:print:]]' { inc_charc(); return TK_LIT_CHAR; }
-\"[^"]*\" { inc_charc(); return TK_LIT_STRING; }
-(_|[[:alpha:]])(_|[[:alnum:]])* { inc_charc(); return TK_IDENTIFICADOR; }
+-?[[:digit:]]+ { inc_charc(); 
+				yylval.symbol=dict_insert(yytext,IKS_SIMBOLO_LITERAL_INT,getLineNumber()); 
+				return TK_LIT_INT; }
+-?[[:digit:]]+"."[[:digit:]]+ { 
+				inc_charc(); 
+				yylval.symbol=dict_insert(yytext,IKS_SIMBOLO_LITERAL_FLOAT,getLineNumber()); 
+				return TK_LIT_FLOAT; }
+false { 		inc_charc(); 
+				yylval.symbol=dict_insert(yytext,IKS_SIMBOLO_LITERAL_BOOL,getLineNumber()); 
+				return TK_LIT_FALSE; }
+true { 			inc_charc(); 
+				yylval.symbol=dict_insert(yytext,IKS_SIMBOLO_LITERAL_BOOL,getLineNumber()); 
+				return TK_LIT_TRUE; }
+'[[:print:]]' { inc_charc(); 
+				yylval.symbol=dict_insert(yytext,IKS_SIMBOLO_LITERAL_CHAR,getLineNumber()); 
+				return TK_LIT_CHAR; }
+\"[^"]*\" { 	inc_charc(); 
+				yylval.symbol=dict_insert(yytext,IKS_SIMBOLO_LITERAL_STRING,getLineNumber()); 
+				return TK_LIT_STRING; }
+(_|[[:alpha:]])(_|[[:alnum:]])* { 
+				inc_charc(); 
+				yylval.symbol=dict_insert(yytext,IKS_SIMBOLO_IDENTIFICADOR,getLineNumber()); 
+				return TK_IDENTIFICADOR; }
 "\n" { inc_charc(); pos_in_line=0; num_lines++; }
 
 <INITIAL>{
@@ -80,6 +109,7 @@ true { inc_charc(); return TK_LIT_TRUE; }
      
 . { inc_charc(); return TOKEN_ERRO; } //printf("Unexpected %s at line %d.\n", yytext, num_lines); 
 %%
+
 int getCharCount(void) {
 	return num_chars;
 }
