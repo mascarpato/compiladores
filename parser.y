@@ -87,22 +87,25 @@ comando: comando-composto |
          comando-simples |
          /* empty */
 ;
+comando-nao-vazio: comando-composto | 
+         comando-simples
+;
 comando-composto: '{' comando-sequencia '}'
 ;
 comando-sequencia: comando-simples |
-		           comando-simples comando-sequencia |
+		           comando-simples ';' comando-sequencia |
 		           comando-composto |
 		           comando-composto comando-sequencia |
 		           /* empty */
 ; 
 comando-simples: comando-fluxo     | 	
-				 comando-outros ';'
+				 comando-outros
 ;
 comando-fluxo: condicional |
 				laco
 ;
 condicional: TK_PR_IF '(' expr ')' TK_PR_THEN comando |
-			 TK_PR_IF '(' expr ')' TK_PR_THEN comando TK_PR_ELSE comando
+			 TK_PR_IF '(' expr ')' TK_PR_THEN comando TK_PR_ELSE comando-nao-vazio
 ;
 
 laco: do-while |
@@ -119,7 +122,8 @@ comando-outros: comando-entrada |
     			comando-retorno | 
     			atribuicao |
     			declaracao-var-simples |
-    			chamada-funcao
+    			chamada-funcao |
+    			';'
 ;
 comando-retorno: TK_PR_RETURN expr
 ;
