@@ -70,10 +70,10 @@ void inc_charc() {
 "&" { inc_charc(); return (int) yytext[0]; }
 "$" { inc_charc(); return (int) yytext[0]; }
 
--?[[:digit:]]+ { inc_charc(); 
+[[:digit:]]+ { inc_charc(); //-?
 				yylval.symbol=dict_insert(yytext,IKS_SIMBOLO_LITERAL_INT,getLineNumber()); 
 				return TK_LIT_INT; }
--?[[:digit:]]+"."[[:digit:]]+ { 
+[[:digit:]]+"."[[:digit:]]+ { //-?
 				inc_charc(); 
 				yylval.symbol=dict_insert(yytext,IKS_SIMBOLO_LITERAL_FLOAT,getLineNumber()); 
 				return TK_LIT_FLOAT; }

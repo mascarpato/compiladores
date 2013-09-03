@@ -63,7 +63,12 @@ tipo: TK_PR_INT |
           TK_PR_STRING
 ;
 
-declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-declaracao-funcao ')' comando-composto 
+declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lista-var-local comando-composto 
+;
+
+lista-var-local: declaracao-var-simples ';' |
+				 declaracao-var-simples ';' lista-var-local |
+				 /* empty */
 ;
 
 declaracao-varglobal: declaracao-var-simples |
@@ -72,7 +77,10 @@ declaracao-varglobal: declaracao-var-simples |
 
 declaracao-var-simples: tipo ':' TK_IDENTIFICADOR
 ;
-declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']'
+declaracao-vetor: tipo ':' vetor
+;
+
+vetor: TK_IDENTIFICADOR '[' expr ']'
 ;
 
 comando: comando-composto | 
@@ -83,6 +91,8 @@ comando-composto: '{' comando-sequencia '}'
 ;
 comando-sequencia: comando-simples |
 		           comando-simples comando-sequencia |
+		           comando-composto |
+		           comando-composto comando-sequencia |
 		           /* empty */
 ; 
 comando-simples: comando-fluxo     | 	
@@ -126,7 +136,7 @@ atribuicao: atribuicao-simples |
 ;
 atribuicao-simples: TK_IDENTIFICADOR '=' expr
 ;
-atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr
+atribuicao-vetor: vetor '=' expr
 ;
 
 expr: '(' expr ')' |
@@ -143,29 +153,41 @@ expr: '(' expr ')' |
     expr '-' expr |
     expr '*' expr |
     expr '/' expr |
-    termo | 
-    chamada-funcao
+    termo
 ;
 
 chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')'
 ;
 
-parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR | 
-    tipo ':' TK_IDENTIFICADOR ',' parametros-declaracao-funcao |
-    
+parametros-funcao-empty : parametros-declaracao-funcao |
+									 /* empty */
 ;
-parametros-chamada-funcao: TK_IDENTIFICADOR |
-    TK_IDENTIFICADOR ',' parametros-chamada-funcao |
+
+parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR | 
+    tipo ':' TK_IDENTIFICADOR ',' parametros-declaracao-funcao
+;
+parametros-chamada-funcao: termo |
+    termo ',' parametros-chamada-funcao |
     /* empty */ 
 ;
 
 termo: TK_IDENTIFICADOR |
-           TK_LIT_INT |
-           TK_LIT_FLOAT |
+		vetor |
+		chamada-funcao |
+           integer |
+           float |
            TK_LIT_FALSE |
            TK_LIT_TRUE |
            TK_LIT_CHAR |
            TK_LIT_STRING
+;
+
+integer: TK_LIT_INT |
+		 '-' TK_LIT_INT
+;
+
+float: TK_LIT_FLOAT |
+		 '-' TK_LIT_FLOAT
 ;
 %%
 
