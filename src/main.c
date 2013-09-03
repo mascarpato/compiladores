@@ -17,10 +17,10 @@
 #include "comp_graph.h"
 
 
-void yyerror (char const *mensagem)
+/*void yyerror (char const *mensagem)
 {
   fprintf (stderr, "%s\n", mensagem);
-}
+}*/
 
 int main (int argc, char **argv)
 {

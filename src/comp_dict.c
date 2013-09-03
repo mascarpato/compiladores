@@ -9,8 +9,10 @@
 void dict_augment(Dict *dict);
 int dict_hashentry(char *key); 
 
+Dict *dict;
+
 Dict *dict_create(int size) {
-	Dict *dict = malloc(sizeof(Dict));
+	dict = malloc(sizeof(Dict));
 	dict->size = 0;
 	dict->max_size = size;
 	dict->begin = NULL;
@@ -27,9 +29,9 @@ Dict *dict_create(int size) {
 	return dict;
 }
 
-Dict *dict_insert(Dict *dict, char *key, char *data, int occLine) {
+DictItem *dict_insert(char *key, int data, int occLine) {
 	int i=0, found = 0;
-	
+
 	int pos = dict_hashentry(key) % dict->max_size;
 	
 		// Checks if key is already on the table
@@ -42,12 +44,12 @@ Dict *dict_insert(Dict *dict, char *key, char *data, int occLine) {
 // 				found = 1;
 // 			}
 // 	}
-	
+
 	// Inserts or replaces data
 	if (dict->size == dict->max_size) {
 		dict_augment(dict);
 	}
-	
+
 	found = 0;
 		// Gets insertion position
 	for (i = pos; i < dict->max_size && !found; i++) {
@@ -59,24 +61,22 @@ Dict *dict_insert(Dict *dict, char *key, char *data, int occLine) {
 					found = 1; // Will replace
 					// frees old space in memory. will later alloc again.
 					free(dict->begin[i].key);
-					free(dict->begin[i].data);
 				}
 		}
 	}
 	
 	dict->begin[i-1].key = malloc(sizeof(char)*strlen(key)+1);
-	dict->begin[i-1].data = malloc(sizeof(char)*strlen(data)+1);
+	dict->begin[i-1].data = data;
 	dict->begin[i-1].occLine = occLine;
 	dict->begin[i-1].valid=1;
 	
 	strcpy(dict->begin[i-1].key, key);
-	strcpy(dict->begin[i-1].data, data);
 	dict->size = dict->size+1;
 	
-	return dict;
+	return &(dict->begin[i-1]);
 }
 
-Dict *dict_remove(Dict *dict, char *key) {
+Dict *dict_remove(char *key) {
 	int i=0, found = 0;
 	
 		// Gets item position
@@ -88,9 +88,8 @@ Dict *dict_remove(Dict *dict, char *key) {
 	
 	if (found) {
 		free(dict->begin[i-1].key);
-		free(dict->begin[i-1].data);
 		dict->begin[i-1].key = NULL;
-		dict->begin[i-1].data = NULL;
+		dict->begin[i-1].data = 0;
 		dict->begin[i-1].valid = 0;
 
 		dict->size--;
@@ -99,14 +98,13 @@ Dict *dict_remove(Dict *dict, char *key) {
 		return dict;
 }
 
-Dict *dict_terminate(Dict *dict) {
+Dict *dict_terminate() {
 	int i;
 	
 	for (i = 0; i < dict->max_size; i++) {
 		//printf("Calling free twice here!\n");
 		if (dict->begin[i].valid) {
 			free(dict->begin[i].key);
-			free(dict->begin[i].data);
 		}
 	}
 	free(dict->begin);
@@ -140,20 +138,20 @@ void dict_augment(Dict *dict) {
 // 	);
 }
 
-int dict_getsize(Dict *dict) {
+int dict_getsize() {
 	if (dict != NULL)
 		return dict->size;
 	else
 		return -1;
 }
-int dict_getmaxsize(Dict *dict) {
+int dict_getmaxsize() {
 	if (dict != NULL)
 		return dict->max_size;
 	else
 		return -1;
 }
 
-char *dict_get(Dict *dict, char *key) {
+int dict_get(char *key) {
 	DictItem *ptAux = dict->begin;
 	int found = 0, i = 0;
 	
@@ -166,26 +164,27 @@ char *dict_get(Dict *dict, char *key) {
 	if (found) {
 		return dict->begin[i-1].data;
 	} else
-		return NULL;
+		return -1;
 }
 
 int dict_hashentry(char *key) {
 	int i=0, hash=0;
-	
+
 	if (key == NULL)
 		return 0;
-	
+
 		// Yet Another Hash Function
 	for(i == 0; i < strlen(key); i++) {
-		hash = (hash << 3) + (int) 3*key[i];
+		hash = (hash << 3) + (int) 3*key[i];			
 	}
+
 	if (hash > 0)
 		return hash;
 	else
 		return -hash;
 }
 
-void dict_print(Dict *dict) {
+void dict_print() {
 	int i;
 	if (dict == NULL) {
 		printf("dict == NULL.\n");
@@ -200,8 +199,8 @@ void dict_print(Dict *dict) {
 			printf("-- valid : %d\n", dict->begin[i].valid);
 			if (dict->begin[i].key != NULL)
 				printf("-- key : %s\n", dict->begin[i].key);
-			if (dict->begin[i].data != NULL)
-				printf("-- data : %s\n", dict->begin[i].data);
+
+			printf("-- data : %d\n", dict->begin[i].data);
 			printf("-- occLine : %d\n", dict->begin[i].occLine);
 			if (dict->begin[i].key != NULL)
 				printf("-- hashval = %d\n", dict_hashentry(dict->begin[i].key));
