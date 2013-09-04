@@ -34,8 +34,6 @@ DictItem *dict_insert(char *key, int sym_type, int occLine) {
 
 	int pos = dict_hashentry(key) % dict->max_size;
 	
-	printf("Inserting %s into dict\n", key);
-	
 		// Checks if key is already on the table
 		// Marcelo -- Commented out as we now replace the data
 		// with the new values.
@@ -81,7 +79,6 @@ DictItem *dict_insert(char *key, int sym_type, int occLine) {
 			break;
 		case SYMTYPE_FLOAT_LIT:
 			symSetFloat(&dict->begin[i-1].symbol, atof(key));
-			printf("Inserting float..\n");
 			break;
 		case SYMTYPE_CHAR_LIT:
 			symSetChar(&dict->begin[i-1].symbol, *key);

@@ -93,8 +93,7 @@ true 			{
 					free(str);
 					return TK_LIT_STRING; }
 (_|[[:alpha:]])(_|[[:alnum:]])* { 
-					inc_charc(); 
-					printf("Inserting identifier..\n");
+					inc_charc();
 					yylval.symbol=dict_insert(yytext,SYMTYPE_IDENT,getLineNumber()); 
 					return TK_IDENTIFICADOR; }
 "\n" { 
