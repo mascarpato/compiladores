@@ -29,10 +29,12 @@ Dict *dict_create(int size) {
 	return dict;
 }
 
-DictItem *dict_insert(char *key, int data, int occLine) {
+DictItem *dict_insert(char *key, int sym_type, int occLine) {
 	int i=0, found = 0;
 
 	int pos = dict_hashentry(key) % dict->max_size;
+	
+	printf("Inserting %s into dict\n", key);
 	
 		// Checks if key is already on the table
 		// Marcelo -- Commented out as we now replace the data
@@ -66,12 +68,37 @@ DictItem *dict_insert(char *key, int data, int occLine) {
 	}
 	
 	dict->begin[i-1].key = malloc(sizeof(char)*strlen(key)+1);
-	dict->begin[i-1].data = data;
+	strcpy(dict->begin[i-1].key, key);
 	dict->begin[i-1].occLine = occLine;
 	dict->begin[i-1].valid=1;
-	
-	strcpy(dict->begin[i-1].key, key);
 	dict->size = dict->size+1;
+	
+	switch(sym_type) {
+		case SYMTYPE_INT_LIT:
+			symSetInt(&dict->begin[i-1].symbol, atoi(key));
+			//dict->begin[i-1].symbol.symbol.data_int = atoi(key);
+			//dict->begin[i-1].symbol.symType = SYMTYPE_INT_LIT;
+			break;
+		case SYMTYPE_FLOAT_LIT:
+			symSetFloat(&dict->begin[i-1].symbol, atof(key));
+			printf("Inserting float..\n");
+			break;
+		case SYMTYPE_CHAR_LIT:
+			symSetChar(&dict->begin[i-1].symbol, *key);
+			break;
+		case SYMTYPE_STRING_LIT:
+			symSetString(&dict->begin[i-1].symbol, key);
+			break;
+		case SYMTYPE_BOOL_LIT:
+			symSetBool(&dict->begin[i-1].symbol, *key == 't' ? 1 : 0);
+			break;
+		case SYMTYPE_IDENT:
+			symSetIdent(&dict->begin[i-1].symbol, key);
+			break;
+		default:
+			dict->begin[i-1].symbol.symType = SYMTYPE_UNDEF;
+			break;
+	}
 	
 	return &(dict->begin[i-1]);
 }
@@ -89,7 +116,7 @@ Dict *dict_remove(char *key) {
 	if (found) {
 		free(dict->begin[i-1].key);
 		dict->begin[i-1].key = NULL;
-		dict->begin[i-1].data = 0;
+		dict->begin[i-1].symbol.symType = SYMTYPE_UNDEF;
 		dict->begin[i-1].valid = 0;
 
 		dict->size--;
@@ -151,7 +178,7 @@ int dict_getmaxsize() {
 		return -1;
 }
 
-int dict_get(char *key) {
+void *dict_get(char *key) {
 	DictItem *ptAux = dict->begin;
 	int found = 0, i = 0;
 	
@@ -162,9 +189,24 @@ int dict_get(char *key) {
 	}
 	
 	if (found) {
-		return dict->begin[i-1].data;
+		switch(dict->begin[i-1].symbol.symType) {
+			case SYMTYPE_INT_LIT:
+				return &dict->begin[i-1].symbol.symbol.data_int;
+			case SYMTYPE_FLOAT_LIT:
+				return &dict->begin[i-1].symbol.symbol.data_float;
+			case SYMTYPE_CHAR_LIT:
+				return &dict->begin[i-1].symbol.symbol.data_char;
+			case SYMTYPE_STRING_LIT:
+				return dict->begin[i-1].symbol.symbol.data_string;
+			case SYMTYPE_BOOL_LIT:
+				return &dict->begin[i-1].symbol.symbol.data_bool;
+			case SYMTYPE_IDENT:
+				return dict->begin[i-1].symbol.symbol.ident;
+			default:
+				return NULL;
+		}
 	} else
-		return -1;
+		return NULL;
 }
 
 int dict_hashentry(char *key) {
@@ -200,7 +242,34 @@ void dict_print() {
 			if (dict->begin[i].key != NULL)
 				printf("-- key : %s\n", dict->begin[i].key);
 
-			printf("-- data : %d\n", dict->begin[i].data);
+			switch(dict->begin[i].symbol.symType) {
+				case SYMTYPE_INT_LIT:
+					printf("-- data : %d\n", dict->begin[i].symbol.symbol.data_int);
+					printf("-- symbol type : INTEGER \n");
+					break;
+				case SYMTYPE_FLOAT_LIT:
+					printf("-- data : %f\n", dict->begin[i].symbol.symbol.data_float);
+					printf("-- symbol type : FLOAT \n");
+					break;
+				case SYMTYPE_CHAR_LIT:
+					printf("-- data : %c\n", dict->begin[i].symbol.symbol.data_char);
+					printf("-- symbol type : CHAR \n");
+					break;
+				case SYMTYPE_STRING_LIT:
+					printf("-- data : %s\n", dict->begin[i].symbol.symbol.data_string);
+					printf("-- symbol type : STRING \n");
+					break;
+				case SYMTYPE_BOOL_LIT:
+					printf(dict->begin[i].symbol.symbol.data_bool > 0 ? "-- data : true\n" : "-- data : false\n");
+					printf("-- symbol type : BOOLEAN \n");
+					break;
+				case SYMTYPE_IDENT:
+					printf("-- data : %s\n", dict->begin[i].symbol.symbol.ident);
+					printf("-- symbol type : IDENTIFIER \n");
+					break;
+				default:
+					printf("-- data : undendentified or uninitialized symbol\n");;
+			}
 			printf("-- occLine : %d\n", dict->begin[i].occLine);
 			if (dict->begin[i].key != NULL)
 				printf("-- hashval = %d\n", dict_hashentry(dict->begin[i].key));

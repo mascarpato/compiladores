@@ -75,7 +75,7 @@ declaracao-varglobal: declaracao-var-simples |
 	declaracao-vetor
 ;
 
-declaracao-var-simples: tipo ':' TK_IDENTIFICADOR
+declaracao-var-simples: tipo ':' TK_IDENTIFICADOR { }
 ;
 declaracao-vetor: tipo ':' vetor
 ;
@@ -84,10 +84,6 @@ vetor: TK_IDENTIFICADOR '[' expr ']'
 ;
 
 comando: comando-composto | 
-         comando-simples |
-         /* empty */
-;
-comando-nao-vazio: comando-composto | 
          comando-simples
 ;
 comando-composto: '{' comando-sequencia '}'
@@ -110,7 +106,7 @@ comando-simples: condicional |
 ;
 
 condicional: TK_PR_IF '(' expr ')' TK_PR_THEN comando |
-			 TK_PR_IF '(' expr ')' TK_PR_THEN comando TK_PR_ELSE comando-nao-vazio
+			 TK_PR_IF '(' expr ')' TK_PR_THEN comando TK_PR_ELSE comando
 ;
 
 laco: do-while |

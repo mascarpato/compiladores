@@ -11,6 +11,7 @@ ADD_EXECUTABLE(main
   ${FLEX_scanner_OUTPUTS}
   ${BISON_parser_OUTPUTS}
   src/main.c
+  src/comp_symbols.c
   src/comp_dict.c
   src/comp_list.c
   src/comp_tree.c
@@ -34,6 +35,7 @@ TARGET_LINK_LIBRARIES(main ${FLEX_LIBRARIES})
 #ADD_EXECUTABLE(test_graph
 #  tests/test_graph.c
 #  src/comp_graph.c)
+
 # Marcelo -- Enables Debug information
 ADD_DEFINITIONS(-g)
 

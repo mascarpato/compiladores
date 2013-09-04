@@ -25,6 +25,7 @@
 int main (int argc, char **argv)
 {
   int resultado = yyparse();
+  //dict_print();
   return resultado;
 }
 
