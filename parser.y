@@ -186,8 +186,3 @@ float: TK_LIT_FLOAT |
 		 '-' TK_LIT_FLOAT
 ;
 %%
-
-int yyerror (char *mensagem)
-{
-  fprintf (stderr, "%s at line %d\n", mensagem, getLineNumber());
-}

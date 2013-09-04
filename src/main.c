@@ -16,6 +16,10 @@
 #include "comp_tree.h"
 #include "comp_graph.h"
 
+int yyerror (char *mensagem)
+{
+  fprintf (stderr, "IKS-parser: %s at line %d\n", mensagem, getLineNumber());
+}
 
 /*void yyerror (char const *mensagem)
 {
