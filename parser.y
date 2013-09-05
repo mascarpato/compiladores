@@ -75,7 +75,7 @@ declaracao-varglobal: declaracao-var-simples |
 	declaracao-vetor
 ;
 
-declaracao-var-simples: tipo ':' TK_IDENTIFICADOR
+declaracao-var-simples: tipo ':' TK_IDENTIFICADOR { }
 ;
 declaracao-vetor: tipo ':' vetor
 ;
@@ -84,23 +84,27 @@ vetor: TK_IDENTIFICADOR '[' expr ']'
 ;
 
 comando: comando-composto | 
-         comando-simples |
-         /* empty */
+         comando-simples
 ;
 comando-composto: '{' comando-sequencia '}'
 ;
 comando-sequencia: comando-simples |
-		           comando-simples comando-sequencia |
+		           comando-simples ';' comando-sequencia |
 		           comando-composto |
-		           comando-composto comando-sequencia |
+		           comando-composto ';' comando-sequencia |
 		           /* empty */
 ; 
-comando-simples: comando-fluxo     | 	
-				 comando-outros ';'
+comando-simples: condicional |
+				 laco |
+				 comando-entrada |
+    			 comando-saida |
+    			 comando-retorno | 
+    			 atribuicao |
+    			 declaracao-var-simples |
+    			 chamada-funcao |
+    			 ';'
 ;
-comando-fluxo: condicional |
-				laco
-;
+
 condicional: TK_PR_IF '(' expr ')' TK_PR_THEN comando |
 			 TK_PR_IF '(' expr ')' TK_PR_THEN comando TK_PR_ELSE comando
 ;
@@ -112,14 +116,6 @@ laco: do-while |
 do-while: TK_PR_DO comando TK_PR_WHILE '(' expr ')' ';' // c-style
 ;
 while: TK_PR_WHILE '(' expr ')' TK_PR_DO comando
-;
-
-comando-outros: comando-entrada |
-    			comando-saida |
-    			comando-retorno | 
-    			atribuicao |
-    			declaracao-var-simples |
-    			chamada-funcao
 ;
 comando-retorno: TK_PR_RETURN expr
 ;
@@ -190,8 +186,3 @@ float: TK_LIT_FLOAT |
 		 '-' TK_LIT_FLOAT
 ;
 %%
-
-int yyerror (char *mensagem)
-{
-  fprintf (stderr, "%s at line %d\n", mensagem, getLineNumber());
-}
