@@ -8,14 +8,14 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(${compilador_SOURCE_DIR}/include/)
 INCLUDE_DIRECTORIES(${compilador_SOURCE_DIR}/src/)
 ADD_EXECUTABLE(main
-  ${FLEX_scanner_OUTPUTS}
-  ${BISON_parser_OUTPUTS}
   src/comp_dict.c
   src/comp_tree.c
-  src/main.c
-  src/gv.c
   src/comp_list.c
   src/comp_graph.c
+  ${FLEX_scanner_OUTPUTS}
+  ${BISON_parser_OUTPUTS}
+  src/main.c
+  src/gv.c
 )
 TARGET_LINK_LIBRARIES(main ${FLEX_LIBRARIES})
 

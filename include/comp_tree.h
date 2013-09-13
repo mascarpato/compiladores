@@ -12,7 +12,8 @@
  * the "right" pointer points to a node's brother while
  * the "left" one points to one of its children.
  */
-//#include "comp_symbols.h"
+#include "comp_symbols.h"
+#include "comp_dict.h"
 
 #ifndef COMP_TREE_H
 #define COMP_TREE_H

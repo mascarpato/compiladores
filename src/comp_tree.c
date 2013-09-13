@@ -30,19 +30,19 @@ void treeInsert(comp_tree_t* newNode, comp_tree_t* fatherNode)
 }			
 		
 
-comp_tree_t* treeSearch(comp_tree_t* root, Data d)
-{
-	if(root->data == d)
-		return root;
-	else{
-		comp_tree_t* a = NULL;
-		if(root->right != NULL)
-			a = treeSearch(root->right, d);
-		if(root->left != NULL && a == NULL)
-			a = treeSearch(root->left, d);
-		return a;
-	}
-}
+// comp_tree_t* treeSearch(comp_tree_t* root, Data d)
+// {
+// 	if(root->data == d)
+// 		return root;
+// 	else{
+// 		comp_tree_t* a = NULL;
+// 		if(root->right != NULL)
+// 			a = treeSearch(root->right, d);
+// 		if(root->left != NULL && a == NULL)
+// 			a = treeSearch(root->left, d);
+// 		return a;
+// 	}
+// }
 
 void treePreWalk(comp_tree_t* root)
 {

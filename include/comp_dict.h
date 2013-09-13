@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "comp_symbols.h"
 
 #ifndef __COMP_DICT
 #define __COMP_DICT
@@ -20,7 +21,7 @@
 typedef struct comp_dict_item_t {
 	short valid; //!< Do not mess with me.
 	char *key; //! Symbol key
-	struct symbol_t symbol; //! Symbol - name, type, value. 
+	struct Symbol_t symbol; //! Symbol - name, type, value. 
 	int occLine; //! Occurrence line
 } DictItem;
 

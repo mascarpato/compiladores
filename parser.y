@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
-//#include "comp_symbols.h"
+#include "iks_ast.h"
+#include "comp_symbols.h"
 #include "comp_dict.h"
 #include "comp_tree.h"
 
@@ -9,14 +10,14 @@
 struct treeNode_t *ast = NULL;
 %}
 
-%define api.value.type {struct treeNode_t *}
+%define api.value.type {struct treeNode_t*}
 
 /* Declaração dos tokens da gramática da Linguagem K */
 
 %initial-action {
 	Data data;
 	data.nodeType = IKS_AST_PROGRAMA;
-	data.symbol = NULL;
+	data.symEntry = NULL;
 	ast = treeCreate(data);
 }
 
@@ -179,12 +180,7 @@ termo: TK_IDENTIFICADOR
 	| chamada-funcao	
 	| integer
 	| float
-	| TK_LIT_FALSE {
-			Data data;
-			data.nodeType = IKS_AST_LITERAL;
-			data.
-			treeCreate()
-			}
+	| TK_LIT_FALSE 
 	| TK_LIT_TRUE
 	| TK_LIT_CHAR 
 	| TK_LIT_STRING

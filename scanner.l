@@ -6,6 +6,7 @@
 #include "comp_tree.h"
 
 #include "parser.h"
+
 #define SYM_TABLE_INITSIZE 25
 #define YY_USER_INIT dict_create(SYM_TABLE_INITSIZE);
 
@@ -16,7 +17,7 @@ int num_chars=0;
 void inc_char_count();
 
 union SymValue_t encodeSymVal(char *lexeme, int symbolType);
-struct symbol_t encodeSymbol(char *lexeme, int symbolType);
+struct Symbol_t encodeSymbol(char *lexeme, int symbolType);
 
 %}
 
@@ -74,7 +75,7 @@ struct symbol_t encodeSymbol(char *lexeme, int symbolType);
 					dataNode.nodeType = IKS_AST_LITERAL;
 					dataNode.symEntry = symEntry;
 					
-					yylval = tree_create(dataNode);
+					yylval = treeCreate(dataNode);
 					
 					return TK_LIT_INT; }
 					
@@ -86,7 +87,7 @@ struct symbol_t encodeSymbol(char *lexeme, int symbolType);
 					dataNode.nodeType = IKS_AST_LITERAL;
 					dataNode.symEntry = symEntry;
 					
-					yylval = tree_create(dataNode);
+					yylval = treeCreate(dataNode);
 					
 					return TK_LIT_FLOAT; }
 					
@@ -98,7 +99,7 @@ false 			{	// Scanned FALSE
 					dataNode.nodeType = IKS_AST_LITERAL;
 					dataNode.symEntry = symEntry;
 					
-					yylval = tree_create(dataNode);
+					yylval = treeCreate(dataNode);
 					
 					return TK_LIT_FALSE; }
 					
@@ -110,7 +111,7 @@ true 			{	// Scanned TRUE
 					dataNode.nodeType = IKS_AST_LITERAL;
 					dataNode.symEntry = symEntry;
 					
-					yylval = tree_create(dataNode);
+					yylval = treeCreate(dataNode);
 					
 					return TK_LIT_TRUE; }
 					
@@ -122,7 +123,7 @@ true 			{	// Scanned TRUE
 					dataNode.nodeType = IKS_AST_LITERAL;
 					dataNode.symEntry = symEntry;
 					
-					yylval = tree_create(dataNode);
+					yylval = treeCreate(dataNode);
 					
 					return TK_LIT_CHAR; }
 					
@@ -134,7 +135,7 @@ true 			{	// Scanned TRUE
 					dataNode.nodeType = IKS_AST_LITERAL;
 					dataNode.symEntry = symEntry;
 					
-					yylval = tree_create(dataNode);
+					yylval = treeCreate(dataNode);
 					
 					return TK_LIT_STRING; }
 					
@@ -146,7 +147,7 @@ true 			{	// Scanned TRUE
 					dataNode.nodeType = IKS_AST_IDENTIFICADOR;
 					dataNode.symEntry = symEntry;
 					
-					yylval = tree_create(dataNode);					
+					yylval = treeCreate(dataNode);					
 					
 					return TK_IDENTIFICADOR; }
 "\n" { 
@@ -184,8 +185,8 @@ void inc_char_count() {
 	pos_in_line += strlen(yytext);
 }
 
-union SymValue_t_u encodeSymVal(char *lexeme, int symbolType) {
-	union SymValue_t_u retVal; 
+union SymValue_t encodeSymVal(char *lexeme, int symbolType) {
+	union SymValue_t retVal; 
 	char *aux = strdup(lexeme);
 	
 	switch(symbolType) {
@@ -208,8 +209,8 @@ union SymValue_t_u encodeSymVal(char *lexeme, int symbolType) {
 	return retVal;
 }
 
-struct symbol_t encodeSymbol(char *lexeme, int symbolType) {
-	struct symbol_t retVal;
+struct Symbol_t encodeSymbol(char *lexeme, int symbolType) {
+	struct Symbol_t retVal;
 	retVal.symType = symbolType;
 		
 	if (symbolType == SYMTYPE_IDENT)

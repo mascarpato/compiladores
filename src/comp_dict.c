@@ -222,7 +222,7 @@ void dict_print() {
 					printf("-- symbol type : STRING \n");
 					break;
 				case SYMTYPE_BOOL:
-					printf(dict->begin[i].symbol.symbol.data_bool > 0 ? "-- data : true\n" : "-- data : false\n");
+					printf(dict->begin[i].symbol.value.value_bool > 0 ? "-- data : true\n" : "-- data : false\n");
 					printf("-- symbol type : BOOLEAN \n");
 					break;
 // 				case SYMTYPE_IDENT:
