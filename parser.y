@@ -1,8 +1,6 @@
 %{
 #include <stdio.h>
 #include "iks_ast.h"
-#include "comp_symbols.h"
-#include "comp_dict.h"
 #include "comp_tree.h"
 
 #define YYERROR_VERBOSE

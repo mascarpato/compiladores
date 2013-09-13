@@ -29,8 +29,11 @@ Dict *dict_create(int size) {
 	return dict;
 }
 
-DictItem *dict_insert(struct Symbol_t symbol, char *key, int occLine) {
+DictItem *dict_insert(Symbol_t symbol, char *key, int occLine) {
 	int i=0, found = 0;
+
+	//printf("Inserindo (%s) de tipo (%d) no dic!\n", key, symbol.symType);
+
 
 	int pos = dict_hashentry(key) % dict->max_size;
 
@@ -162,8 +165,8 @@ void *dict_get(char *key) {
 				return dict->begin[i-1].symbol.value.value_string;
 			case SYMTYPE_BOOL:
 				return &dict->begin[i-1].symbol.value.value_bool;
-// 			case SYMTYPE_IDENT:
-// 				return dict->begin[i-1].symbol.symbol.name;
+			case SYMTYPE_IDENTIFIER:
+				return dict->begin[i-1].symbol.name;
 			default:
 				return NULL;
 		}
@@ -225,10 +228,11 @@ void dict_print() {
 					printf(dict->begin[i].symbol.value.value_bool > 0 ? "-- data : true\n" : "-- data : false\n");
 					printf("-- symbol type : BOOLEAN \n");
 					break;
-// 				case SYMTYPE_IDENT:
-// 					printf("-- data : %s\n", dict->begin[i].symbol.name);
-// 					printf("-- symbol type : IDENTIFIER \n");
-// 					break;
+				case SYMTYPE_IDENTIFIER:
+					printf("-- name : %s\n", dict->begin[i].symbol.name);
+					printf("-- data : %d (this should be empty)", dict->begin[i].symbol.value.value_int);
+					printf("-- symbol type : IDENTIFIER \n");
+					break;
 				default:
 					printf("-- data : undendentified or uninitialized symbol\n");;
 			}

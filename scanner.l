@@ -1,8 +1,6 @@
 %{
 #include <string.h>
 #include "iks_ast.h"
-#include "comp_symbols.h"
-#include "comp_dict.h"
 #include "comp_tree.h"
 
 #include "parser.h"
@@ -16,8 +14,8 @@ int num_chars=0;
 
 void inc_char_count();
 
-union SymValue_t encodeSymVal(char *lexeme, int symbolType);
-struct Symbol_t encodeSymbol(char *lexeme, int symbolType);
+SymValue_t encodeSymVal(char *lexeme, int symbolType);
+Symbol_t encodeSymbol(char *lexeme, int symbolType);
 
 %}
 
@@ -142,7 +140,7 @@ true 			{	// Scanned TRUE
 (_|[[:alpha:]])(_|[[:alnum:]])* { // Scanned identifier. Is the name of some variable or function.
 					inc_char_count();
 					
-					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_FLOAT), yytext,  getLineNumber());
+					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_IDENTIFIER), yytext,  getLineNumber());
 					Data dataNode;
 					dataNode.nodeType = IKS_AST_IDENTIFICADOR;
 					dataNode.symEntry = symEntry;
@@ -185,8 +183,8 @@ void inc_char_count() {
 	pos_in_line += strlen(yytext);
 }
 
-union SymValue_t encodeSymVal(char *lexeme, int symbolType) {
-	union SymValue_t retVal; 
+SymValue_t encodeSymVal(char *lexeme, int symbolType) {
+	SymValue_t retVal; 
 	char *aux = strdup(lexeme);
 	
 	switch(symbolType) {
@@ -209,15 +207,18 @@ union SymValue_t encodeSymVal(char *lexeme, int symbolType) {
 	return retVal;
 }
 
-struct Symbol_t encodeSymbol(char *lexeme, int symbolType) {
-	struct Symbol_t retVal;
+Symbol_t encodeSymbol(char *lexeme, int symbolType) {
+	Symbol_t retVal;
 	retVal.symType = symbolType;
-		
-	if (symbolType == SYMTYPE_IDENT)
+	//printf("Leu %s! SymbolType == %d!!\n", lexeme, symbolType);
+	
+	if (symbolType == SYMTYPE_IDENTIFIER)
 		retVal.name = strdup(lexeme);
 	else 
 		retVal.name = NULL;
 	retVal.value = encodeSymVal(lexeme, symbolType);
+	
+	return retVal;
 }
 
 

@@ -21,7 +21,7 @@
 typedef struct comp_dict_item_t {
 	short valid; //!< Do not mess with me.
 	char *key; //! Symbol key
-	struct Symbol_t symbol; //! Symbol - name, type, value. 
+	Symbol_t symbol; //! Symbol - name, type, value. 
 	int occLine; //! Occurrence line
 } DictItem;
 
@@ -48,7 +48,7 @@ extern Dict *dict_create(int size);
  * 
  * Usage: dict = dict_insert(dict, "key", "data", "occurrence line");
  */
-extern DictItem *dict_insert(struct Symbol_t symbol, char *key, int occLine);
+extern DictItem *dict_insert(Symbol_t symbol, char *key, int occLine);
 
 /*! \brief Gets the word with specified key.
  * 

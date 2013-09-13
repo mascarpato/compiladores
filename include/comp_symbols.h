@@ -11,7 +11,7 @@
 #define SYMTYPE_CHAR 3
 #define SYMTYPE_STRING 4
 #define SYMTYPE_BOOL 5
-#define SYMTYPE_IDENT 6
+#define SYMTYPE_IDENTIFIER 6
 
 #define TRUE 1
 #define FALSE 0
@@ -23,20 +23,20 @@ typedef short Boolean;
 	/** Couples all possible datatypes from the IKS language in this union.
 	* 
 	*/
-union SymValue_t {
+typedef union SymValue_un {
 	int value_int; //! To store an integer
 	double value_float; //! To store a float
 	char value_char; //! To store a character
 	char *value_string; //! To store a string
 	Boolean value_bool; //! To store a boolean value (TRUE or FALSE)
-};
+} SymValue_t;
 
 	/** Stores a symbol which may be used across the program
 	*/
-struct Symbol_t {
+typedef struct Symbol_t_str {
 	char *name; //! Symbol name
 	int symType; //! Symbol type. Possible types are found below.
-	union SymValue_t value;
-};
+	SymValue_t value;
+} Symbol_t;
 
 #endif
