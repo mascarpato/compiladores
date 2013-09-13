@@ -151,11 +151,20 @@ expr: '(' expr ')'
 	| expr '=' expr
 	| expr TK_OC_AND expr
 	| expr TK_OC_OR expr
-	| expr '+' expr
+	| expr '+' expr { 
+		Data data;
+		data.nodeType = IKS_AST_ARIM_SOMA;
+		data.symEntry = NULL;
+		comp_tree_t *vader = treeCreate(data);
+		
+		treeInsert(vader, $1);
+		treeInsert(vader, $2);
+		
+		$$ = vader; }
 	| expr '-' expr
 	| expr '*' expr
 	| expr '/' expr
-	| termo
+	| termo { $$ = $1; }
 ;
 
 chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')'
@@ -173,22 +182,24 @@ parametros-chamada-funcao: termo
     | /* empty */ 
 ;
 
-termo: TK_IDENTIFICADOR
+termo: TK_IDENTIFICADOR { $$ = $1; }
 	| vetor
-	| chamada-funcao	
-	| integer
-	| float
-	| TK_LIT_FALSE 
-	| TK_LIT_TRUE
-	| TK_LIT_CHAR 
-	| TK_LIT_STRING
+	| chamada-funcao 
+	| integer { $$ = $1; }
+	| float { $$ = $1; }
+	| TK_LIT_FALSE { $$ = $1; }
+	| TK_LIT_TRUE { $$ = $1; }
+	| TK_LIT_CHAR { $$ = $1; }
+	| TK_LIT_STRING { $$ = $1; }
 ;
 
 integer: TK_LIT_INT
 	| '-' TK_LIT_INT
 ;
 
-float: TK_LIT_FLOAT
-	| '-' TK_LIT_FLOAT
+float: TK_LIT_FLOAT { $$ = $1; }
+	| '-' TK_LIT_FLOAT { $$ = $1;
+		$1->data.symEntry->symbol.value.value_float = -$1->data.symEntry->symbol.value.value_float;
+		}
 ;
 %%
