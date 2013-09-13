@@ -8,7 +8,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "comp_symbols.h"
+
+#ifndef __COMP_DICT
+#define __COMP_DICT
 
 /*!\struct comp_dict_item_t
  * \brief A dictionary item, consisting of a key and a data value.
@@ -18,7 +20,7 @@
 typedef struct comp_dict_item_t {
 	short valid; //!< Do not mess with me.
 	char *key; //! Symbol key
-	Symbol symbol; //! Symbol
+	struct symbol_t symbol; //! Symbol - name, type, value. 
 	int occLine; //! Occurrence line
 } DictItem;
 
@@ -45,7 +47,7 @@ extern Dict *dict_create(int size);
  * 
  * Usage: dict = dict_insert(dict, "key", "data", "occurrence line");
  */
-extern DictItem *dict_insert(char *key, int sym_type, int occLine);
+extern DictItem *dict_insert(struct Symbol_t symbol, char *key, int occLine);
 
 /*! \brief Gets the word with specified key.
  * 
@@ -78,3 +80,4 @@ extern int dict_getmaxsize();
 
 /*! \brief Prints to stdout a human-readable representation of the dictionary. */
 extern void dict_print();
+#endif

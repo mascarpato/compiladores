@@ -1,7 +1,11 @@
 %{
-#include "parser.h"
 #include <string.h>
+#include "iks_ast.h"
+#include "comp_symbols.h"
 #include "comp_dict.h"
+#include "comp_tree.h"
+
+#include "parser.h"
 #define SYM_TABLE_INITSIZE 25
 #define YY_USER_INIT dict_create(SYM_TABLE_INITSIZE);
 
@@ -9,111 +13,162 @@ int num_lines=1;
 int pos_in_line = 0;
 int num_chars=0;
 
-void inc_charc() {
-	num_chars += strlen(yytext);
-	pos_in_line += strlen(yytext);
-}
+void inc_char_count();
+
+union SymValue_t encodeSymVal(char *lexeme, int symbolType);
+struct symbol_t encodeSymbol(char *lexeme, int symbolType);
 
 %}
 
 %x IN_COMMENT
 
 %%
-" " { inc_charc(); }
-"	" { inc_charc(); }
-"int" { inc_charc(); return TK_PR_INT; }
-"float" { inc_charc(); return TK_PR_FLOAT; }
-"bool" { inc_charc(); return TK_PR_BOOL; }
-"char" { inc_charc(); return TK_PR_CHAR; }
-"string" { inc_charc(); return TK_PR_STRING; }
-"if" { inc_charc(); return TK_PR_IF; }
-"then" { inc_charc(); return TK_PR_THEN; }
-"else" { inc_charc(); return TK_PR_ELSE; }
-"while" { inc_charc(); return TK_PR_WHILE; }
-"do" { inc_charc(); return TK_PR_DO; }
-"input" { inc_charc(); return TK_PR_INPUT; }
-"output" { inc_charc(); return TK_PR_OUTPUT; }
-"return" { inc_charc(); return TK_PR_RETURN; }
+" " { inc_char_count(); }
+"	" { inc_char_count(); }
+"int" { inc_char_count(); return TK_PR_INT; }
+"float" { inc_char_count(); return TK_PR_FLOAT; }
+"bool" { inc_char_count(); return TK_PR_BOOL; }
+"char" { inc_char_count(); return TK_PR_CHAR; }
+"string" { inc_char_count(); return TK_PR_STRING; }
+"if" { inc_char_count(); return TK_PR_IF; }
+"then" { inc_char_count(); return TK_PR_THEN; }
+"else" { inc_char_count(); return TK_PR_ELSE; }
+"while" { inc_char_count(); return TK_PR_WHILE; }
+"do" { inc_char_count(); return TK_PR_DO; }
+"input" { inc_char_count(); return TK_PR_INPUT; }
+"output" { inc_char_count(); return TK_PR_OUTPUT; }
+"return" { inc_char_count(); return TK_PR_RETURN; }
 
-"<=" { inc_charc(); return TK_OC_LE; }
-">=" { inc_charc(); return TK_OC_GE; }
-"==" { inc_charc(); return TK_OC_EQ; }
-"!=" { inc_charc(); return TK_OC_NE; }
-"&&" { inc_charc(); return TK_OC_AND; }
-"||" { inc_charc(); return TK_OC_OR; }
+"<=" { inc_char_count(); return TK_OC_LE; }
+">=" { inc_char_count(); return TK_OC_GE; }
+"==" { inc_char_count(); return TK_OC_EQ; }
+"!=" { inc_char_count(); return TK_OC_NE; }
+"&&" { inc_char_count(); return TK_OC_AND; }
+"||" { inc_char_count(); return TK_OC_OR; }
 
-"," { inc_charc(); return (int) yytext[0]; }
-";" { inc_charc(); return (int) yytext[0]; }
-":" { inc_charc(); return (int) yytext[0]; }
-"(" { inc_charc(); return (int) yytext[0]; }
-")" { inc_charc(); return (int) yytext[0]; }
-"[" { inc_charc(); return (int) yytext[0]; }
-"]" { inc_charc(); return (int) yytext[0]; }
-"{" { inc_charc(); return (int) yytext[0]; }
-"}" { inc_charc(); return (int) yytext[0]; }
-"+" { inc_charc(); return (int) yytext[0]; }
-"-" { inc_charc(); return (int) yytext[0]; }
-"*" { inc_charc(); return (int) yytext[0]; }
-"/" { inc_charc(); return (int) yytext[0]; }
-"<" { inc_charc(); return (int) yytext[0]; }
-">" { inc_charc(); return (int) yytext[0]; }
-"=" { inc_charc(); return (int) yytext[0]; }
-"!" { inc_charc(); return (int) yytext[0]; }
-"&" { inc_charc(); return (int) yytext[0]; }
-"$" { inc_charc(); return (int) yytext[0]; }
+"," { inc_char_count(); return (int) yytext[0]; }
+";" { inc_char_count(); return (int) yytext[0]; }
+":" { inc_char_count(); return (int) yytext[0]; }
+"(" { inc_char_count(); return (int) yytext[0]; }
+")" { inc_char_count(); return (int) yytext[0]; }
+"[" { inc_char_count(); return (int) yytext[0]; }
+"]" { inc_char_count(); return (int) yytext[0]; }
+"{" { inc_char_count(); return (int) yytext[0]; }
+"}" { inc_char_count(); return (int) yytext[0]; }
+"+" { inc_char_count(); return (int) yytext[0]; }
+"-" { inc_char_count(); return (int) yytext[0]; }
+"*" { inc_char_count(); return (int) yytext[0]; }
+"/" { inc_char_count(); return (int) yytext[0]; }
+"<" { inc_char_count(); return (int) yytext[0]; }
+">" { inc_char_count(); return (int) yytext[0]; }
+"=" { inc_char_count(); return (int) yytext[0]; }
+"!" { inc_char_count(); return (int) yytext[0]; }
+"&" { inc_char_count(); return (int) yytext[0]; }
+"$" { inc_char_count(); return (int) yytext[0]; }
 
-[[:digit:]]+ 	{ 
-					inc_charc();
-					yylval.symbol=dict_insert(yytext,SYMTYPE_INT_LIT,getLineNumber());
+[[:digit:]]+ 	{ 	// Scanned INTEGER 	
+					inc_char_count();
+					
+					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_INT), yytext,  getLineNumber());
+					Data dataNode;
+					dataNode.nodeType = IKS_AST_LITERAL;
+					dataNode.symEntry = symEntry;
+					
+					yylval = tree_create(dataNode);
+					
 					return TK_LIT_INT; }
-[[:digit:]]+"."[[:digit:]]+ {
-					inc_charc(); 
-					yylval.symbol=dict_insert(yytext,SYMTYPE_FLOAT_LIT,getLineNumber()); 
+					
+[[:digit:]]+"."[[:digit:]]+ { // Scanned FLOAT
+					inc_char_count();
+					
+					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_FLOAT), yytext,  getLineNumber());
+					Data dataNode;
+					dataNode.nodeType = IKS_AST_LITERAL;
+					dataNode.symEntry = symEntry;
+					
+					yylval = tree_create(dataNode);
+					
 					return TK_LIT_FLOAT; }
-false 			{
-					inc_charc(); 
-					yylval.symbol=dict_insert(yytext,SYMTYPE_BOOL_LIT,getLineNumber()); 
+					
+false 			{	// Scanned FALSE
+					inc_char_count();
+					
+					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_BOOL), yytext,  getLineNumber());
+					Data dataNode;
+					dataNode.nodeType = IKS_AST_LITERAL;
+					dataNode.symEntry = symEntry;
+					
+					yylval = tree_create(dataNode);
+					
 					return TK_LIT_FALSE; }
-true 			{
-					inc_charc(); 
-					yylval.symbol=dict_insert(yytext,SYMTYPE_BOOL_LIT,getLineNumber()); 
+					
+true 			{	// Scanned TRUE
+					inc_char_count(); 
+					
+					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_FLOAT), yytext,  getLineNumber());
+					Data dataNode;
+					dataNode.nodeType = IKS_AST_LITERAL;
+					dataNode.symEntry = symEntry;
+					
+					yylval = tree_create(dataNode);
+					
 					return TK_LIT_TRUE; }
-'[[:print:]]'   {
-					inc_charc(); 
-					char *str = strdup(yytext);
-					str[strlen(str)-1] = '\0'; //eats the last '
-					yylval.symbol=dict_insert((str+1),SYMTYPE_CHAR_LIT,getLineNumber()); 
-					free(str);
+					
+'[[:print:]]'   {	// Scanned CHAR
+					inc_char_count(); 
+					
+					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_CHAR), yytext,  getLineNumber());
+					Data dataNode;
+					dataNode.nodeType = IKS_AST_LITERAL;
+					dataNode.symEntry = symEntry;
+					
+					yylval = tree_create(dataNode);
+					
 					return TK_LIT_CHAR; }
-\"[^"]*\" 		{
-					inc_charc(); 
-					char *str = strdup(yytext);
-					str[strlen(str)-1] = '\0'; //eats the last "
-					yylval.symbol=dict_insert((str+1),SYMTYPE_STRING_LIT,getLineNumber()); // inserting with (str+1) should eat the first quote
-					free(str);
+					
+\"[^"]*\" 		{	// Scanned STRING
+					inc_char_count(); 
+					
+					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_STRING), yytext,  getLineNumber());
+					Data dataNode;
+					dataNode.nodeType = IKS_AST_LITERAL;
+					dataNode.symEntry = symEntry;
+					
+					yylval = tree_create(dataNode);
+					
 					return TK_LIT_STRING; }
-(_|[[:alpha:]])(_|[[:alnum:]])* { 
-					inc_charc();
-					yylval.symbol=dict_insert(yytext,SYMTYPE_IDENT,getLineNumber()); 
+					
+(_|[[:alpha:]])(_|[[:alnum:]])* { // Scanned identifier. Is the name of some variable or function.
+					inc_char_count();
+					
+					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_FLOAT), yytext,  getLineNumber());
+					Data dataNode;
+					dataNode.nodeType = IKS_AST_IDENTIFICADOR;
+					dataNode.symEntry = symEntry;
+					
+					yylval = tree_create(dataNode);					
+					
 					return TK_IDENTIFICADOR; }
 "\n" { 
-					inc_charc(); pos_in_line=0; num_lines++; }
+					inc_char_count(); pos_in_line=0; num_lines++; }
 
+	/* Eats C-style multiline comments */
 <INITIAL>{
 "/*"   { BEGIN(IN_COMMENT); }
 }
 <IN_COMMENT>{
 "*/"      { BEGIN(INITIAL); }
-[^*\n]+   { inc_charc(); } // eat comment in chunks
-"*"       { inc_charc(); } // eat the lone star
+[^*\n]+   { inc_char_count(); } // eat comment in chunks
+"*"       { inc_char_count(); } // eat the lone star
 \n        { num_lines++; pos_in_line=0; }
 }
 
+	/* Eats C-style inline comments */
 "//".*"\n" 		{ 
-					inc_charc(); pos_in_line=0; num_lines++; }
+					inc_char_count(); pos_in_line=0; num_lines++; }
      
 . 				{
-					inc_charc(); return TOKEN_ERRO; } //printf("Unexpected %s at line %d.\n", yytext, num_lines); 
+					inc_char_count(); return TOKEN_ERRO; } //printf("Unexpected %s at line %d.\n", yytext, num_lines); 
 %%
 
 int getCharCount(void) {
@@ -123,3 +178,45 @@ int getCharCount(void) {
 int getLineNumber(void) {
   return num_lines;
 }
+
+void inc_char_count() {
+	num_chars += strlen(yytext);
+	pos_in_line += strlen(yytext);
+}
+
+union SymValue_t_u encodeSymVal(char *lexeme, int symbolType) {
+	union SymValue_t_u retVal; 
+	char *aux = strdup(lexeme);
+	
+	switch(symbolType) {
+		case SYMTYPE_INT:
+			retVal.value_int = atoi(lexeme); break;
+		case SYMTYPE_FLOAT:
+			retVal.value_float = atof(lexeme); break;
+		case SYMTYPE_CHAR:
+			retVal.value_char = lexeme[1]; break; // eats the ' ' 
+		case SYMTYPE_STRING:
+			aux[strlen(aux)-1] = '\0';
+			retVal.value_string = strdup(aux+1); break; // eats the " "
+		case SYMTYPE_BOOL:
+			retVal.value_bool = (*lexeme == 't' ? TRUE : FALSE); break;
+		default: 
+			retVal.value_int = 0;
+	}
+	free(aux);
+	
+	return retVal;
+}
+
+struct symbol_t encodeSymbol(char *lexeme, int symbolType) {
+	struct symbol_t retVal;
+	retVal.symType = symbolType;
+		
+	if (symbolType == SYMTYPE_IDENT)
+		retVal.name = strdup(lexeme);
+	else 
+		retVal.name = NULL;
+	retVal.value = encodeSymVal(lexeme, symbolType);
+}
+
+

@@ -10,12 +10,11 @@ INCLUDE_DIRECTORIES(${compilador_SOURCE_DIR}/src/)
 ADD_EXECUTABLE(main
   ${FLEX_scanner_OUTPUTS}
   ${BISON_parser_OUTPUTS}
-  src/main.c
-  src/comp_symbols.c
-  src/gv.c
   src/comp_dict.c
-  src/comp_list.c
   src/comp_tree.c
+  src/main.c
+  src/gv.c
+  src/comp_list.c
   src/comp_graph.c
 )
 TARGET_LINK_LIBRARIES(main ${FLEX_LIBRARIES})
