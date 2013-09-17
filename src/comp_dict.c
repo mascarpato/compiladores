@@ -6,7 +6,8 @@
 
 #include "../include/comp_dict.h"
 
-void dict_augment(Dict *dict);
+	// Deprecated after changed to fixed size.
+// void dict_augment(Dict *dict);
 int dict_hashentry(char *key); 
 
 Dict *dict;
@@ -34,40 +35,55 @@ DictItem *dict_insert(Symbol_t symbol, char *key, int occLine) {
 
 	//printf("Inserindo (%s) de tipo (%d) no dic!\n", key, symbol.symType);
 
-
+		// Will try to insert the symbol at position pos
 	int pos = dict_hashentry(key) % dict->max_size;
+	
+// 		// Augments dictionary size if it is full
 
-	// Inserts or replaces data
-	if (dict->size == dict->max_size) {
-		dict_augment(dict);
+	if (dict->size >= dict->max_size) {
+// 		dict_augment(dict); 		// Deprecated
+		printf("Symbol table has grown bigger than its limits. aborting...\n");
+		abort();
 	}
 
+		// Gets insertion position. Position pos may be taken, so will try to insert
+		// at next available position
 	found = 0;
-		// Gets insertion position
-	for (i = pos; i < dict->max_size && !found; i++) {
+	i = pos;
+	while (dict->max_size && !found) {
 		if (dict->begin[i].valid == 0) {
-			found = 1; // Will insert new
+			found = 1; // Will insert new symbol here.
+			dict->size = dict->size+1;
 		} else {
-			if (dict->begin[i].key != NULL)
-				if (strcmp(dict->begin[i].key, key) == 0) {
-					found = 1; // Will replace
-					// frees old space in memory. will later alloc again.
-					free(dict->begin[i].key);
-				}
+			if (strcmp(dict->begin[i].key, key) == 0) { // Will replace old symbol
+				found = 1;
+				// frees old space in memory. will afterwards alloc again.
+				free(dict->begin[i].key);
+			} else	
+				i++;
 		}
+		
+		// If already scanned whole dictionary(i is now out of bounds) and hasn't
+		// found insertion position, goes back to start.
+		if (i == dict->max_size)
+			i = 0;
 	}
 	
-	dict->begin[i-1].key = malloc(sizeof(char)*strlen(key)+1);
-	strcpy(dict->begin[i-1].key, key);
-	dict->begin[i-1].occLine = occLine;
-	dict->begin[i-1].valid=1;
-	dict->size = dict->size+1;
+	dict->begin[i].key = malloc(sizeof(char)*strlen(key)+1);
+	strcpy(dict->begin[i].key, key);
+	dict->begin[i].occLine = occLine;
+	dict->begin[i].valid=1;
 	
-	dict->begin[i-1].symbol = symbol;
+	dict->begin[i].symbol = symbol;
 	
-	return &(dict->begin[i-1]);
+	if (key == NULL) {
+		printf("Hey. Why are you adding a null key?????");
+	}
+	
+	return &(dict->begin[i]);
 }
 
+	// TODO CHECK. Has not been fixed after dictionary changed to fixed size.
 Dict *dict_remove(char *key) {
 	int i=0, found = 0;
 	
@@ -105,30 +121,31 @@ Dict *dict_terminate() {
 	return NULL;
 }
 
-void dict_augment(Dict *dict) {
-	float augmFactor = 1;
-	int i=0;
-	int newSize;
-	
-// 	printf("------ Expanding...\n \
-// 		------ Current size: %d out of %d\n", dict->size, dict->max_size
-// 	);
-	DictItem *ptAux = dict->begin;
-	do {
-		i++;
-		newSize = (int) dict->max_size*(augmFactor+(1 / (float) i));
-		ptAux = realloc(dict->begin, sizeof(DictItem)*newSize);
-		if (ptAux != NULL)
-			dict->begin = ptAux;
-	} while (ptAux == NULL);
-	
-	dict->max_size = newSize;
-	for(i = dict->size; i < newSize; i++)
-		dict->begin[i].valid = 0;
-// 	printf("------ Expanded.\n \
-// 		------ Current size: %d out of %d\n", dict->size, dict->max_size
-// 	);
-}
+	// Deprecated after changed to fixed size.
+// void dict_augment(Dict *dict) {
+// 	float augmFactor = 1;
+// 	int i=0;
+// 	int newSize;
+// 	
+// // 	printf("------ Expanding...\n \
+// // 		------ Current size: %d out of %d\n", dict->size, dict->max_size
+// // 	);
+// 	DictItem *ptAux = dict->begin;
+// 	do {
+// 		i++;
+// 		newSize = (int) dict->max_size*(augmFactor+(1 / (float) i));
+// 		ptAux = realloc(dict->begin, sizeof(DictItem)*newSize);
+// 		if (ptAux != NULL)
+// 			dict->begin = ptAux;
+// 	} while (ptAux == NULL);
+// 	
+// 	dict->max_size = newSize;
+// 	for(i = dict->size; i < newSize; i++)
+// 		dict->begin[i].valid = 0;
+// // 	printf("------ Expanded.\n \
+// // 		------ Current size: %d out of %d\n", dict->size, dict->max_size
+// // 	);
+// }
 
 int dict_getsize() {
 	if (dict != NULL)

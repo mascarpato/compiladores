@@ -8,15 +8,15 @@ int: j;
 bool: okay;
 {
 	//list is full
-	if (size = 100) then
-		return false; 	
+	if (size == 100) then
+		return false;
 	
 	//finds the new node's position in the list
 	i = 0;
 	okay = false;
 	while(okay != true && i < size) do 
 		if(value < list[i]) then
-			i = i+1;
+			i = i+1
 		else
 			okay = true;
 			
@@ -25,7 +25,7 @@ bool: okay;
 	while(j > i) do{
 		list[j] = list[j-1];
 		j = j-1;
-	}
+	};
 	
 	//inserts new node
 	list[i] = value;
