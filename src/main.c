@@ -18,9 +18,10 @@ int yyerror (char *mensagem)
 
 int main (int argc, char **argv)
 {
-  gv_init(NULL);
+  //gv_init(NULL);
   int resultado = yyparse();
-  gv_close();
+  //gv_close();
+  //dict_print();
   return resultado;
 }
 

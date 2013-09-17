@@ -29,21 +29,13 @@ Dict *dict_create(int size) {
 	return dict;
 }
 
-DictItem *dict_insert(char *key, int sym_type, int occLine) {
+DictItem *dict_insert(Symbol_t symbol, char *key, int occLine) {
 	int i=0, found = 0;
 
+	//printf("Inserindo (%s) de tipo (%d) no dic!\n", key, symbol.symType);
+
+
 	int pos = dict_hashentry(key) % dict->max_size;
-	
-		// Checks if key is already on the table
-		// Marcelo -- Commented out as we now replace the data
-		// with the new values.
-// 	for (i = pos; i < dict->max_size && !found; i++) {
-// 		if (dict->begin[i].valid)
-// 			if (strcmp(dict->begin[i].key, key) == 0) {
-// 				// Already on the table.
-// 				found = 1;
-// 			}
-// 	}
 
 	// Inserts or replaces data
 	if (dict->size == dict->max_size) {
@@ -71,31 +63,7 @@ DictItem *dict_insert(char *key, int sym_type, int occLine) {
 	dict->begin[i-1].valid=1;
 	dict->size = dict->size+1;
 	
-	switch(sym_type) {
-		case SYMTYPE_INT_LIT:
-			symSetInt(&dict->begin[i-1].symbol, atoi(key));
-			//dict->begin[i-1].symbol.symbol.data_int = atoi(key);
-			//dict->begin[i-1].symbol.symType = SYMTYPE_INT_LIT;
-			break;
-		case SYMTYPE_FLOAT_LIT:
-			symSetFloat(&dict->begin[i-1].symbol, atof(key));
-			break;
-		case SYMTYPE_CHAR_LIT:
-			symSetChar(&dict->begin[i-1].symbol, *key);
-			break;
-		case SYMTYPE_STRING_LIT:
-			symSetString(&dict->begin[i-1].symbol, key);
-			break;
-		case SYMTYPE_BOOL_LIT:
-			symSetBool(&dict->begin[i-1].symbol, *key == 't' ? 1 : 0);
-			break;
-		case SYMTYPE_IDENT:
-			symSetIdent(&dict->begin[i-1].symbol, key);
-			break;
-		default:
-			dict->begin[i-1].symbol.symType = SYMTYPE_UNDEF;
-			break;
-	}
+	dict->begin[i-1].symbol = symbol;
 	
 	return &(dict->begin[i-1]);
 }
@@ -187,18 +155,18 @@ void *dict_get(char *key) {
 	
 	if (found) {
 		switch(dict->begin[i-1].symbol.symType) {
-			case SYMTYPE_INT_LIT:
-				return &dict->begin[i-1].symbol.symbol.data_int;
-			case SYMTYPE_FLOAT_LIT:
-				return &dict->begin[i-1].symbol.symbol.data_float;
-			case SYMTYPE_CHAR_LIT:
-				return &dict->begin[i-1].symbol.symbol.data_char;
-			case SYMTYPE_STRING_LIT:
-				return dict->begin[i-1].symbol.symbol.data_string;
-			case SYMTYPE_BOOL_LIT:
-				return &dict->begin[i-1].symbol.symbol.data_bool;
-			case SYMTYPE_IDENT:
-				return dict->begin[i-1].symbol.symbol.ident;
+			case SYMTYPE_INT:
+				return &dict->begin[i-1].symbol.value.value_int;
+			case SYMTYPE_FLOAT:
+				return &dict->begin[i-1].symbol.value.value_float;
+			case SYMTYPE_CHAR:
+				return &dict->begin[i-1].symbol.value.value_char;
+			case SYMTYPE_STRING:
+				return dict->begin[i-1].symbol.value.value_string;
+			case SYMTYPE_BOOL:
+				return &dict->begin[i-1].symbol.value.value_bool;
+			case SYMTYPE_IDENTIFIER:
+				return dict->begin[i-1].symbol.name;
 			default:
 				return NULL;
 		}
@@ -240,28 +208,29 @@ void dict_print() {
 				printf("-- key : %s\n", dict->begin[i].key);
 
 			switch(dict->begin[i].symbol.symType) {
-				case SYMTYPE_INT_LIT:
-					printf("-- data : %d\n", dict->begin[i].symbol.symbol.data_int);
+				case SYMTYPE_INT:
+					printf("-- data : %d\n", dict->begin[i].symbol.value.value_int);
 					printf("-- symbol type : INTEGER \n");
 					break;
-				case SYMTYPE_FLOAT_LIT:
-					printf("-- data : %f\n", dict->begin[i].symbol.symbol.data_float);
+				case SYMTYPE_FLOAT:
+					printf("-- data : %f\n", dict->begin[i].symbol.value.value_float);
 					printf("-- symbol type : FLOAT \n");
 					break;
-				case SYMTYPE_CHAR_LIT:
-					printf("-- data : %c\n", dict->begin[i].symbol.symbol.data_char);
+				case SYMTYPE_CHAR:
+					printf("-- data : %c\n", dict->begin[i].symbol.value.value_char);
 					printf("-- symbol type : CHAR \n");
 					break;
-				case SYMTYPE_STRING_LIT:
-					printf("-- data : %s\n", dict->begin[i].symbol.symbol.data_string);
+				case SYMTYPE_STRING:
+					printf("-- data : %s\n", dict->begin[i].symbol.value.value_string);
 					printf("-- symbol type : STRING \n");
 					break;
-				case SYMTYPE_BOOL_LIT:
-					printf(dict->begin[i].symbol.symbol.data_bool > 0 ? "-- data : true\n" : "-- data : false\n");
+				case SYMTYPE_BOOL:
+					printf(dict->begin[i].symbol.value.value_bool > 0 ? "-- data : true\n" : "-- data : false\n");
 					printf("-- symbol type : BOOLEAN \n");
 					break;
-				case SYMTYPE_IDENT:
-					printf("-- data : %s\n", dict->begin[i].symbol.symbol.ident);
+				case SYMTYPE_IDENTIFIER:
+					printf("-- name : %s\n", dict->begin[i].symbol.name);
+					printf("-- data : %d (this should be empty)", dict->begin[i].symbol.value.value_int);
 					printf("-- symbol type : IDENTIFIER \n");
 					break;
 				default:

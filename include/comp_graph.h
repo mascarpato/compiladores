@@ -1,7 +1,7 @@
 /*! 
  * Compiladores 2013/2
  * 
- * Group: Marcelo Brandalero, Diego Chim, Maurício Altieri.
+ * Group: Marcelo Brandalero, Diego Chim, MaurÃ­cio Altieri.
  * 
  * @file comp_graph.h
  * 

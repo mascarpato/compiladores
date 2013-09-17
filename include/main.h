@@ -30,5 +30,6 @@
 #define IKS_SIMBOLO_CHAR   3
 #define IKS_SIMBOLO_STRING 4
 #define IKS_SIMBOLO_BOOL   5
+// #define IKS_SIMBOLO_IDENTIFICADOR ?
 
 #endif
