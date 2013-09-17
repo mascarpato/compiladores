@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "comp_tree.h"
+#include "iks_ast.h"
+//#define __NO_GV 1
 
 comp_tree_t* treeCreate(Data d)
 {
@@ -14,6 +16,30 @@ comp_tree_t* treeCreate(Data d)
 	root->data = d;
 	root->left = NULL;
 	root->right = NULL;
+	
+#ifndef __NO_GV
+	if (d.nodeType == IKS_AST_FUNCAO)
+		gv_declare(d.nodeType, root, root->data.symEntry->key);
+	else if (d.nodeType == IKS_AST_IDENTIFICADOR)
+		gv_declare(d.nodeType, root, root->data.symEntry->key);
+	else if (d.nodeType == IKS_AST_LITERAL) {
+			// For string, replaces the "" with \" \"
+ 		if (d.symEntry->symbol.symType == SYMTYPE_STRING) {
+			char *aux = malloc(strlen(root->data.symEntry->key)*sizeof(char)+1+2);
+			aux[0] = '\\';
+			strcpy(&aux[1], d.symEntry->key);
+			aux[strlen(d.symEntry->key)] = '\\';
+			aux[strlen(d.symEntry->key)+1] = '\"';
+			aux[strlen(d.symEntry->key)+2] = '\0';
+			gv_declare(d.nodeType, root, aux);
+			free(aux);
+ 		} else {
+			gv_declare(d.nodeType, root, d.symEntry->key);
+		}
+	} else
+		gv_declare(d.nodeType, root, NULL);
+#endif
+	
 	return root;
 }
 
@@ -27,6 +53,11 @@ void treeInsert(comp_tree_t* newNode, comp_tree_t* fatherNode)
 			a = a->right;
 		a->right = newNode;
 	}
+	
+#ifndef __NO_GV
+	if (newNode != NULL) // Prevents from trying to add an empty node to the drawing
+		gv_connect(fatherNode, newNode);
+#endif
 }			
 		
 

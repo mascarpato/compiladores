@@ -6,6 +6,12 @@
 #define YYERROR_VERBOSE
 
 struct treeNode_t *ast = NULL;
+int stubFunctionParser(comp_tree_t *node) {
+	int i, j;
+	j = 10;
+	return 0;
+}
+
 %}
 
 %define api.value.type {struct treeNode_t*}
@@ -51,7 +57,7 @@ struct treeNode_t *ast = NULL;
 
 %%
 /* Regras (e ações) da gramática da Linguagem K */
-s: declaracao-varglobal ';' s { $$ = $1; } //TODO ??? Verificar 
+s: declaracao-varglobal ';' s { $$ = NULL; } //TODO ??? Verificar 
     | declaracao-funcao s { 
                     $$ = $1;
                     treeInsert($1, ast); } //TODO ??? Verificar 
@@ -68,7 +74,13 @@ tipo: TK_PR_INT { $$ = NULL; } // Nao vai pra arvore
 declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lista-var-local comando-composto {
                                                         Data data;
                                                         data.nodeType = IKS_AST_FUNCAO;
-                                                        data.symEntry = $1->data.symEntry; //TODO Check?? 
+                                                        data.symEntry = $3->data.symEntry; //TODO Check??
+                                                        
+                                                        printf("Criando nó funcao...");
+                                                        stubFunctionParser($3);
+                                                        // assert($3->data.symEntry->key != NULL);
+														// assert(data.symEntry->key != NULL);
+
                                                         comp_tree_t *father = treeCreate(data);
                                                         
                                                         treeInsert($8, father);
@@ -102,17 +114,17 @@ vetor: TK_IDENTIFICADOR '[' expr ']' {
 comando: comando-composto 
     | comando-simples
 ;
-comando-composto: '{' comando-sequencia '}'
+comando-composto: '{' comando-sequencia '}' { printf("reduziu comando-composto.\n"); $$ = $1; }
 ;
-comando-sequencia: comando-simples { $$ = $1; }
-    | comando-simples ';' comando-sequencia {
+comando-sequencia: comando-simples { printf("reduziu comando-sequencia pra simples.\n"); $$ = $1; }
+    | comando-simples ';' comando-sequencia { printf("reduziu comando-sequencia pra simples-seq.\n");
                                 treeInsert($3, $1);
                                 $$ = $1; } //TODO verificar
-    | comando-composto { $$ = $1; }
-    | comando-composto ';' comando-sequencia {
+    | comando-composto { printf("reduziu comando-sequencia pra com-composto.\n"); $$ = $1; }
+    | comando-composto ';' comando-sequencia { printf("reduziu comando-sequencia pra compos-seq.\n");
                                 treeInsert($3, $1);
                                 $$ = $1; } //TODO verificar
-    | /* empty */
+    | /* empty */ { printf("reduziu comando-sequencia pra null.\n"); $$ = NULL; }
 ; 
 comando-simples: condicional { $$ = $1; }
     | laco { $$ = $1; }

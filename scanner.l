@@ -5,7 +5,7 @@
 
 #include "parser.h"
 
-#define SYM_TABLE_INITSIZE 25
+#define SYM_TABLE_INITSIZE 500
 #define YY_USER_INIT dict_create(SYM_TABLE_INITSIZE);
 
 int num_lines=1;
@@ -16,6 +16,8 @@ void inc_char_count();
 
 SymValue_t encodeSymVal(char *lexeme, int symbolType);
 Symbol_t encodeSymbol(char *lexeme, int symbolType);
+
+extern Dict *dict;
 
 %}
 
@@ -72,6 +74,7 @@ Symbol_t encodeSymbol(char *lexeme, int symbolType);
 					Data dataNode;
 					dataNode.nodeType = IKS_AST_LITERAL;
 					dataNode.symEntry = symEntry;
+					// assert(dataNode.symEntry->key != NULL);
 					
 					yylval = treeCreate(dataNode);
 					
@@ -84,6 +87,7 @@ Symbol_t encodeSymbol(char *lexeme, int symbolType);
 					Data dataNode;
 					dataNode.nodeType = IKS_AST_LITERAL;
 					dataNode.symEntry = symEntry;
+					// assert(dataNode.symEntry->key != NULL);
 					
 					yylval = treeCreate(dataNode);
 					
@@ -96,6 +100,7 @@ false 			{	// Scanned FALSE
 					Data dataNode;
 					dataNode.nodeType = IKS_AST_LITERAL;
 					dataNode.symEntry = symEntry;
+					// assert(dataNode.symEntry->key != NULL);
 					
 					yylval = treeCreate(dataNode);
 					
@@ -108,6 +113,7 @@ true 			{	// Scanned TRUE
 					Data dataNode;
 					dataNode.nodeType = IKS_AST_LITERAL;
 					dataNode.symEntry = symEntry;
+					// assert(dataNode.symEntry->key != NULL);
 					
 					yylval = treeCreate(dataNode);
 					
@@ -120,6 +126,7 @@ true 			{	// Scanned TRUE
 					Data dataNode;
 					dataNode.nodeType = IKS_AST_LITERAL;
 					dataNode.symEntry = symEntry;
+					// assert(dataNode.symEntry->key != NULL);
 					
 					yylval = treeCreate(dataNode);
 					
@@ -132,6 +139,7 @@ true 			{	// Scanned TRUE
 					Data dataNode;
 					dataNode.nodeType = IKS_AST_LITERAL;
 					dataNode.symEntry = symEntry;
+					// assert(dataNode.symEntry->key != NULL);
 					
 					yylval = treeCreate(dataNode);
 					
@@ -144,6 +152,12 @@ true 			{	// Scanned TRUE
 					Data dataNode;
 					dataNode.nodeType = IKS_AST_IDENTIFICADOR;
 					dataNode.symEntry = symEntry;
+					// assert(dataNode.symEntry->key != NULL);
+					
+					if (symEntry < dict->begin) 
+						printf("Whoaaa something wrong here!!\n");
+					else if (dataNode.symEntry->valid != 1)
+						printf("Whoaaa something wrong here2!!\n");
 					
 					yylval = treeCreate(dataNode);					
 					
