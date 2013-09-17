@@ -162,7 +162,6 @@ condicional: TK_PR_IF '(' expr ')' TK_PR_THEN comando {
                     
                     $$ = father; }
 ;
-
 laco: do-while
     | while
 ;
