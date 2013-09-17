@@ -1,0 +1,35 @@
+//Function to insert a node in an integer list which is sorted in descendin order
+int: list[100];
+int: size;
+
+bool: insert_list(int: value)
+int: i;
+int: j;
+bool: okay;
+{
+	//list is full
+	if (size = 100) then
+		return false; 	
+	
+	//finds the new node's position in the list
+	i = 0;
+	okay = false;
+	while(okay != true && i < size) do 
+		if(value < list[i]) then
+			i = i+1;
+		else
+			okay = true;
+			
+	//deplaces all elements after its position
+	j = size;
+	while(j > i) do{
+		list[j] = list[j-1];
+		j = j-1;
+	}
+	
+	//inserts new node
+	list[i] = value;
+	size = size+1;
+	
+	return true;
+}

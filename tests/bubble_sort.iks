@@ -1,0 +1,42 @@
+//Fills a list with 10 elements and sort it using Bubble Sort
+
+int: list[10];
+
+int: main()
+int: i;
+{
+	i = 0;
+	while(i < 10) do{
+		input list[i];
+		i = i+1;
+	}
+	bubble_sort();
+	return 1;
+}
+
+int: bubble_sort()
+int: length;
+int: i;
+int: n;
+int: newn;
+int: aux;
+{
+	n = 10;
+	while(n > 0) do{
+		newn = 0;
+		i = 1;
+		while(i < n) do{
+			if(list[i-1] > list[i]) then{
+				aux = list[i-1];
+				list[i-1] = list[i];
+				list[i] = aux;
+				newn = i;
+			}
+		}
+		n = newn;
+	}
+	return 1;
+}
+				
+
+
