@@ -11,6 +11,8 @@
 */
 #include "main.h"
 
+extern struct treeNode_t *ast;
+
 int yyerror (char *mensagem)
 {
   fprintf (stderr, "IKS-parser: %s at line %d\n", mensagem, getLineNumber());
