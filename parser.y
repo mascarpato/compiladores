@@ -72,18 +72,19 @@ tipo: TK_PR_INT { $$ = NULL; } // Nao vai pra arvore
 ;
 
 declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lista-var-local comando-composto {
-                                                        Data data;
+/*                                                        Data data;
                                                         data.nodeType = IKS_AST_FUNCAO;
                                                         data.symEntry = $3->data.symEntry; //TODO Check??
                                                         
                                                         printf("Criando nó funcao...");
-                                                        stubFunctionParser($3);
+                                                        stubFunctionParser($3);*/
                                                         // assert($3->data.symEntry->key != NULL);
 														// assert(data.symEntry->key != NULL);
 
-                                                        comp_tree_t *father = treeCreate(data);
-                                                        
+                                                        comp_tree_t *father = $3;
+                                                        father->data.nodeType = IKS_AST_FUNCAO;
                                                         treeInsert($8, father);
+                                                        
                                                         $$ = father; }
 ;
 
@@ -114,17 +115,17 @@ vetor: TK_IDENTIFICADOR '[' expr ']' {
 comando: comando-composto 
     | comando-simples
 ;
-comando-composto: '{' comando-sequencia '}' { printf("reduziu comando-composto.\n"); $$ = $1; }
+comando-composto: '{' comando-sequencia '}' { $$ = $2; }
 ;
-comando-sequencia: comando-simples { printf("reduziu comando-sequencia pra simples.\n"); $$ = $1; }
-    | comando-simples ';' comando-sequencia { printf("reduziu comando-sequencia pra simples-seq.\n");
+comando-sequencia: comando-simples { $$ = $1; }
+    | comando-simples ';' comando-sequencia {
                                 treeInsert($3, $1);
                                 $$ = $1; } //TODO verificar
-    | comando-composto { printf("reduziu comando-sequencia pra com-composto.\n"); $$ = $1; }
-    | comando-composto ';' comando-sequencia { printf("reduziu comando-sequencia pra compos-seq.\n");
+    | comando-composto { $$ = $1; }
+    | comando-composto ';' comando-sequencia {
                                 treeInsert($3, $1);
                                 $$ = $1; } //TODO verificar
-    | /* empty */ { printf("reduziu comando-sequencia pra null.\n"); $$ = NULL; }
+    | /* empty */ { $$ = NULL; }
 ; 
 comando-simples: condicional { $$ = $1; }
     | laco { $$ = $1; }
