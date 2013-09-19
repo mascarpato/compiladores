@@ -4,6 +4,7 @@
 #include "comp_tree.h"
 
 #define YYERROR_VERBOSE
+#define YYSTYPE struct treeNode_t*
 
 struct treeNode_t *ast = NULL;
 int stubFunctionParser(comp_tree_t *node) {
@@ -14,7 +15,7 @@ int stubFunctionParser(comp_tree_t *node) {
 
 %}
 
-%define api.value.type {struct treeNode_t*}
+//%define api.value.type {struct treeNode_t*}
 
 /* Declaração dos tokens da gramática da Linguagem K */
 
@@ -101,6 +102,10 @@ declaracao-var-simples: tipo ':' TK_IDENTIFICADOR { $$ = NULL; } // Nao entra na
 declaracao-vetor: tipo ':' vetor { $$ = NULL; } // Nao entra na arvore
 ;
 
+variavel: TK_IDENTIFICADOR
+		| vetor
+;
+
 vetor: TK_IDENTIFICADOR '[' expr ']' {
                             Data data;
                             data.nodeType = IKS_AST_VETOR_INDEXADO;
@@ -158,7 +163,7 @@ condicional: TK_PR_IF '(' expr ')' TK_PR_THEN comando {
                     
                     treeInsert($3, father);
                     treeInsert($6, father);
-                    treeInsert($8, father); // No else command
+                    treeInsert($8, father);
                     
                     $$ = father; }
 ;
@@ -199,7 +204,7 @@ comando-retorno: TK_PR_RETURN expr {
                         
                         $$ = father; }
 ;
-comando-entrada: TK_PR_INPUT TK_IDENTIFICADOR {
+comando-entrada: TK_PR_INPUT variavel {
                         Data data;
                         data.nodeType = IKS_AST_INPUT;
                         data.symEntry = NULL;

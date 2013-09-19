@@ -32,7 +32,7 @@ int: i;
 {
 	i = 0;
 	while(i < 10) do{
-		input list;
+		input list[i];
 		i = i+1;
 	};
 	bubble_sort();
