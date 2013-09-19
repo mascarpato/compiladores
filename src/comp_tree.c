@@ -24,14 +24,10 @@ comp_tree_t* treeCreate(Data d)
 		gv_declare(d.nodeType, root, root->data.symEntry->key);
 	else if (d.nodeType == IKS_AST_LITERAL) {
 			// For string, replaces the "" with \" \"
- 		if (d.symEntry->symbol.symType == SYMTYPE_STRING) {
-			char *aux = malloc(strlen(root->data.symEntry->key)*sizeof(char)+1+2);
-			aux[0] = '\\';
-			strcpy(&aux[1], d.symEntry->key);
-			aux[strlen(d.symEntry->key)] = '\\';
-			aux[strlen(d.symEntry->key)+1] = '\"';
-			aux[strlen(d.symEntry->key)+2] = '\0';
-			gv_declare(d.nodeType, root, aux);
+		if (d.symEntry->symbol.symType == SYMTYPE_STRING) {
+			char *aux = strdup(root->data.symEntry->key); 
+			aux[strlen(d.symEntry->key)-1] = '\0';
+			gv_declare(d.nodeType, root, aux+1);
 			free(aux);
  		} else {
 			gv_declare(d.nodeType, root, d.symEntry->key);
