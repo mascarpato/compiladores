@@ -72,7 +72,7 @@ tipo: TK_PR_INT { $$ = NULL; } // Nao vai pra arvore
     | TK_PR_STRING { $$ = NULL; } // Nao vai pra arvore
 ;
 
-declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lista-var-local comando-composto {
+declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lista-var-local comando-funcao {
 /*                                                        Data data;
                                                         data.nodeType = IKS_AST_FUNCAO;
                                                         data.symEntry = $3->data.symEntry; //TODO Check??
@@ -120,8 +120,20 @@ vetor: TK_IDENTIFICADOR '[' expr ']' {
 comando: comando-composto 
     | comando-simples
 ;
-comando-composto: '{' comando-sequencia '}' {$$ = $2;}
+comando-composto: '{' comando-sequencia '}' 
+{
+	Data data;
+        data.nodeType = IKS_AST_BLOCO;
+        data.symEntry = NULL;
+        comp_tree_t *father = treeCreate(data);
+	treeInsert($2, father);
+
+	$$ = father;
+}
 ;
+comando-funcao: '{' comando-sequencia '}'{$$ = $2;}
+;
+
 comando-sequencia: comando-simples { $$ = $1; }
     | comando-simples ';' comando-sequencia { 
                                 treeInsert($3, $1);
@@ -130,7 +142,7 @@ comando-sequencia: comando-simples { $$ = $1; }
     | comando-composto ';' comando-sequencia {
                                 treeInsert($3, $1);
                                 $$ = $1; } //TODO verificar
-    | comando-vazio { $$ = $1;} // /* empty */ { $$ = NULL; }
+    |  /* empty */ { $$ = NULL; } //comando-vazio { $$ = $1;} 
 ; 
 comando-simples: condicional { $$ = $1; }
     | laco { $$ = $1; }
@@ -143,18 +155,6 @@ comando-simples: condicional { $$ = $1; }
                 
     | ';' { $$ = NULL; } // Nao entra na arvore 
 ;
-
-comando-vazio: /*empty*/
-{
-	Data data;
-        data.nodeType = IKS_AST_BLOCO;
-        data.symEntry = NULL;
-        comp_tree_t *father = treeCreate(data);
-
-	$$ = father;
-}
-;
-
 
 condicional: TK_PR_IF '(' expr ')' TK_PR_THEN comando {
                     Data data;
