@@ -446,7 +446,7 @@ expr: '(' expr ')' { $$ = $2; }
         
         $$ = father; }
 
-	/*| teste '-' termo { 
+	| '-' expr { 
         Data data;
         data.nodeType = IKS_AST_ARIM_INVERSAO;
         data.symEntry = NULL;
@@ -454,7 +454,7 @@ expr: '(' expr ')' { $$ = $2; }
         
         treeInsert($2, father);
         
-        $$ = father; }    */
+        $$ = father; }    
 
 	| termo { $$ = $1; }
 
@@ -479,8 +479,8 @@ parametros-funcao-empty : parametros-declaracao-funcao
 parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR
     | tipo ':' TK_IDENTIFICADOR ',' parametros-declaracao-funcao
 ;
-parametros-chamada-funcao: termo { $$ = $1; }
-    | termo ',' parametros-chamada-funcao {
+parametros-chamada-funcao: expr { $$ = $1; }
+    | expr ',' parametros-chamada-funcao {
                                    treeInsert($3, $1); // TODO verificar
                                    $$ = $1; }                                            
     | /* empty */ { $$ = NULL; }
@@ -501,7 +501,7 @@ termo: TK_IDENTIFICADOR
 ;
 
 integer: TK_LIT_INT { $$ = $1; }
-    | '-' TK_LIT_INT { 
+    /*| '-' TK_LIT_INT { 
         Data data;
         data.nodeType = IKS_AST_ARIM_INVERSAO;
         data.symEntry = NULL;
@@ -510,11 +510,11 @@ integer: TK_LIT_INT { $$ = $1; }
         treeInsert($2, father);
         $$ = $2;
         //$2->data.symEntry->symbol.value.value_int = -$2->data.symEntry->symbol.value.value_int;
-        }
+        }*/
 ;
 
 float: TK_LIT_FLOAT { $$ = $1; }
-    | '-' TK_LIT_FLOAT { 
+    /*| '-' TK_LIT_FLOAT { 
         Data data;
         data.nodeType = IKS_AST_ARIM_INVERSAO;
         data.symEntry = NULL;
@@ -524,6 +524,6 @@ float: TK_LIT_FLOAT { $$ = $1; }
         $$ = $2;
         
         //$2->data.symEntry->symbol.value.value_float = -$2->data.symEntry->symbol.value.value_float; }
-        }
+        }*/
 ;
 %%
