@@ -23,7 +23,7 @@ int main (int argc, char **argv)
   gv_init("saida.dot");
   int resultado = yyparse();
   gv_close();
-  // dict_print();
+  //dict_print();
   return resultado;
 }
 

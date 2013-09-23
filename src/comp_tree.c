@@ -23,15 +23,7 @@ comp_tree_t* treeCreate(Data d)
 	else if (d.nodeType == IKS_AST_IDENTIFICADOR)
 		gv_declare(d.nodeType, root, root->data.symEntry->key);
 	else if (d.nodeType == IKS_AST_LITERAL) {
-			// For string, replaces the "" with \" \"
-		if (d.symEntry->symbol.symType == SYMTYPE_STRING) {
-			char *aux = strdup(root->data.symEntry->key); 
-			aux[strlen(d.symEntry->key)-1] = '\0';
-			gv_declare(d.nodeType, root, aux+1);
-			free(aux);
- 		} else {
-			gv_declare(d.nodeType, root, d.symEntry->key);
-		}
+		gv_declare(d.nodeType, root, d.symEntry->key);
 	} else
 		gv_declare(d.nodeType, root, NULL);
 #endif

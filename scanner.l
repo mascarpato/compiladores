@@ -71,9 +71,6 @@ extern Dict *dict;
 					inc_char_count();
 					
 					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_INT), yytext,  getLineNumber());
-/*					Data dataNode;
-					dataNode.nodeType = IKS_AST_LITERAL;
-					dataNode.symEntry = symEntry;*/
 					
 					yylval.symEntry = symEntry;
 					
@@ -109,18 +106,27 @@ true 			{	// Scanned TRUE
 '[[:print:]]'   {	// Scanned CHAR
 					inc_char_count(); 
 					
-					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_CHAR), yytext,  getLineNumber());
+					char *aux = strdup(yytext);
+					aux[strlen(aux)-1] = '\0';
+					
+					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_CHAR), aux+1,  getLineNumber());
 
 					yylval.symEntry = symEntry;
+					free(aux);
 					
 					return TK_LIT_CHAR; }
 					
 \"[^"]*\" 		{	// Scanned STRING
 					inc_char_count(); 
 					
-					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_STRING), yytext,  getLineNumber());
+					char *aux = strdup(yytext);
+					aux[strlen(aux)-1] = '\0';
+					
+					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_STRING), aux+1,  getLineNumber());
 					
 					yylval.symEntry = symEntry;
+					
+					free(aux);
 					
 					return TK_LIT_STRING; }
 					

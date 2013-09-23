@@ -35,16 +35,15 @@ struct treeNode_t *ast = NULL;
 %token TK_PR_INPUT
 %token TK_PR_OUTPUT
 %token TK_PR_RETURN
-%left TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE '=' '<' '>'
+%left TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE  '<' '>' '='
 %left TK_OC_AND TK_OC_OR
-
-%token <tree> TK_LIT_INT
-%token <tree> TK_LIT_FLOAT
-%token <tree> TK_LIT_FALSE
-%token <tree> TK_LIT_TRUE
-%token <tree> TK_LIT_CHAR
-%token <tree> TK_LIT_STRING
-%token <tree> TK_IDENTIFICADOR
+%token <symEntry> TK_LIT_INT
+%token <symEntry> TK_LIT_FLOAT
+%token <symEntry> TK_LIT_FALSE
+%token <symEntry> TK_LIT_TRUE
+%token <symEntry> TK_LIT_CHAR
+%token <symEntry> TK_LIT_STRING
+%token <symEntry> TK_IDENTIFICADOR
 %token TOKEN_ERRO
 %left '-' '+' 
 %left '*' '/'
@@ -56,8 +55,6 @@ struct treeNode_t *ast = NULL;
 %type <tree> declaracao-varglobal
 %type <tree> declaracao-var-simples
 %type <tree> declaracao-vetor
-%type <tree> variavel
-%type <tree> vetor
 %type <tree> tipo
 %type <tree> comando
 %type <tree> comando-composto
@@ -75,35 +72,31 @@ struct treeNode_t *ast = NULL;
 %type <tree> atribuicao
 %type <tree> atribuicao-simples
 %type <tree> atribuicao-vetor
-%type <tree> expr
 %type <tree> chamada-funcao
 %type <tree> parametros-funcao-empty
 %type <tree> parametros-declaracao-funcao
 %type <tree> parametros-chamada-funcao
 %type <tree> termo
-%type <tree> integer
-%type <tree> float
+%type <tree> expr
+
+
 
 %%
 /* Regras (e ações) da gramática da Linguagem K */
 s: s declaracao-varglobal ';'  { $$ = NULL; }
     | s declaracao-funcao {
-/* 					printf("Leu a funcao %s!! ", $2->data.symEntry->key); */
-					
-/*					if ($1 == NULL)
-						printf("s = null. \n");
-					else
-						printf("s = %s. \n", $1->data.symEntry->key);*/
-					
 					if (ast->left == NULL) {
-/*						printf("Inserindo %s na arvore!\n",
-						$2->data.symEntry->key);*/
+						//printf("Inserindo %s na raiz!\n",
+						$2->data.symEntry->key;
 						treeInsert($2, ast);
-					} else
+					} else {
+						//printf("Inserindo %s na arvore ja com raiz!\n",
+						$2->data.symEntry->key;
 						treeInsert($2, $1);
+					}
                     $$ = $2;
                     }
-    | { }
+    | { $$ = NULL; }
 ;
 
 tipo: TK_PR_INT { }
@@ -114,20 +107,15 @@ tipo: TK_PR_INT { }
 ;
 
 declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lista-var-local comando-funcao {
-/*                                                        Data data;
-                                                        data.nodeType = IKS_AST_FUNCAO;
-                                                        data.symEntry = $3->data.symEntry; //TODO Check??
-                                                        
-                                                        printf("Criando nó funcao...");
-                                                        stubFunctionParser($3);*/
-                                                        // assert($3->data.symEntry->key != NULL);
-														// assert(data.symEntry->key != NULL); 
-
-                                                        comp_tree_t *father = $3;
-                                                        father->data.nodeType = IKS_AST_FUNCAO;
-                                                        treeInsert($8, father);
-                                                        
-                                                        $$ = father; }
+						Data data;
+						data.nodeType = IKS_AST_FUNCAO;
+						data.symEntry = $3;
+						
+						comp_tree_t *father = treeCreate(data);
+						treeInsert($8, father);
+						
+						$$ = father; 
+}
 ;
 
 lista-var-local: declaracao-var-simples ';' lista-var-local
@@ -140,39 +128,25 @@ declaracao-varglobal: declaracao-var-simples
 
 declaracao-var-simples: tipo ':' TK_IDENTIFICADOR
 ;
-declaracao-vetor: tipo ':' vetor
+declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']'
 ;
 
-variavel: TK_IDENTIFICADOR
-		| vetor
-;
-
-vetor: TK_IDENTIFICADOR '[' expr ']' {
-                            Data data;
-                            data.nodeType = IKS_AST_VETOR_INDEXADO;
-                            data.symEntry = NULL;
-                            
-                            comp_tree_t *father = treeCreate(data);
-                            treeInsert($1, father);
-                            treeInsert($3, father);
-                            
-                            $$ = father; }
-;
 comando: comando-composto 
     | comando-simples
 ;
-comando-composto: '{' comando-sequencia '}' 
-{
+comando-composto: '{' comando-sequencia '}' {
 	Data data;
-        data.nodeType = IKS_AST_BLOCO;
-        data.symEntry = NULL;
-        comp_tree_t *father = treeCreate(data);
+	data.nodeType = IKS_AST_BLOCO;
+	data.symEntry = NULL;
+	comp_tree_t *father = treeCreate(data);
 	treeInsert($2, father);
+	
+	//printf("Leu bloco de comando(composto)!\n");
 
 	$$ = father;
 }
 ;
-comando-funcao: '{' comando-sequencia '}'{$$ = $2;}
+comando-funcao: '{' comando-sequencia '}'{ $$ = $2;}
 ;
 
 comando-sequencia: comando-simples { $$ = $1; }
@@ -183,7 +157,7 @@ comando-sequencia: comando-simples { $$ = $1; }
     | comando-composto ';' comando-sequencia {
                                 treeInsert($3, $1);
                                 $$ = $1; } //TODO verificar
-    | { }
+    | { $$ = NULL; }
 ; 
 comando-simples: condicional { $$ = $1; }
     | laco { $$ = $1; }
@@ -194,7 +168,7 @@ comando-simples: condicional { $$ = $1; }
     | declaracao-var-simples
     | chamada-funcao { $$ = $1; }
                 
-    | ';' { }
+    | ';' { $$ = NULL; }
 ;
 
 condicional: TK_PR_IF '(' expr ')' TK_PR_THEN comando {
@@ -259,13 +233,18 @@ comando-retorno: TK_PR_RETURN expr {
                         
                         $$ = father; }
 ;
-comando-entrada: TK_PR_INPUT variavel {
+comando-entrada: TK_PR_INPUT TK_IDENTIFICADOR {
                         Data data;
                         data.nodeType = IKS_AST_INPUT;
                         data.symEntry = NULL;
-                        
                         comp_tree_t *father = treeCreate(data);
-                        treeInsert($2, father);
+                        
+                        Data data2;
+                        data2.nodeType = IKS_AST_IDENTIFICADOR;
+                        data2.symEntry = $2;
+                        comp_tree_t *son = treeCreate(data2);
+                        
+                        treeInsert(son, father);
                         
                         $$ = father; }
 ;
@@ -292,23 +271,50 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
         Data data;
         data.nodeType = IKS_AST_ATRIBUICAO;
         data.symEntry = NULL;
-        comp_tree_t *father = treeCreate(data);
+        comp_tree_t *attributionNode = treeCreate(data);
         
-        treeInsert($1, father);
-        treeInsert($3, father);
+		Data data2;
+		data2.nodeType = IKS_AST_IDENTIFICADOR;
+		data2.symEntry = $1;
+		comp_tree_t *id = treeCreate(data2);
         
-        $$ = father; }
+        treeInsert(id, attributionNode);
+        treeInsert($3, attributionNode);
+        
+/*        printf("Attribution node @ %p: \n", attributionNode);
+        printf("---- leftside.name = %s, rightside.nodeType = %s \n",
+				attributionNode->left->data.symEntry->key,
+				attributionNode->left->right->data.symEntry->key);*/
+        
+        $$ = attributionNode; }
 ;
-atribuicao-vetor: vetor '=' expr {
-        Data data;
-        data.nodeType = IKS_AST_ATRIBUICAO;
-        data.symEntry = NULL;
-        comp_tree_t *father = treeCreate(data);
+
+atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr {
+        Data data1;
+        data1.nodeType = IKS_AST_ATRIBUICAO;
+        data1.symEntry = NULL;
+        comp_tree_t *attributionNode = treeCreate(data1);
         
-        treeInsert($1, father);
-        treeInsert($3, father);
-        
-        $$ = father; }
+		/* -- Creates vector node --*/
+		Data data2;
+		data2.nodeType = IKS_AST_VETOR_INDEXADO;
+		data2.symEntry = NULL;
+		comp_tree_t *vader = treeCreate(data2);
+		
+		Data data3;
+		data3.nodeType = IKS_AST_IDENTIFICADOR;
+		data3.symEntry = $1;
+		comp_tree_t *luke = treeCreate(data3);
+		
+		treeInsert(luke, vader);
+		treeInsert($3, vader);
+		/* -- -- */
+		
+		/* -- Inserts vector and expr nodes into attribution node */ 
+		treeInsert(vader, attributionNode);
+		treeInsert($6, attributionNode);
+		
+        $$ = attributionNode; }
 ;
 
 expr: '(' expr ')' { $$ = $2; }
@@ -412,7 +418,7 @@ expr: '(' expr ')' { $$ = $2; }
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($1, father);
-        treeInsert($3, father); 
+        treeInsert($3, father);
         
         $$ = father; }
     | expr '*' expr {
@@ -436,7 +442,7 @@ expr: '(' expr ')' { $$ = $2; }
         
         $$ = father; }
     
-     | '!' termo { // Adicionado na etapa 3 - Gera conflito shift-reduce
+     | '!' termo {
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_NEGACAO;
         data.symEntry = NULL;
@@ -454,11 +460,10 @@ expr: '(' expr ')' { $$ = $2; }
         
         treeInsert($2, father);
         
+        
         $$ = father; }    
 
 	| termo { $$ = $1; }
-
-	
 ;
 
 chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
@@ -467,11 +472,15 @@ chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 				data.symEntry = NULL;
 				comp_tree_t *father = treeCreate(data);
 				
-				treeInsert($1, father);
+				Data data2;
+				data2.nodeType = IKS_AST_IDENTIFICADOR;
+				data2.symEntry = $1;
+				comp_tree_t *son = treeCreate(data2); 
+				
+				treeInsert(son, father);
 				treeInsert($3, father);
 				$$ = father; }
 ;
-
 parametros-funcao-empty : parametros-declaracao-funcao
     | { }
 ;
@@ -482,48 +491,64 @@ parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR
 parametros-chamada-funcao: expr { $$ = $1; }
     | expr ',' parametros-chamada-funcao {
                                    treeInsert($3, $1); // TODO verificar
-                                   $$ = $1; }                                            
+                                   $$ = $1; }
     | /* empty */ { $$ = NULL; }
 ;
 
-termo: TK_IDENTIFICADOR
-    | vetor
+termo: TK_IDENTIFICADOR { 
+		Data data2;
+		data2.nodeType = IKS_AST_IDENTIFICADOR;
+		data2.symEntry = $1;
+		comp_tree_t *daddy = treeCreate(data2); 
+		
+		$$ = daddy;
+	}
+    | TK_IDENTIFICADOR '[' expr ']' {
+		/* -- Creates vector node --*/
+		Data data;
+		data.nodeType = IKS_AST_VETOR_INDEXADO;
+		data.symEntry = NULL;
+		comp_tree_t *vader = treeCreate(data);
+		
+		Data data2;
+		data2.nodeType = IKS_AST_IDENTIFICADOR;
+		data2.symEntry = $1;
+		comp_tree_t *luke = treeCreate(data2);
+		
+		treeInsert(luke, vader);
+		treeInsert($3, vader);
+		
+		$$ = vader;
+    }
     | chamada-funcao 
-    | integer { $$ = $1; }
-    | float { $$ = $1; }
-    | TK_LIT_FALSE { $$ = $1; }
-    | TK_LIT_TRUE { $$ = $1; }
-    | TK_LIT_CHAR { $$ = $1; }
-    | TK_LIT_STRING { $$ = $1; }
-    
-	
-
-;
-
-integer: TK_LIT_INT { $$ = $1; }
-    /*| '-' TK_LIT_INT { 
-        Data data;
-        data.nodeType = IKS_AST_ARIM_INVERSAO;
-        data.symEntry = NULL;
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($2, father);
-        $$ = $2;
-        //$2->data.symEntry->symbol.value.value_int = -$2->data.symEntry->symbol.value.value_int;
-        }*/
-;
-
-float: TK_LIT_FLOAT { $$ = $1; }
-    /*| '-' TK_LIT_FLOAT { 
-        Data data;
-        data.nodeType = IKS_AST_ARIM_INVERSAO;
-        data.symEntry = NULL;
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($2, father);
-        $$ = $2;
-        
-        //$2->data.symEntry->symbol.value.value_float = -$2->data.symEntry->symbol.value.value_float; }
-        }*/
-;
+    | TK_LIT_INT { 	Data data;
+					data.nodeType = IKS_AST_LITERAL;
+					data.symEntry = $1;
+					
+					$$ = treeCreate(data); }
+    | TK_LIT_FLOAT { Data data;
+					data.nodeType = IKS_AST_LITERAL;
+					data.symEntry = $1;
+					
+					$$ = treeCreate(data); }
+    | TK_LIT_FALSE { Data data;
+					data.nodeType = IKS_AST_LITERAL;
+					data.symEntry = $1;
+					
+					$$ = treeCreate(data); }
+    | TK_LIT_TRUE { Data data;
+					data.nodeType = IKS_AST_LITERAL;
+					data.symEntry = $1;
+					
+					$$ = treeCreate(data); }
+    | TK_LIT_CHAR { Data data;
+					data.nodeType = IKS_AST_LITERAL;
+					data.symEntry = $1;
+					
+					$$ = treeCreate(data); }
+    | TK_LIT_STRING { Data data;
+					data.nodeType = IKS_AST_LITERAL;
+					data.symEntry = $1;
+					
+					$$ = treeCreate(data); }
 %%
