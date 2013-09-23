@@ -4,15 +4,16 @@
 #include "comp_tree.h"
 
 #define YYERROR_VERBOSE
-#define YYSTYPE struct treeNode_t*
 
 struct treeNode_t *ast = NULL;
-
 %}
 
-//%define api.value.type {struct treeNode_t*}
-
 /* Declaração dos tokens da gramática da Linguagem K */
+
+%union {
+	struct treeNode_t *tree;
+	struct comp_dict_item_t *symEntry;
+}
 
 %initial-action {
     Data data;
@@ -37,19 +38,51 @@ struct treeNode_t *ast = NULL;
 %left TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE '=' '<' '>'
 %left TK_OC_AND TK_OC_OR
 
-%token TK_LIT_INT
-%token TK_LIT_FLOAT
-%token TK_LIT_FALSE
-%token TK_LIT_TRUE
-%token TK_LIT_CHAR
-%token TK_LIT_STRING
-%token TK_IDENTIFICADOR
+%token <tree> TK_LIT_INT
+%token <tree> TK_LIT_FLOAT
+%token <tree> TK_LIT_FALSE
+%token <tree> TK_LIT_TRUE
+%token <tree> TK_LIT_CHAR
+%token <tree> TK_LIT_STRING
+%token <tree> TK_IDENTIFICADOR
 %token TOKEN_ERRO
 %left '-' '+' 
 %left '*' '/'
 
 /* Nao terminais */ 
-//%type <struct treeNode_t*> s
+%type <tree> s
+%type <tree> declaracao-funcao
+%type <tree> lista-var-local
+%type <tree> declaracao-varglobal
+%type <tree> declaracao-var-simples
+%type <tree> declaracao-vetor
+%type <tree> variavel
+%type <tree> vetor
+%type <tree> tipo
+%type <tree> comando
+%type <tree> comando-composto
+%type <tree> comando-funcao
+%type <tree> comando-sequencia
+%type <tree> comando-simples
+%type <tree> condicional
+%type <tree> laco
+%type <tree> do-while
+%type <tree> while
+%type <tree> comando-retorno
+%type <tree> comando-entrada
+%type <tree> comando-saida
+%type <tree> argumento-saida
+%type <tree> atribuicao
+%type <tree> atribuicao-simples
+%type <tree> atribuicao-vetor
+%type <tree> expr
+%type <tree> chamada-funcao
+%type <tree> parametros-funcao-empty
+%type <tree> parametros-declaracao-funcao
+%type <tree> parametros-chamada-funcao
+%type <tree> termo
+%type <tree> integer
+%type <tree> float
 
 %%
 /* Regras (e ações) da gramática da Linguagem K */
@@ -70,14 +103,14 @@ s: s declaracao-varglobal ';'  { $$ = NULL; }
 						treeInsert($2, $1);
                     $$ = $2;
                     }
-    | { $$ = NULL; }
+    | { }
 ;
 
-tipo: TK_PR_INT { $$ = NULL; } // Nao vai pra arvore
-    | TK_PR_FLOAT { $$ = NULL; } // Nao vai pra arvore
-    | TK_PR_BOOL { $$ = NULL; } // Nao vai pra arvore
-    | TK_PR_CHAR { $$ = NULL; } // Nao vai pra arvore
-    | TK_PR_STRING { $$ = NULL; } // Nao vai pra arvore
+tipo: TK_PR_INT { }
+    | TK_PR_FLOAT { }
+    | TK_PR_BOOL { }
+    | TK_PR_CHAR { }
+    | TK_PR_STRING { }
 ;
 
 declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lista-var-local comando-funcao {
@@ -97,17 +130,17 @@ declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lis
                                                         $$ = father; }
 ;
 
-lista-var-local: declaracao-var-simples ';' lista-var-local { $$ = NULL; } // Nao entra na arvore
-    | /* empty */
+lista-var-local: declaracao-var-simples ';' lista-var-local
+    | { }
 ;
 
-declaracao-varglobal: declaracao-var-simples  { $$ = NULL; } // Nao entra na arvore
-    | declaracao-vetor { $$ = NULL; } // Nao entra na arvore
+declaracao-varglobal: declaracao-var-simples
+    | declaracao-vetor
 ;
 
-declaracao-var-simples: tipo ':' TK_IDENTIFICADOR { $$ = NULL; } // Nao entra na arvore
+declaracao-var-simples: tipo ':' TK_IDENTIFICADOR
 ;
-declaracao-vetor: tipo ':' vetor { $$ = NULL; } // Nao entra na arvore
+declaracao-vetor: tipo ':' vetor
 ;
 
 variavel: TK_IDENTIFICADOR
@@ -150,7 +183,7 @@ comando-sequencia: comando-simples { $$ = $1; }
     | comando-composto ';' comando-sequencia {
                                 treeInsert($3, $1);
                                 $$ = $1; } //TODO verificar
-    |  /* empty */ { $$ = NULL; } //comando-vazio { $$ = $1;} 
+    | { }
 ; 
 comando-simples: condicional { $$ = $1; }
     | laco { $$ = $1; }
@@ -158,10 +191,10 @@ comando-simples: condicional { $$ = $1; }
     | comando-saida { $$ = $1; }
     | comando-retorno { $$ = $1; }
     | atribuicao { $$ = $1; }
-    | declaracao-var-simples { $$ = NULL; } // Nao entra na arvore
+    | declaracao-var-simples
     | chamada-funcao { $$ = $1; }
                 
-    | ';' { $$ = NULL; } // Nao entra na arvore 
+    | ';' { }
 ;
 
 condicional: TK_PR_IF '(' expr ')' TK_PR_THEN comando {
@@ -440,7 +473,7 @@ chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 ;
 
 parametros-funcao-empty : parametros-declaracao-funcao
-    | /* empty */
+    | { }
 ;
 
 parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR
@@ -453,7 +486,7 @@ parametros-chamada-funcao: termo { $$ = $1; }
     | /* empty */ { $$ = NULL; }
 ;
 
-termo: TK_IDENTIFICADOR { $$ = $1; }
+termo: TK_IDENTIFICADOR
     | vetor
     | chamada-funcao 
     | integer { $$ = $1; }

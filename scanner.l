@@ -71,12 +71,11 @@ extern Dict *dict;
 					inc_char_count();
 					
 					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_INT), yytext,  getLineNumber());
-					Data dataNode;
+/*					Data dataNode;
 					dataNode.nodeType = IKS_AST_LITERAL;
-					dataNode.symEntry = symEntry;
-					// assert(dataNode.symEntry->key != NULL);
+					dataNode.symEntry = symEntry;*/
 					
-					yylval = treeCreate(dataNode);
+					yylval.symEntry = symEntry;
 					
 					return TK_LIT_INT; }
 					
@@ -84,12 +83,8 @@ extern Dict *dict;
 					inc_char_count();
 					
 					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_FLOAT), yytext,  getLineNumber());
-					Data dataNode;
-					dataNode.nodeType = IKS_AST_LITERAL;
-					dataNode.symEntry = symEntry;
-					// assert(dataNode.symEntry->key != NULL);
 					
-					yylval = treeCreate(dataNode);
+					yylval.symEntry = symEntry;
 					
 					return TK_LIT_FLOAT; }
 					
@@ -97,12 +92,8 @@ false 			{	// Scanned FALSE
 					inc_char_count();
 					
 					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_BOOL), yytext,  getLineNumber());
-					Data dataNode;
-					dataNode.nodeType = IKS_AST_LITERAL;
-					dataNode.symEntry = symEntry;
-					// assert(dataNode.symEntry->key != NULL);
 					
-					yylval = treeCreate(dataNode);
+					yylval.symEntry = symEntry;
 					
 					return TK_LIT_FALSE; }
 					
@@ -110,12 +101,8 @@ true 			{	// Scanned TRUE
 					inc_char_count(); 
 					
 					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_FLOAT), yytext,  getLineNumber());
-					Data dataNode;
-					dataNode.nodeType = IKS_AST_LITERAL;
-					dataNode.symEntry = symEntry;
-					// assert(dataNode.symEntry->key != NULL);
 					
-					yylval = treeCreate(dataNode);
+					yylval.symEntry = symEntry;
 					
 					return TK_LIT_TRUE; }
 					
@@ -123,12 +110,8 @@ true 			{	// Scanned TRUE
 					inc_char_count(); 
 					
 					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_CHAR), yytext,  getLineNumber());
-					Data dataNode;
-					dataNode.nodeType = IKS_AST_LITERAL;
-					dataNode.symEntry = symEntry;
-					// assert(dataNode.symEntry->key != NULL);
-					
-					yylval = treeCreate(dataNode);
+
+					yylval.symEntry = symEntry;
 					
 					return TK_LIT_CHAR; }
 					
@@ -136,12 +119,8 @@ true 			{	// Scanned TRUE
 					inc_char_count(); 
 					
 					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_STRING), yytext,  getLineNumber());
-					Data dataNode;
-					dataNode.nodeType = IKS_AST_LITERAL;
-					dataNode.symEntry = symEntry;
-					// assert(dataNode.symEntry->key != NULL);
 					
-					yylval = treeCreate(dataNode);
+					yylval.symEntry = symEntry;
 					
 					return TK_LIT_STRING; }
 					
@@ -149,17 +128,13 @@ true 			{	// Scanned TRUE
 					inc_char_count();
 					
 					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_IDENTIFIER), yytext,  getLineNumber());
-					Data dataNode;
-					dataNode.nodeType = IKS_AST_IDENTIFICADOR;
-					dataNode.symEntry = symEntry;
-					// assert(dataNode.symEntry->key != NULL);
 					
 					if (symEntry < dict->begin) 
 						printf("Whoaaa something wrong here!!\n");
-					else if (dataNode.symEntry->valid != 1)
+					else if (symEntry->valid != 1)
 						printf("Whoaaa something wrong here2!!\n");
 					
-					yylval = treeCreate(dataNode);					
+					yylval.symEntry = symEntry;					
 					
 					return TK_IDENTIFICADOR; }
 "\n" { 
@@ -234,5 +209,3 @@ Symbol_t encodeSymbol(char *lexeme, int symbolType) {
 	
 	return retVal;
 }
-
-
