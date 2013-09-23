@@ -7,11 +7,6 @@
 #define YYSTYPE struct treeNode_t*
 
 struct treeNode_t *ast = NULL;
-int stubFunctionParser(comp_tree_t *node) {
-	int i, j;
-	j = 10;
-	return 0;
-}
 
 %}
 
@@ -58,11 +53,24 @@ int stubFunctionParser(comp_tree_t *node) {
 
 %%
 /* Regras (e ações) da gramática da Linguagem K */
-s: declaracao-varglobal ';' s { $$ = NULL; } //TODO ??? Verificar 
-    | declaracao-funcao s { 
-                    $$ = $1;
-                    treeInsert($1, ast); } //TODO ??? Verificar 
-    |
+s: s declaracao-varglobal ';'  { $$ = NULL; }
+    | s declaracao-funcao {
+/* 					printf("Leu a funcao %s!! ", $2->data.symEntry->key); */
+					
+/*					if ($1 == NULL)
+						printf("s = null. \n");
+					else
+						printf("s = %s. \n", $1->data.symEntry->key);*/
+					
+					if (ast->left == NULL) {
+/*						printf("Inserindo %s na arvore!\n",
+						$2->data.symEntry->key);*/
+						treeInsert($2, ast);
+					} else
+						treeInsert($2, $1);
+                    $$ = $2;
+                    }
+    | { $$ = NULL; }
 ;
 
 tipo: TK_PR_INT { $$ = NULL; } // Nao vai pra arvore
@@ -93,7 +101,7 @@ lista-var-local: declaracao-var-simples ';' lista-var-local { $$ = NULL; } // Na
     | /* empty */
 ;
 
-declaracao-varglobal: declaracao-var-simples { $$ = NULL; } // Nao entra na arvore
+declaracao-varglobal: declaracao-var-simples  { $$ = NULL; } // Nao entra na arvore
     | declaracao-vetor { $$ = NULL; } // Nao entra na arvore
 ;
 
