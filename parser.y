@@ -50,7 +50,7 @@ int stubFunctionParser(comp_tree_t *node) {
 %token TK_LIT_STRING
 %token TK_IDENTIFICADOR
 %token TOKEN_ERRO
-%left '-' '+'
+%left '-' '+' 
 %left '*' '/'
 
 /* Nao terminais */ 
@@ -80,7 +80,7 @@ declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lis
                                                         printf("Criando nó funcao...");
                                                         stubFunctionParser($3);*/
                                                         // assert($3->data.symEntry->key != NULL);
-														// assert(data.symEntry->key != NULL);
+														// assert(data.symEntry->key != NULL); 
 
                                                         comp_tree_t *father = $3;
                                                         father->data.nodeType = IKS_AST_FUNCAO;
@@ -120,17 +120,17 @@ vetor: TK_IDENTIFICADOR '[' expr ']' {
 comando: comando-composto 
     | comando-simples
 ;
-comando-composto: '{' comando-sequencia '}' { $$ = $2; }
+comando-composto: '{' comando-sequencia '}' {$$ = $2;}
 ;
 comando-sequencia: comando-simples { $$ = $1; }
-    | comando-simples ';' comando-sequencia {
+    | comando-simples ';' comando-sequencia { 
                                 treeInsert($3, $1);
                                 $$ = $1; } //TODO verificar
     | comando-composto { $$ = $1; }
     | comando-composto ';' comando-sequencia {
                                 treeInsert($3, $1);
                                 $$ = $1; } //TODO verificar
-    | /* empty */ { $$ = NULL; }
+    | comando-vazio { $$ = $1;} // /* empty */ { $$ = NULL; }
 ; 
 comando-simples: condicional { $$ = $1; }
     | laco { $$ = $1; }
@@ -144,12 +144,25 @@ comando-simples: condicional { $$ = $1; }
     | ';' { $$ = NULL; } // Nao entra na arvore 
 ;
 
+comando-vazio: /*empty*/
+{
+	Data data;
+        data.nodeType = IKS_AST_BLOCO;
+        data.symEntry = NULL;
+        comp_tree_t *father = treeCreate(data);
+
+	$$ = father;
+}
+;
+
+
 condicional: TK_PR_IF '(' expr ')' TK_PR_THEN comando {
                     Data data;
                     data.nodeType = IKS_AST_IF_ELSE;
                     data.symEntry = NULL;
                     comp_tree_t *father = treeCreate(data);
-                    
+
+                                
                     treeInsert($3, father);
                     treeInsert($6, father);
                     treeInsert(NULL, father); // No else command
@@ -176,8 +189,9 @@ do-while: TK_PR_DO comando TK_PR_WHILE '(' expr ')' ';' {
                     Data data;
                     data.nodeType = IKS_AST_DO_WHILE;
                     data.symEntry = NULL;
-                    comp_tree_t *father = treeCreate(data);
-                    
+                    comp_tree_t *father = treeCreate(data);                  
+
+
                     treeInsert($2, father);
                     treeInsert($5, father);
                     
@@ -380,7 +394,8 @@ expr: '(' expr ')' { $$ = $2; }
         treeInsert($3, father); 
         
         $$ = father; }
-    /*| '!' expr { // Adicionado na etapa 3 - Gera conflito shift-reduce
+    
+     | '!' termo { // Adicionado na etapa 3 - Gera conflito shift-reduce
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_NEGACAO;
         data.symEntry = NULL;
@@ -388,8 +403,21 @@ expr: '(' expr ')' { $$ = $2; }
         
         treeInsert($2, father);
         
-        $$ = father; }*/
-    | termo { $$ = $1; }
+        $$ = father; }
+
+	/*| teste '-' termo { 
+        Data data;
+        data.nodeType = IKS_AST_ARIM_INVERSAO;
+        data.symEntry = NULL;
+        comp_tree_t *father = treeCreate(data);
+        
+        treeInsert($2, father);
+        
+        $$ = father; }    */
+
+	| termo { $$ = $1; }
+
+	
 ;
 
 chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
@@ -426,6 +454,9 @@ termo: TK_IDENTIFICADOR { $$ = $1; }
     | TK_LIT_TRUE { $$ = $1; }
     | TK_LIT_CHAR { $$ = $1; }
     | TK_LIT_STRING { $$ = $1; }
+    
+	
+
 ;
 
 integer: TK_LIT_INT { $$ = $1; }
