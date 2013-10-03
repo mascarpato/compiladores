@@ -49,6 +49,7 @@ struct treeNode_t *ast = NULL;
 %left '*' '/'
 
 /* Nao terminais */ 
+%type <tree> programa
 %type <tree> s
 %type <tree> declaracao-funcao
 %type <tree> lista-var-local
@@ -83,6 +84,9 @@ struct treeNode_t *ast = NULL;
 
 %%
 /* Regras (e ações) da gramática da Linguagem K */
+programa: s {printf ("%d \n", check_declar ($1) );}
+;
+
 s: s declaracao-varglobal ';'  { $$ = NULL; }
     | s declaracao-funcao {
 					if (ast->left == NULL) {
@@ -127,6 +131,7 @@ declaracao-varglobal: declaracao-var-simples
 ;
 
 declaracao-var-simples: tipo ':' TK_IDENTIFICADOR
+
 ;
 declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']'
 ;

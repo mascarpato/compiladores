@@ -13,6 +13,8 @@
 #define SYMTYPE_BOOL 5
 #define SYMTYPE_IDENTIFIER 6
 
+#define SYMTYPE_IDENTIFIER_DECLARED 7
+
 #define TRUE 1
 #define FALSE 0
 
