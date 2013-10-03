@@ -5,10 +5,18 @@ int check_declar (comp_tree_t *root)
     int i = 0;
     
 	if (root == NULL) return IKS_SUCCESS ;
+	else
+	{
+		check_declar(root->left);
+		check_declar(root->right);		
+	}
    
     if (root->data.nodeType == IKS_AST_ATRIBUICAO || 
-		root->data.nodeType == IKS_AST_VETOR_INDEXADO ||  
-		root->data.nodeType == IKS_AST_FUNCAO) 
+	//root->data.nodeType == IKS_AST_IDENTIFICADOR || 
+	root->data.nodeType == IKS_AST_VETOR_INDEXADO ||  
+	root->data.nodeType == IKS_AST_CHAMADA_DE_FUNCAO ||
+	root->data.nodeType == IKS_AST_FUNCAO
+	) 
 	{
 		if(root->data.symEntry->key == 0) 
 		{
@@ -25,18 +33,14 @@ int check_declar (comp_tree_t *root)
 			}
 			if (root->data.nodeType == IKS_AST_ATRIBUICAO) root->data.symEntry->symbol.symType = SYMTYPE_IDENTIFIER_DECLARED;				
 			if (root->data.nodeType == IKS_AST_VETOR_INDEXADO) root->data.symEntry->symbol.symType = SYMTYPE_IDENTIFIER_DECLARED;
-			if (root->data.nodeType == IKS_AST_FUNCAO) root->data.symEntry->symbol.symType = SYMTYPE_IDENTIFIER_DECLARED;
-			//if (root->type == IKS_AST_CHAMADA_DE_FUNCAO) root->data.symEntry.symbol.symType = SYMBOL_POINTER;
+			//if (root->data.nodeType == IKS_AST_FUNCAO) root->data.symEntry->symbol.symType = SYMTYPE_IDENTIFIER_DECLARED;
+			//if (root->data.nodeType == IKS_AST_CHAMADA_DE_FUNCAO) root->data.symEntry->symbol.symType = SYMTYPE_IDENTIFIER_DECLARED;	
 			else
-				return IKS_SUCCESS ;
+				return 999;//return IKS_SUCCESS ;
 		}
 		
 	}
 	
-	if (root != NULL)
-	{
-		check_declar(root->left);
-		check_declar(root->right);		
-	}
+
 
 }        

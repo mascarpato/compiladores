@@ -13,7 +13,15 @@
 #define SYMTYPE_BOOL 5
 #define SYMTYPE_IDENTIFIER 6
 
-#define SYMTYPE_IDENTIFIER_DECLARED 7
+#define SYMTYPE_IDENTIFIER_INT 7
+#define SYMTYPE_IDENTIFIER_FLOAT 8
+#define SYMTYPE_IDENTIFIER_CHAR 9
+#define SYMTYPE_IDENTIFIER_STRING 10
+#define SYMTYPE_IDENTIFIER_BOOL 11
+
+#define SYMTYPE_VAR 1024
+#define SYMTYPE_VEC 2048
+#define SYMTYPE_FUN 4096
 
 #define TRUE 1
 #define FALSE 0
@@ -37,7 +45,7 @@ typedef union SymValue_un {
 	*/
 typedef struct Symbol_t_str {
 	char *name; //! Symbol name
-	int symType; //! Symbol type. Possible types are found below.
+	int symType; //! Symbol type. Possible types are found above.
 	SymValue_t value;
 } Symbol_t;
 

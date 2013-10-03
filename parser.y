@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "iks_ast.h"
 #include "comp_tree.h"
+#include "semantic.h"
 
 #define YYERROR_VERBOSE
 
@@ -103,11 +104,11 @@ s: s declaracao-varglobal ';'  { $$ = NULL; }
     | { $$ = NULL; }
 ;
 
-tipo: TK_PR_INT { }
-    | TK_PR_FLOAT { }
-    | TK_PR_BOOL { }
-    | TK_PR_CHAR { }
-    | TK_PR_STRING { }
+tipo: TK_PR_INT { $$.tipo = SYMTYPE_IDENTIFIER_INT;}
+    | TK_PR_FLOAT { $$.tipo = SYMTYPE_IDENTIFIER_FLOAT;}
+    | TK_PR_BOOL { $$.tipo = SYMTYPE_IDENTIFIER_BOOL;}
+    | TK_PR_CHAR { $$.tipo = SYMTYPE_IDENTIFIER_CHAR;}
+    | TK_PR_STRING { $$.tipo = SYMTYPE_IDENTIFIER_STRING;}
 ;
 
 declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lista-var-local comando-funcao {
@@ -117,6 +118,9 @@ declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lis
 						
 						comp_tree_t *father = treeCreate(data);
 						treeInsert($8, father);
+						
+						$3->data.symEntry->symbol.symType = $1->tipo || SYMTYPE_FUN;
+
 						
 						$$ = father; 
 }
@@ -130,10 +134,11 @@ declaracao-varglobal: declaracao-var-simples
     | declaracao-vetor
 ;
 
-declaracao-var-simples: tipo ':' TK_IDENTIFICADOR
+declaracao-var-simples: tipo ':' TK_IDENTIFICADOR { $3->data.symEntry->symbol.symType = $1->tipo || SYMTYPE_VAR;}
 
 ;
-declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']'
+declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']' { $3->data.symEntry->symbol.symType = $1->tipo || SYMTYPE_VEC;}
+
 ;
 
 comando: comando-composto 
