@@ -23,4 +23,7 @@
 #define IKS_ERROR_WRONG_PAR_OUTPUT 13 //parâmetro não é literal string ou expressão
 #define IKS_ERROR_WRONG_PAR_RETURN 14 //parâmetro não é expressão compatível com tipo do retorno
 
-int check_declar (comp_tree_t *root);
+int check_id_declr (DictItem *sym);
+int check_id_isfunction (DictItem *sym);
+int check_id_isvariable (DictItem *sym);
+int check_id_isvector (DictItem *sym);

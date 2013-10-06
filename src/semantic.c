@@ -1,6 +1,6 @@
 #include "semantic.h"
 
-int check_declar (comp_tree_t *root) 
+/*int check_declar (comp_tree_t *root) 
 {
     int i = 0;
     
@@ -15,8 +15,7 @@ int check_declar (comp_tree_t *root)
 	//root->data.nodeType == IKS_AST_IDENTIFICADOR || 
 	root->data.nodeType == IKS_AST_VETOR_INDEXADO ||  
 	root->data.nodeType == IKS_AST_CHAMADA_DE_FUNCAO ||
-	root->data.nodeType == IKS_AST_FUNCAO
-	) 
+	root->data.nodeType == IKS_AST_FUNCAO) 
 	{
 		if(root->data.symEntry->key == 0) 
 		{
@@ -41,6 +40,36 @@ int check_declar (comp_tree_t *root)
 		
 	}
 	
+} */  
 
+int check_id_declr (DictItem *sym) {
+	if ((sym->symbol.symType & SYMTYPE_INT) == SYMTYPE_INT ||
+		(sym->symbol.symType & SYMTYPE_FLOAT) == SYMTYPE_FLOAT ||
+		(sym->symbol.symType & SYMTYPE_CHAR) == SYMTYPE_CHAR ||
+		(sym->symbol.symType & SYMTYPE_STRING) == SYMTYPE_STRING ||
+		(sym->symbol.symType & SYMTYPE_BOOL) == SYMTYPE_BOOL)
+		return 1; // Declared = true.
+	else
+		return 0; // Declared = false
+}
 
-}        
+int check_id_isfunction (DictItem *sym) {
+	if ((sym->symbol.symType & SYMTYPE_FUN) == SYMTYPE_FUN)
+		return 1;
+	else
+		return 0;
+}
+
+int check_id_isvariable (DictItem *sym) {
+	if ((sym->symbol.symType & SYMTYPE_VAR) == SYMTYPE_VAR)
+		return 1;
+	else
+		return 0;
+}
+
+int check_id_isvector (DictItem *sym) {
+	if ((sym->symbol.symType & SYMTYPE_VEC) == SYMTYPE_VEC)
+		return 1;
+	else
+		return 0;
+}

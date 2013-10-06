@@ -56,10 +56,8 @@ DictItem *dict_insert(Symbol_t symbol, char *key, int occLine) {
 			dict->size = dict->size+1;
 		} else {
 			if (strcmp(dict->begin[i].key, key) == 0) { // Will replace old symbol
-				found = 1;
-				// frees old space in memory. will afterwards alloc again.
-				free(dict->begin[i].key);
-			} else	
+				found = 2;
+			} else
 				i++;
 		}
 		
@@ -69,12 +67,18 @@ DictItem *dict_insert(Symbol_t symbol, char *key, int occLine) {
 			i = 0;
 	}
 	
-	dict->begin[i].key = malloc(sizeof(char)*strlen(key)+1);
-	strcpy(dict->begin[i].key, key);
-	dict->begin[i].occLine = occLine;
-	dict->begin[i].valid=1;
-	
-	dict->begin[i].symbol = symbol;
+	// Two cases: Will replace symbol or will leave it be.
+	if (found == 1) {
+		dict->begin[i].key = malloc(sizeof(char)*strlen(key)+1);
+		strcpy(dict->begin[i].key, key);
+		dict->begin[i].occLine = occLine;
+		dict->begin[i].valid=1;
+		
+		dict->begin[i].symbol = symbol;
+	}
+	else {
+		// Do nothing
+	}
 	
 	if (key == NULL) {
 		printf("Hey. Why are you adding a null key?????");

@@ -14,6 +14,7 @@ struct treeNode_t *ast = NULL;
 %union {
 	struct treeNode_t *tree;
 	struct comp_dict_item_t *symEntry;
+	int tipo;
 }
 
 %initial-action {
@@ -57,7 +58,7 @@ struct treeNode_t *ast = NULL;
 %type <tree> declaracao-varglobal
 %type <tree> declaracao-var-simples
 %type <tree> declaracao-vetor
-%type <tree> tipo
+%type <tipo> tipo
 %type <tree> comando
 %type <tree> comando-composto
 %type <tree> comando-funcao
@@ -85,7 +86,7 @@ struct treeNode_t *ast = NULL;
 
 %%
 /* Regras (e ações) da gramática da Linguagem K */
-programa: s {printf ("%d \n", check_declar ($1) );}
+programa: s { }
 ;
 
 s: s declaracao-varglobal ';'  { $$ = NULL; }
@@ -104,14 +105,19 @@ s: s declaracao-varglobal ';'  { $$ = NULL; }
     | { $$ = NULL; }
 ;
 
-tipo: TK_PR_INT { $$.tipo = SYMTYPE_IDENTIFIER_INT;}
-    | TK_PR_FLOAT { $$.tipo = SYMTYPE_IDENTIFIER_FLOAT;}
-    | TK_PR_BOOL { $$.tipo = SYMTYPE_IDENTIFIER_BOOL;}
-    | TK_PR_CHAR { $$.tipo = SYMTYPE_IDENTIFIER_CHAR;}
-    | TK_PR_STRING { $$.tipo = SYMTYPE_IDENTIFIER_STRING;}
+tipo: TK_PR_INT { $$ = SYMTYPE_IDENTIFIER_INT;}
+    | TK_PR_FLOAT { $$ = SYMTYPE_IDENTIFIER_FLOAT;}
+    | TK_PR_BOOL { $$ = SYMTYPE_IDENTIFIER_BOOL;}
+    | TK_PR_CHAR { $$ = SYMTYPE_IDENTIFIER_CHAR;}
+    | TK_PR_STRING { $$ = SYMTYPE_IDENTIFIER_STRING;}
 ;
 
 declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lista-var-local comando-funcao {
+
+						// Tests if function is being redefined .
+						if (check_id_declr($3))
+							exit(IKS_ERROR_DECLARED);
+							
 						Data data;
 						data.nodeType = IKS_AST_FUNCAO;
 						data.symEntry = $3;
@@ -119,10 +125,9 @@ declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lis
 						comp_tree_t *father = treeCreate(data);
 						treeInsert($8, father);
 						
-						$3->data.symEntry->symbol.symType = $1->tipo || SYMTYPE_FUN;
+						$3->symbol.symType = $1 | SYMTYPE_FUN;
 
-						
-						$$ = father; 
+						$$ = father;
 }
 ;
 
@@ -134,11 +139,21 @@ declaracao-varglobal: declaracao-var-simples
     | declaracao-vetor
 ;
 
-declaracao-var-simples: tipo ':' TK_IDENTIFICADOR { $3->data.symEntry->symbol.symType = $1->tipo || SYMTYPE_VAR;}
+declaracao-var-simples: tipo ':' TK_IDENTIFICADOR { 
+			// Tests if function is being redefined .
+			if (check_id_declr($3))
+				exit(IKS_ERROR_DECLARED);
 
+			$3->symbol.symType = $1 | SYMTYPE_VAR;
+}
 ;
-declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']' { $3->data.symEntry->symbol.symType = $1->tipo || SYMTYPE_VEC;}
-
+declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']' { 
+			// Tests if function is being redefined .
+			if (check_id_declr($3))
+				exit(IKS_ERROR_DECLARED);
+			
+			$3->symbol.symType = $1 | SYMTYPE_VEC;
+}
 ;
 
 comando: comando-composto 
@@ -244,6 +259,13 @@ comando-retorno: TK_PR_RETURN expr {
                         $$ = father; }
 ;
 comando-entrada: TK_PR_INPUT TK_IDENTIFICADOR {
+						// Tests if variable has been defined.
+						if (!check_id_declr($2))
+							exit(IKS_ERROR_UNDECLARED);
+						// Tests if identifier is a variable
+						if (!check_id_isvariable($2))
+							exit(IKS_ERROR_WRONG_PAR_INPUT);
+
                         Data data;
                         data.nodeType = IKS_AST_INPUT;
                         data.symEntry = NULL;
@@ -278,6 +300,13 @@ atribuicao: atribuicao-simples { $$ = $1; }
     | atribuicao-vetor { $$ = $1; }
 ;
 atribuicao-simples: TK_IDENTIFICADOR '=' expr {
+		// Tests if variable has been defined.
+		if (!check_id_declr($1))
+			exit(IKS_ERROR_UNDECLARED);
+		// Checks if identifier is a variable
+		if (!check_id_isvariable($1))
+			exit(IKS_ERROR_VARIABLE);
+						
         Data data;
         data.nodeType = IKS_AST_ATRIBUICAO;
         data.symEntry = NULL;
@@ -300,6 +329,13 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 ;
 
 atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr {
+		// Tests if variable has been defined.
+		if (!check_id_declr($1))
+			exit(IKS_ERROR_UNDECLARED);
+		// Checks if identifier is a vector
+		if (!check_id_isvector($1))
+			exit(IKS_ERROR_VARIABLE);
+
         Data data1;
         data1.nodeType = IKS_AST_ATRIBUICAO;
         data1.symEntry = NULL;
@@ -477,6 +513,12 @@ expr: '(' expr ')' { $$ = $2; }
 ;
 
 chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
+				// Tests if variable has been defined.
+				if (!check_id_declr($1))
+					exit(IKS_ERROR_UNDECLARED);
+				if (!check_id_isfunction($1))
+					exit(IKS_ERROR_FUNCTION);
+							
 				Data data;
 				data.nodeType = IKS_AST_CHAMADA_DE_FUNCAO;
 				data.symEntry = NULL;
@@ -495,8 +537,8 @@ parametros-funcao-empty : parametros-declaracao-funcao
     | { }
 ;
 
-parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR
-    | tipo ':' TK_IDENTIFICADOR ',' parametros-declaracao-funcao
+parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR { }
+    | tipo ':' TK_IDENTIFICADOR ',' parametros-declaracao-funcao { }
 ;
 parametros-chamada-funcao: expr { $$ = $1; }
     | expr ',' parametros-chamada-funcao {
