@@ -43,11 +43,11 @@
 } */  
 
 int check_id_declr (DictItem *sym) {
-	if ((sym->symbol.symType & SYMTYPE_INT) == SYMTYPE_INT ||
-		(sym->symbol.symType & SYMTYPE_FLOAT) == SYMTYPE_FLOAT ||
-		(sym->symbol.symType & SYMTYPE_CHAR) == SYMTYPE_CHAR ||
-		(sym->symbol.symType & SYMTYPE_STRING) == SYMTYPE_STRING ||
-		(sym->symbol.symType & SYMTYPE_BOOL) == SYMTYPE_BOOL)
+	if ((sym->symbol.symType & MASK_SYMTYPE_TYPE) == SYMTYPE_INT ||
+		(sym->symbol.symType & MASK_SYMTYPE_TYPE) == SYMTYPE_FLOAT ||
+		(sym->symbol.symType & MASK_SYMTYPE_TYPE) == SYMTYPE_CHAR ||
+		(sym->symbol.symType & MASK_SYMTYPE_TYPE) == SYMTYPE_STRING ||
+		(sym->symbol.symType & MASK_SYMTYPE_TYPE) == SYMTYPE_BOOL)
 		return 1; // Declared = true.
 	else
 		return 0; // Declared = false

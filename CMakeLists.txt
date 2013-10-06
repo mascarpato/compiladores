@@ -8,6 +8,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(${compilador_SOURCE_DIR}/include/)
 INCLUDE_DIRECTORIES(${compilador_SOURCE_DIR}/src/)
 ADD_EXECUTABLE(main
+  src/comp_symbols.c
   src/comp_dict.c
   src/comp_tree.c
   src/comp_list.c

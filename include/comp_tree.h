@@ -25,6 +25,7 @@
  */
 typedef struct data_t {
 	int nodeType;
+	int semanticType;
 	DictItem *symEntry;
 } Data;
 

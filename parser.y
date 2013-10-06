@@ -105,18 +105,17 @@ s: s declaracao-varglobal ';'  { $$ = NULL; }
     | { $$ = NULL; }
 ;
 
-tipo: TK_PR_INT { $$ = SYMTYPE_IDENTIFIER_INT;}
-    | TK_PR_FLOAT { $$ = SYMTYPE_IDENTIFIER_FLOAT;}
-    | TK_PR_BOOL { $$ = SYMTYPE_IDENTIFIER_BOOL;}
-    | TK_PR_CHAR { $$ = SYMTYPE_IDENTIFIER_CHAR;}
-    | TK_PR_STRING { $$ = SYMTYPE_IDENTIFIER_STRING;}
+tipo: TK_PR_INT { $$ = SYMTYPE_INT;}
+    | TK_PR_FLOAT { $$ = SYMTYPE_FLOAT;}
+    | TK_PR_BOOL { $$ = SYMTYPE_BOOL;}
+    | TK_PR_CHAR { $$ = SYMTYPE_CHAR;}
+    | TK_PR_STRING { $$ = SYMTYPE_STRING;}
 ;
 
 declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lista-var-local comando-funcao {
-
 						// Tests if function is being redefined .
 						if (check_id_declr($3))
-							exit(IKS_ERROR_DECLARED);
+							return(IKS_ERROR_DECLARED);
 							
 						Data data;
 						data.nodeType = IKS_AST_FUNCAO;
@@ -140,9 +139,10 @@ declaracao-varglobal: declaracao-var-simples
 ;
 
 declaracao-var-simples: tipo ':' TK_IDENTIFICADOR { 
+						printf("Symbol type is %d\n", $3->symbol.symType);
 			// Tests if function is being redefined .
 			if (check_id_declr($3))
-				exit(IKS_ERROR_DECLARED);
+				return(IKS_ERROR_DECLARED);
 
 			$3->symbol.symType = $1 | SYMTYPE_VAR;
 }
@@ -150,7 +150,7 @@ declaracao-var-simples: tipo ':' TK_IDENTIFICADOR {
 declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']' { 
 			// Tests if function is being redefined .
 			if (check_id_declr($3))
-				exit(IKS_ERROR_DECLARED);
+				return(IKS_ERROR_DECLARED);
 			
 			$3->symbol.symType = $1 | SYMTYPE_VEC;
 }
@@ -261,10 +261,10 @@ comando-retorno: TK_PR_RETURN expr {
 comando-entrada: TK_PR_INPUT TK_IDENTIFICADOR {
 						// Tests if variable has been defined.
 						if (!check_id_declr($2))
-							exit(IKS_ERROR_UNDECLARED);
+							return(IKS_ERROR_UNDECLARED);
 						// Tests if identifier is a variable
 						if (!check_id_isvariable($2))
-							exit(IKS_ERROR_WRONG_PAR_INPUT);
+							return(IKS_ERROR_WRONG_PAR_INPUT);
 
                         Data data;
                         data.nodeType = IKS_AST_INPUT;
@@ -290,7 +290,14 @@ comando-saida: TK_PR_OUTPUT argumento-saida {
                         
                         $$ = father; }
 ;
-argumento-saida: expr { $$ = $1; }
+argumento-saida: expr { $$ = $1;
+						// Tests if variable has been defined.
+						if (!check_id_declr($1->data.symEntry))
+							return(IKS_ERROR_UNDECLARED);
+						// Tests if identifier is a variable
+						if (!check_id_isvariable($1->data.symEntry))
+							return(IKS_ERROR_WRONG_PAR_INPUT);
+}
     | expr ',' argumento-saida {
                     treeInsert($3, $1);
                     $$ = $1; }
@@ -302,10 +309,10 @@ atribuicao: atribuicao-simples { $$ = $1; }
 atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 		// Tests if variable has been defined.
 		if (!check_id_declr($1))
-			exit(IKS_ERROR_UNDECLARED);
+			return(IKS_ERROR_UNDECLARED);
 		// Checks if identifier is a variable
 		if (!check_id_isvariable($1))
-			exit(IKS_ERROR_VARIABLE);
+			return(IKS_ERROR_VARIABLE);
 						
         Data data;
         data.nodeType = IKS_AST_ATRIBUICAO;
@@ -331,10 +338,10 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr {
 		// Tests if variable has been defined.
 		if (!check_id_declr($1))
-			exit(IKS_ERROR_UNDECLARED);
+			return(IKS_ERROR_UNDECLARED);
 		// Checks if identifier is a vector
 		if (!check_id_isvector($1))
-			exit(IKS_ERROR_VARIABLE);
+			return(IKS_ERROR_VARIABLE);
 
         Data data1;
         data1.nodeType = IKS_AST_ATRIBUICAO;
@@ -368,6 +375,9 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_LE;
         data.symEntry = NULL;
+        data.semanticType = eval_infer(
+				$1->data.semanticType, $3->data.semanticType,
+				&($1->data.semanticType), &($3->data.semanticType));
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($1, father);
@@ -378,6 +388,9 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_GE;
         data.symEntry = NULL;
+        data.semanticType = eval_infer(
+				$1->data.semanticType, $3->data.semanticType,
+				&($1->data.semanticType), &($3->data.semanticType));
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($1, father);
@@ -388,6 +401,9 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_IGUAL;
         data.symEntry = NULL;
+        data.semanticType = eval_infer(
+				$1->data.semanticType, $3->data.semanticType,
+				&($1->data.semanticType), &($3->data.semanticType));
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($1, father);
@@ -398,6 +414,9 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_DIF;
         data.symEntry = NULL;
+        data.semanticType = eval_infer(
+				$1->data.semanticType, $3->data.semanticType,
+				&($1->data.semanticType), &($3->data.semanticType));
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($1, father);
@@ -408,6 +427,9 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_L;
         data.symEntry = NULL;
+        data.semanticType = eval_infer(
+				$1->data.semanticType, $3->data.semanticType,
+				&($1->data.semanticType), &($3->data.semanticType));
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($1, father);
@@ -418,6 +440,9 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_G;
         data.symEntry = NULL;
+        data.semanticType = eval_infer(
+				$1->data.semanticType, $3->data.semanticType,
+				&($1->data.semanticType), &($3->data.semanticType));
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($1, father);
@@ -431,6 +456,9 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_E;
         data.symEntry = NULL;
+        data.semanticType = eval_infer(
+				$1->data.semanticType, $3->data.semanticType,
+				&($1->data.semanticType), &($3->data.semanticType));
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($1, father);
@@ -441,6 +469,9 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_OU;
         data.symEntry = NULL;
+        data.semanticType = eval_infer(
+				$1->data.semanticType, $3->data.semanticType,
+				&($1->data.semanticType), &($3->data.semanticType));
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($1, father);
@@ -451,6 +482,9 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_ARIM_SOMA;
         data.symEntry = NULL;
+        data.semanticType = eval_infer(
+				$1->data.semanticType, $3->data.semanticType,
+				&($1->data.semanticType), &($3->data.semanticType));
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($1, father);
@@ -461,6 +495,9 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_ARIM_SUBTRACAO;
         data.symEntry = NULL;
+        data.semanticType = eval_infer(
+				$1->data.semanticType, $3->data.semanticType,
+				&($1->data.semanticType), &($3->data.semanticType));
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($1, father);
@@ -471,6 +508,9 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_ARIM_MULTIPLICACAO;
         data.symEntry = NULL;
+        data.semanticType = eval_infer(
+				$1->data.semanticType, $3->data.semanticType,
+				&($1->data.semanticType), &($3->data.semanticType));
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($1, father);
@@ -481,6 +521,9 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_ARIM_DIVISAO;
         data.symEntry = NULL;
+        data.semanticType = eval_infer(
+				$1->data.semanticType, $3->data.semanticType,
+				&($1->data.semanticType), &($3->data.semanticType));
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($1, father);
@@ -492,6 +535,7 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_NEGACAO;
         data.symEntry = NULL;
+        data.semanticType = $2->data.semanticType;
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($2, father);
@@ -502,6 +546,7 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_ARIM_INVERSAO;
         data.symEntry = NULL;
+        data.semanticType = $2->data.semanticType;
         comp_tree_t *father = treeCreate(data);
         
         treeInsert($2, father);
@@ -515,9 +560,9 @@ expr: '(' expr ')' { $$ = $2; }
 chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 				// Tests if variable has been defined.
 				if (!check_id_declr($1))
-					exit(IKS_ERROR_UNDECLARED);
+					return(IKS_ERROR_UNDECLARED);
 				if (!check_id_isfunction($1))
-					exit(IKS_ERROR_FUNCTION);
+					return(IKS_ERROR_FUNCTION);
 							
 				Data data;
 				data.nodeType = IKS_AST_CHAMADA_DE_FUNCAO;
@@ -547,23 +592,38 @@ parametros-chamada-funcao: expr { $$ = $1; }
     | /* empty */ { $$ = NULL; }
 ;
 
-termo: TK_IDENTIFICADOR { 
+termo: TK_IDENTIFICADOR {
+		// Tests if variable has been defined.
+		if (!check_id_declr($1))
+			return(IKS_ERROR_UNDECLARED);
+		if (!check_id_isvariable($1))
+			return(IKS_ERROR_FUNCTION);
+			
 		Data data2;
 		data2.nodeType = IKS_AST_IDENTIFICADOR;
 		data2.symEntry = $1;
+		data2.semanticType = $1->symbol.symType;
 		comp_tree_t *daddy = treeCreate(data2); 
 		
 		$$ = daddy;
 	}
     | TK_IDENTIFICADOR '[' expr ']' {
+		// Tests if variable has been defined.
+		if (!check_id_declr($1))
+			return(IKS_ERROR_UNDECLARED);
+		if (!check_id_isvector($1))
+			return(IKS_ERROR_FUNCTION);
+			
 		/* -- Creates vector node --*/
 		Data data;
 		data.nodeType = IKS_AST_VETOR_INDEXADO;
 		data.symEntry = NULL;
+		data.semanticType = $1->symbol.symType;
 		comp_tree_t *vader = treeCreate(data);
 		
 		Data data2;
 		data2.nodeType = IKS_AST_IDENTIFICADOR;
+		data2.semanticType = $1->symbol.symType;
 		data2.symEntry = $1;
 		comp_tree_t *luke = treeCreate(data2);
 		
@@ -575,31 +635,37 @@ termo: TK_IDENTIFICADOR {
     | chamada-funcao 
     | TK_LIT_INT { 	Data data;
 					data.nodeType = IKS_AST_LITERAL;
+					data.semanticType = SYMTYPE_INT;
 					data.symEntry = $1;
 					
 					$$ = treeCreate(data); }
     | TK_LIT_FLOAT { Data data;
 					data.nodeType = IKS_AST_LITERAL;
+					data.semanticType = SYMTYPE_FLOAT;
 					data.symEntry = $1;
 					
 					$$ = treeCreate(data); }
     | TK_LIT_FALSE { Data data;
 					data.nodeType = IKS_AST_LITERAL;
+					data.semanticType = SYMTYPE_BOOL;
 					data.symEntry = $1;
 					
 					$$ = treeCreate(data); }
     | TK_LIT_TRUE { Data data;
 					data.nodeType = IKS_AST_LITERAL;
+					data.semanticType = SYMTYPE_BOOL;
 					data.symEntry = $1;
 					
 					$$ = treeCreate(data); }
     | TK_LIT_CHAR { Data data;
 					data.nodeType = IKS_AST_LITERAL;
+					data.semanticType = SYMTYPE_CHAR;
 					data.symEntry = $1;
 					
 					$$ = treeCreate(data); }
     | TK_LIT_STRING { Data data;
 					data.nodeType = IKS_AST_LITERAL;
+					data.semanticType = SYMTYPE_STRING;
 					data.symEntry = $1;
 					
 					$$ = treeCreate(data); }
