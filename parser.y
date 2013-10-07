@@ -7,6 +7,8 @@
 #define YYERROR_VERBOSE
 
 struct treeNode_t *ast = NULL;
+
+extern int sserror(int errCode, DictItem *symEntry);
 %}
 
 /* Declaração dos tokens da gramática da Linguagem K */
@@ -82,8 +84,6 @@ struct treeNode_t *ast = NULL;
 %type <tree> termo
 %type <tree> expr
 
-
-
 %%
 /* Regras (e ações) da gramática da Linguagem K */
 programa: s { }
@@ -114,11 +114,13 @@ tipo: TK_PR_INT { $$ = SYMTYPE_INT;}
 
 declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lista-var-local comando-funcao {
 						// Tests if function is being redefined .
-						if (check_id_declr($3))
+						if (check_id_declr($3)) {
+							sserror(IKS_ERROR_DECLARED, $3);
 							return(IKS_ERROR_DECLARED);
-							
+						}
 						Data data;
 						data.nodeType = IKS_AST_FUNCAO;
+						// data.semanticType = $1; // Nao é utilizado ?
 						data.symEntry = $3;
 						
 						comp_tree_t *father = treeCreate(data);
@@ -139,18 +141,23 @@ declaracao-varglobal: declaracao-var-simples
 ;
 
 declaracao-var-simples: tipo ':' TK_IDENTIFICADOR { 
-						printf("Symbol type is %d\n", $3->symbol.symType);
+						//printf("Symbol type is %d\n", $3->symbol.symType);
 			// Tests if function is being redefined .
-			if (check_id_declr($3))
+			if (check_id_declr($3)) {
+				sserror(IKS_ERROR_DECLARED, $3);
 				return(IKS_ERROR_DECLARED);
+			}
 
 			$3->symbol.symType = $1 | SYMTYPE_VAR;
 }
 ;
+
 declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']' { 
 			// Tests if function is being redefined .
-			if (check_id_declr($3))
+			if (check_id_declr($3)) {
+				sserror(IKS_ERROR_DECLARED, $3);
 				return(IKS_ERROR_DECLARED);
+			}
 			
 			$3->symbol.symType = $1 | SYMTYPE_VEC;
 }
@@ -201,7 +208,6 @@ condicional: TK_PR_IF '(' expr ')' TK_PR_THEN comando {
                     data.nodeType = IKS_AST_IF_ELSE;
                     data.symEntry = NULL;
                     comp_tree_t *father = treeCreate(data);
-
                                 
                     treeInsert($3, father);
                     treeInsert($6, father);
@@ -231,7 +237,6 @@ do-while: TK_PR_DO comando TK_PR_WHILE '(' expr ')' ';' {
                     data.symEntry = NULL;
                     comp_tree_t *father = treeCreate(data);                  
 
-
                     treeInsert($2, father);
                     treeInsert($5, father);
                     
@@ -260,15 +265,19 @@ comando-retorno: TK_PR_RETURN expr {
 ;
 comando-entrada: TK_PR_INPUT TK_IDENTIFICADOR {
 						// Tests if variable has been defined.
-						if (!check_id_declr($2))
+						if (!check_id_declr($2)) {
+							sserror(IKS_ERROR_UNDECLARED, $2);
 							return(IKS_ERROR_UNDECLARED);
+						}
 						// Tests if identifier is a variable
-						if (!check_id_isvariable($2))
-							return(IKS_ERROR_WRONG_PAR_INPUT);
+						// TODO Check: Using identifier = vector or function allowed?
+// 						if (!check_id_isvariable($2))
+// 							return(IKS_ERROR_WRONG_PAR_INPUT);
 
                         Data data;
                         data.nodeType = IKS_AST_INPUT;
                         data.symEntry = NULL;
+                        // Nau utilizado data.semanticType
                         comp_tree_t *father = treeCreate(data);
                         
                         Data data2;
@@ -291,16 +300,24 @@ comando-saida: TK_PR_OUTPUT argumento-saida {
                         $$ = father; }
 ;
 argumento-saida: expr { $$ = $1;
-						// Tests if variable has been defined.
+// 						// Tests if variable has been defined.
+// 						if (!check_id_declr($1->data.symEntry))
+// 							return(IKS_ERROR_UNDECLARED);
+// 						// Tests if identifier is a variable
+// 						if (!check_id_isvariable($1->data.symEntry))
+// 							return(IKS_ERROR_WRONG_PAR_INPUT);
+					}
+				| expr ',' argumento-saida {
+					/*	// Tests if variable has been defined.
 						if (!check_id_declr($1->data.symEntry))
 							return(IKS_ERROR_UNDECLARED);
 						// Tests if identifier is a variable
 						if (!check_id_isvariable($1->data.symEntry))
-							return(IKS_ERROR_WRONG_PAR_INPUT);
-}
-    | expr ',' argumento-saida {
-                    treeInsert($3, $1);
-                    $$ = $1; }
+							return(IKS_ERROR_WRONG_PAR_INPUT);*/
+							
+							treeInsert($3, $1);
+							$$ = $1; 
+				}
 ;
 
 atribuicao: atribuicao-simples { $$ = $1; }
@@ -308,20 +325,26 @@ atribuicao: atribuicao-simples { $$ = $1; }
 ;
 atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 		// Tests if variable has been defined.
-		if (!check_id_declr($1))
+		if (!check_id_declr($1)) {
+			sserror(IKS_ERROR_UNDECLARED, $1);
 			return(IKS_ERROR_UNDECLARED);
+		}
 		// Checks if identifier is a variable
-		if (!check_id_isvariable($1))
+		if (!check_id_isvariable($1)) {
+			sserror(IKS_ERROR_VARIABLE, $1);
 			return(IKS_ERROR_VARIABLE);
+		}
 						
         Data data;
         data.nodeType = IKS_AST_ATRIBUICAO;
         data.symEntry = NULL;
+        data.semanticType = $1->symbol.symType & MASK_SYMTYPE_TYPE;
         comp_tree_t *attributionNode = treeCreate(data);
         
 		Data data2;
 		data2.nodeType = IKS_AST_IDENTIFICADOR;
 		data2.symEntry = $1;
+        // Redundante ? data2.semanticType
 		comp_tree_t *id = treeCreate(data2);
         
         treeInsert(id, attributionNode);
@@ -337,15 +360,20 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 
 atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr {
 		// Tests if variable has been defined.
-		if (!check_id_declr($1))
+		if (!check_id_declr($1)) {
+			sserror(IKS_ERROR_UNDECLARED, $1);
 			return(IKS_ERROR_UNDECLARED);
+		}
 		// Checks if identifier is a vector
-		if (!check_id_isvector($1))
+		if (!check_id_isvector($1)) {
+			sserror(IKS_ERROR_VARIABLE, $1);
 			return(IKS_ERROR_VARIABLE);
+		}
 
         Data data1;
         data1.nodeType = IKS_AST_ATRIBUICAO;
         data1.symEntry = NULL;
+		data1.semanticType = $1->symbol.symType & MASK_SYMTYPE_TYPE;
         comp_tree_t *attributionNode = treeCreate(data1);
         
 		/* -- Creates vector node --*/
@@ -559,14 +587,19 @@ expr: '(' expr ')' { $$ = $2; }
 
 chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 				// Tests if variable has been defined.
-				if (!check_id_declr($1))
+				if (!check_id_declr($1)) {
+					sserror(IKS_ERROR_UNDECLARED, $1);
 					return(IKS_ERROR_UNDECLARED);
-				if (!check_id_isfunction($1))
+				}
+				if (!check_id_isfunction($1)) {
+					sserror(IKS_ERROR_FUNCTION, $1);
 					return(IKS_ERROR_FUNCTION);
+				}
 							
 				Data data;
 				data.nodeType = IKS_AST_CHAMADA_DE_FUNCAO;
 				data.symEntry = NULL;
+				data.semanticType = $1->symbol.symType & MASK_SYMTYPE_TYPE;
 				comp_tree_t *father = treeCreate(data);
 				
 				Data data2;
@@ -594,10 +627,14 @@ parametros-chamada-funcao: expr { $$ = $1; }
 
 termo: TK_IDENTIFICADOR {
 		// Tests if variable has been defined.
-		if (!check_id_declr($1))
+		if (!check_id_declr($1)) {
+			sserror(IKS_ERROR_UNDECLARED, $1);
 			return(IKS_ERROR_UNDECLARED);
-		if (!check_id_isvariable($1))
-			return(IKS_ERROR_FUNCTION);
+		}
+		if (!check_id_isvariable($1)) {
+			sserror(IKS_ERROR_VARIABLE, $1);
+			return(IKS_ERROR_VARIABLE);
+		}
 			
 		Data data2;
 		data2.nodeType = IKS_AST_IDENTIFICADOR;
@@ -609,10 +646,14 @@ termo: TK_IDENTIFICADOR {
 	}
     | TK_IDENTIFICADOR '[' expr ']' {
 		// Tests if variable has been defined.
-		if (!check_id_declr($1))
+		if (!check_id_declr($1)) {
+			sserror(IKS_ERROR_UNDECLARED, $1);
 			return(IKS_ERROR_UNDECLARED);
-		if (!check_id_isvector($1))
+		}
+		if (!check_id_isvector($1)) {
+			sserror(IKS_ERROR_FUNCTION, $1);
 			return(IKS_ERROR_FUNCTION);
+		}
 			
 		/* -- Creates vector node --*/
 		Data data;

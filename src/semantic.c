@@ -73,3 +73,10 @@ int check_id_isvector (DictItem *sym) {
 	else
 		return 0;
 }
+
+int check_id_isstring (DictItem *sym) {
+	if ((sym->symbol.symType & MASK_SYMTYPE_TYPE) == SYMTYPE_STRING)
+		return 1;
+	else
+		return 0;
+}
