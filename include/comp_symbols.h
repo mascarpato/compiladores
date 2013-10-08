@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <comp_list.h>
 
 #ifndef __COMP_SYMBOLS
 #define __COMP_SYMBOLS
@@ -44,13 +45,6 @@ typedef union SymValue_un {
 	iks_boolean value_bool; //! To store a boolean value (TRUE or FALSE)
 } SymValue_t;
 
-       /** AlList holding all parameters' type in a function declaration
-       */
-typedef struct param_list_t {
-	int paramType;
-	struct param_list_t* next;
-} ParamList;
-
 	/** Stores a symbol which may be used across the program
 	*/
 typedef struct Symbol_t_str {
@@ -58,7 +52,7 @@ typedef struct Symbol_t_str {
 	int symType; //! Symbol type. Possible types are found above.
 	SymValue_t value;
 	
-	ParamList *params; // Parameters list (used if it's a function)
+	ListNode *params; // Parameters list (used if it's a function)
 } Symbol_t;
 
 /**

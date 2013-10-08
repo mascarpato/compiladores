@@ -82,10 +82,10 @@ int check_id_isstring (DictItem *sym) {
 		return 0;
 }
 
-int check_paramlist (ParamList *paramsDecl, ParamList *paramsCall) {
+int check_ListNode (ListNode *paramsDecl, ListNode *paramsCall) {
 	int err = 0;
 	while(paramsDecl != NULL && paramsCall != NULL && !err) {
-	  if(paramsDecl->paramType != paramsCall->paramType){
+	  if(paramsDecl->data != paramsCall->data){
 	    err = IKS_ERROR_WRONG_TYPE_ARGS;
 	  } else {
 	    paramsDecl = paramsDecl->next;
@@ -94,9 +94,9 @@ int check_paramlist (ParamList *paramsDecl, ParamList *paramsCall) {
 	}
 	
 	if(!err)
-	  if(paramsDecl == NULL && paramsCall != NULL)
+	  if(paramsDecl != NULL && paramsCall == NULL)
 	    err = IKS_ERROR_MISSING_ARGS;
-	  else if(paramsDecl != NULL && paramsCall == NULL)
+	  else if(paramsDecl == NULL && paramsCall != NULL)
 	    err = IKS_ERROR_EXCESS_ARGS;
 	
 	return err;

@@ -10,7 +10,7 @@ ListNode *list_create() {
   return NULL;
 }
 
-ListNode *list_prepend(ListNode *begin, void *data) {
+ListNode *list_prepend(ListNode *begin, int data) {
   ListNode *newNode = malloc(sizeof(ListNode));
   
   newNode->data = data;
@@ -24,7 +24,7 @@ ListNode *list_prepend(ListNode *begin, void *data) {
   return newNode;
 }
 
-ListNode *list_append(ListNode *begin, void *data) {
+ListNode *list_append(ListNode *begin, int data) {
   ListNode *newNode = malloc(sizeof(ListNode));
   ListNode *p;
   
@@ -59,7 +59,7 @@ ListNode *list_get(ListNode *begin, int index) {
 	return p;
 }
 
-ListNode *list_remove(ListNode *begin, void *data) {
+ListNode *list_remove(ListNode *begin, int data) {
   ListNode *p = begin;
   ListNode *pPrev = NULL;
   int found = 0;
@@ -89,7 +89,8 @@ ListNode *list_remove(ListNode *begin, void *data) {
   }
 }
 
-ListNode *list_remove_rdata(ListNode *begin, void *data) {
+/*
+ListNode *list_remove_rdata(ListNode *begin, int data) {
   ListNode *p = begin;
   ListNode *pPrev = NULL;
   int found = 0;
@@ -126,8 +127,9 @@ ListNode *list_remove_rdata(ListNode *begin, void *data) {
     return begin;
   }
 }
+*/
 
-int list_contains(ListNode *begin, void *data) {
+int list_contains(ListNode *begin, int data) {
 	ListNode *p = begin;
 	ListNode *pPrev = NULL;
 	
