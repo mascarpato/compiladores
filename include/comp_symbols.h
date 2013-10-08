@@ -3,8 +3,11 @@
 #include <string.h>
 #include <stdint.h>
 
+
 #ifndef __COMP_SYMBOLS
 #define __COMP_SYMBOLS
+
+//#include "semantic.h"
 
 #define MASK_SYMTYPE_TYPE 7
 #define SYMTYPE_UNDEF 0
@@ -22,6 +25,21 @@
 
 #define TRUE 1
 #define FALSE 0
+
+//Identificadores de Coersão
+#define NO_COERSION 0
+
+#define COER_INT_TO_BOOL 1
+#define COER_INT_TO_FLOAT 2
+
+#define COER_FLOAT_TO_INT 3
+#define COER_FLOAT_TO_BOOL 4
+
+#define COER_BOOL_TO_INT 5
+#define COER_BOOL_TO_FLOAT 6
+
+#define IKS_ERROR_STRING_TO_X 7 //coerção impossível do tipo string
+#define IKS_ERROR_CHAR_TO_X 8 //coerção impossível do tipo char
 
 typedef int32_t iks_int;
 typedef double iks_float;

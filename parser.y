@@ -341,7 +341,24 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 			sserror(IKS_ERROR_FUNCTION, $1);
 			return(IKS_ERROR_FUNCTION);
 		}
-        		
+
+	//operações de coersão	
+	int aux_coersion;
+				// Aqui eh um dict_item
+	aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, &($3->data.semanticType));
+	//Checks if atrib is valid and sets right coersion
+	if (aux_coersion == SYMTYPE_UNDEF){
+		sserror(IKS_ERROR_WRONG_TYPE, NULL);
+		return (IKS_ERROR_WRONG_TYPE);
+	}else if (aux_coersion == IKS_ERROR_STRING_TO_X){
+		sserror(IKS_ERROR_STRING_TO_X, NULL);
+		return (IKS_ERROR_STRING_TO_X);
+	}else if (aux_coersion == IKS_ERROR_CHAR_TO_X){
+		sserror(IKS_ERROR_CHAR_TO_X, NULL);
+		return (IKS_ERROR_CHAR_TO_X);
+	}
+
+	$3->data.coersionType = aux_coersion; //define tipo da coersão
 						
         Data data;
         data.nodeType = IKS_AST_ATRIBUICAO;
@@ -377,6 +394,25 @@ atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr {
 			sserror(IKS_ERROR_VARIABLE, $1);
 			return(IKS_ERROR_VARIABLE);
 		}
+
+	//operações de coersão	
+	int aux_coersion;
+					// aqui eh dict
+					// $1->symbol.symType & MASK_SYMTYPE_TYPE
+	aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $6->data.semanticType, &($6->data.semanticType));
+	//Checks if atrib is valid and sets right coersion
+	if (aux_coersion == SYMTYPE_UNDEF){
+		sserror(IKS_ERROR_WRONG_TYPE, NULL);
+		return (IKS_ERROR_WRONG_TYPE);
+	}else if (aux_coersion == IKS_ERROR_STRING_TO_X){
+		sserror(IKS_ERROR_STRING_TO_X, NULL);
+		return (IKS_ERROR_STRING_TO_X);
+	}else if (aux_coersion == IKS_ERROR_CHAR_TO_X){
+		sserror(IKS_ERROR_CHAR_TO_X, NULL);
+		return (IKS_ERROR_CHAR_TO_X);
+	}
+
+	$6->data.coersionType = aux_coersion; //define tipo da coersão
 
         Data data1;
         data1.nodeType = IKS_AST_ATRIBUICAO;
