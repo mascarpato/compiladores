@@ -13,6 +13,8 @@
 #ifndef __COMP_DICT
 #define __COMP_DICT
 
+extern struct comp_dict_t  *dict;
+
 /*!\struct comp_dict_item_t
  * \brief A dictionary item, consisting of a key and a data value.
  *  
@@ -28,12 +30,14 @@ typedef struct comp_dict_item_t {
 /*! \brief Dictionary Data Type.
  * 
  * The dictionary is implemented as a dynamically allocated array of @ref comp_dict_item_t. The initial size must be given when creating the dictionary. It automatically doubles its size everytime it is full.
+ * Here is implemented a stack of dictionaries.
  * 
  */
 typedef struct comp_dict_t {
 	int size; //!< Do not mess with me.
 	int max_size; //!< Neither with me
 	DictItem *begin;
+	struct comp_dict_t *prev;
 } Dict;
 
 /*! \brief Creates a dictionary.
@@ -56,7 +60,7 @@ extern DictItem *dict_insert(Symbol_t symbol, char *key, int occLine);
  * 
  * Note: Returns NULL if no word has the specified key.
  */
-extern void *dict_get(char *key);
+extern int dict_get(char *key);
 
 /*! \brief Removes the word with key (key) from the dictionary. Nothing happens if the word is not found.
  * 
@@ -64,6 +68,13 @@ extern void *dict_get(char *key);
  * 
  */
 extern Dict *dict_remove(char *key);
+
+/*! \brief Removes the dictionary from the of the stack.
+ * 
+ * Usage: dict = dict_pop();
+ * 
+ */
+extern Dict *dict_pop();
 
 /*! \brief Finishes the use of the dictionary. Call this when you are done.
  * 

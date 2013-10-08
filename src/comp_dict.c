@@ -10,17 +10,17 @@
 // void dict_augment(Dict *dict);
 int dict_hashentry(char *key); 
 
+//Top of the stack, used in both scanner and parser
 Dict *dict;
 
 Dict *dict_create(int size) {
-	dict = malloc(sizeof(Dict));
-	dict->size = 0;
-	dict->max_size = size;
-	dict->begin = NULL;
-	
-	int i;
-	DictItem *ptAux;
-	
+	Dict *newDict = (Dict*)malloc(sizeof(Dict));
+	newDict->size = 0;
+	newDict->max_size = size;
+	newDict->begin = NULL;
+	newDict->prev = dict;
+	dict = newDict;
+
 	if (size>1) {
 		if ((dict->begin = calloc(sizeof(DictItem),size)) != NULL) {
 			dict->max_size = size;
@@ -110,6 +110,12 @@ Dict *dict_remove(char *key) {
 		return dict;
 }
 
+Dict *dict_pop() {
+	Dict *last_dict = dict;
+	dict = dict->prev;
+	return last_dict;
+}
+
 Dict *dict_terminate() {
 	int i;
 	
@@ -164,7 +170,7 @@ int dict_getmaxsize() {
 		return -1;
 }
 
-void *dict_get(char *key) {
+int dict_get(char *key) {
 	DictItem *ptAux = dict->begin;
 	int found = 0, i = 0;
 	
