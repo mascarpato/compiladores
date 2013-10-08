@@ -88,5 +88,6 @@ typedef struct Symbol_t_str {
  * 
  * @return type to be inferred.*/
 int eval_infer(int type1, int type2, int *newType1, int *newType2);
+int eval_atrib(int type1, int type2, int *newType2);
 
 #endif
