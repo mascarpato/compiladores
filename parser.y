@@ -341,9 +341,7 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 			sserror(IKS_ERROR_FUNCTION, $1);
 			return(IKS_ERROR_FUNCTION);
 		}
-        
-        if (eval_infer( $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, NULL, NULL));		
-		
+        		
 						
         Data data;
         data.nodeType = IKS_AST_ATRIBUICAO;
@@ -606,12 +604,17 @@ chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 					return(IKS_ERROR_FUNCTION);
 				}
 				
-				{
+				
+				if($3 != NULL){
 				  int err;
 				  if(err = check_paramlist($1->symbol.params, $3->data.symEntry->symbol.params)){
 				    sserror(err, $1);
 				    return(err);
 				  }
+				}
+				else if($1->symbol.params != NULL){
+				  sserror(IKS_ERROR_MISSING_ARGS, $1);
+				  return(IKS_ERROR_MISSING_ARGS);
 				}
 				  
 							
