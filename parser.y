@@ -7,11 +7,18 @@
 #define YYERROR_VERBOSE
 
 struct treeNode_t *ast = NULL;
-
 extern int sserror(int errCode, DictItem *symEntry);
+
+/** Marks the function being currently parsed. Points to NULL if parser is
+*   not currently working inside a function. */
+struct comp_dict_item_t *currentFunction;
+
+	/* Acao semantica na declaracao de funcao */
+void declara_funcao(int tipo, DictItem *identifer);
+
 %}
 
-/* Declaração dos tokens da gramática da Linguagem K */
+/* Declaracao dos tokens da gramática da Linguagem K */
 
 %union {
 	struct treeNode_t *tree;
@@ -25,6 +32,7 @@ extern int sserror(int errCode, DictItem *symEntry);
     data.nodeType = IKS_AST_PROGRAMA;
     data.symEntry = NULL;
     ast = treeCreate(data);
+    currentFunction = NULL;
 }
 
 %token TK_PR_INT
@@ -86,7 +94,7 @@ extern int sserror(int errCode, DictItem *symEntry);
 %type <tree> expr
 
 %%
-/* Regras (e ações) da gramática da Linguagem K */
+/* Regras (e acoes) da gramática da Linguagem K */
 programa: s { }
 ;
 
@@ -113,22 +121,17 @@ tipo: TK_PR_INT { $$ = SYMTYPE_INT;}
     | TK_PR_STRING { $$ = SYMTYPE_STRING;}
 ;
 
-declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lista-var-local comando-funcao {
-						// Tests if function is being redefined .
-						if (check_id_declr($3)) {
-							sserror(IKS_ERROR_DECLARED, $3);
-							return(IKS_ERROR_DECLARED);
-						}
+declaracao-funcao: tipo ':' TK_IDENTIFICADOR { declara_funcao($1, $3); } '(' parametros-funcao-empty ')' lista-var-local comando-funcao {
+						currentFunction = NULL;
+						
 						Data data;
 						data.nodeType = IKS_AST_FUNCAO;
 						// data.semanticType = $1; // Nao é utilizado ?
 						data.symEntry = $3;
-						data.symEntry->symbol.params = $5;
+						data.symEntry->symbol.params = $6;
 						comp_tree_t *father = treeCreate(data);
 						treeInsert($8, father);
 						
-						$3->symbol.symType = $1 | SYMTYPE_FUN;
-
 						$$ = father;
 }
 ;
@@ -255,6 +258,20 @@ while: TK_PR_WHILE '(' expr ')' TK_PR_DO comando {
                     $$ = father; } 
 ;
 comando-retorno: TK_PR_RETURN expr {
+						// Checks if expr type matches the type of the current function
+						if ($2->data.semanticType == 0) {
+							printf("Compiler internal error. should not ocurr.\n");
+							exit(-1);
+						}
+						printf("chegay.");
+						if ($2->data.semanticType != (currentFunction->symbol.symType & MASK_SYMTYPE_TYPE)) {
+							printf("Tipos sao %d e %d.\n", $2->data.semanticType, currentFunction->symbol.symType & MASK_SYMTYPE_TYPE);
+							sserror(IKS_ERROR_WRONG_PAR_RETURN, NULL);
+							return(IKS_ERROR_WRONG_PAR_RETURN);
+							printf("cheguei aqui.");
+						} else
+							printf("Tipos sao %d e %d.\n", $2->data.semanticType, currentFunction->symbol.symType & MASK_SYMTYPE_TYPE);
+						
                         Data data;
                         data.nodeType = IKS_AST_RETURN;
                         data.symEntry = NULL;
@@ -264,7 +281,8 @@ comando-retorno: TK_PR_RETURN expr {
                         
                         $$ = father; }
 ;
-comando-entrada: TK_PR_INPUT TK_IDENTIFICADOR {
+	// at� etapa3
+	/*comando-entrada: TK_PR_INPUT TK_IDENTIFICADOR {
 						// Tests if variable has been defined.
 						if (!check_id_declr($2)) {
 							sserror(IKS_ERROR_UNDECLARED, $2);
@@ -289,7 +307,45 @@ comando-entrada: TK_PR_INPUT TK_IDENTIFICADOR {
                         treeInsert(son, father);
                         
                         $$ = father; }
+	;*/
+comando-entrada: TK_PR_INPUT expr {
+			// Tests if expr is something valie (i.e. is declared in symbol table)
+			if ($2->data.symEntry == NULL) {
+				sserror(IKS_ERROR_WRONG_PAR_INPUT, NULL);
+				return(IKS_ERROR_WRONG_PAR_INPUT);
+			}
+			// Tests if identifier is a variable or vector
+			if (!check_id_isvariable($2->data.symEntry)) {
+				sserror(IKS_ERROR_WRONG_PAR_INPUT, $2->data.symEntry);
+				return(IKS_ERROR_WRONG_PAR_INPUT);
+			}
+			if (!check_id_isvector($2->data.symEntry)) {
+				sserror(IKS_ERROR_WRONG_PAR_INPUT, $2->data.symEntry);
+				return(IKS_ERROR_WRONG_PAR_INPUT);
+			}			
+			// Tests if variable has been defined (typed)
+			if (!check_id_declr($2->data.symEntry)) {
+				sserror(IKS_ERROR_UNDECLARED, $2->data.symEntry);
+				return(IKS_ERROR_UNDECLARED);
+			}
+			
+			Data data;
+			data.nodeType = IKS_AST_INPUT;
+			data.symEntry = NULL;
+			// Nau utilizado data.semanticType
+			comp_tree_t *father = treeCreate(data);
+			
+			Data data2;
+			data2.nodeType = IKS_AST_IDENTIFICADOR;
+			data2.symEntry = $2->data.symEntry;
+			comp_tree_t *son = treeCreate(data2);
+			
+			treeInsert(son, father);
+			
+			$$ = father;
+}
 ;
+
 comando-saida: TK_PR_OUTPUT argumento-saida {
                         Data data;
                         data.nodeType = IKS_AST_OUTPUT;
@@ -652,11 +708,11 @@ parametros-chamada-funcao: expr { ParamList* param = (ParamList*)malloc(sizeof(P
 				  $1->data.symEntry->symbol.params = param;
 				  
 				  $$ = $1; }
-				  
-    | expr ',' parametros-chamada-funcao { ParamList* param = (ParamList*)malloc(sizeof(ParamList));
-					   param->paramType = $1->data.semanticType & MASK_SYMTYPE_TYPE;
-					   param->next = $3->data.symEntry->symbol.params;
-					   $1->data.symEntry->symbol.params = param;
+    | expr ',' parametros-chamada-funcao { 
+						ParamList* param = (ParamList*) malloc(sizeof(ParamList));
+						param->paramType = $1->data.semanticType & MASK_SYMTYPE_TYPE;
+						param->next = $3->data.symEntry->symbol.params;
+						$1->data.symEntry->symbol.params = param;
 					   
 					   treeInsert($3, $1); // TODO verificar
 					   $$ = $1; }
@@ -696,7 +752,7 @@ termo: TK_IDENTIFICADOR {
 		/* -- Creates vector node --*/
 		Data data;
 		data.nodeType = IKS_AST_VETOR_INDEXADO;
-		data.symEntry = NULL;
+		data.symEntry = $1;
 		data.semanticType = $1->symbol.symType;
 		comp_tree_t *vader = treeCreate(data);
 		
@@ -749,3 +805,13 @@ termo: TK_IDENTIFICADOR {
 					
 					$$ = treeCreate(data); }
 %%
+
+void declara_funcao(int tipo, DictItem *identifier) {
+	// Tests if function is being redefined .
+	if (check_id_declr(identifier)) {
+		sserror(IKS_ERROR_DECLARED, identifier);
+		exit(IKS_ERROR_DECLARED);
+	}
+	currentFunction = identifier;
+	identifier->symbol.symType = tipo | SYMTYPE_FUN;
+}

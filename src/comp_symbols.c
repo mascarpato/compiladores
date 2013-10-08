@@ -159,7 +159,6 @@ int eval_atrib(int type1, int type2, int *newType2) {
 			if (newType2 != NULL) *newType2 = SYMTYPE_INT;
 			return SYMTYPE_INT;
 		} else {
-			if (newType1 != NULL) *newType1 = SYMTYPE_UNDEF;
 			if (newType2 != NULL) *newType2 = SYMTYPE_UNDEF;
 			return SYMTYPE_UNDEF;
 		}

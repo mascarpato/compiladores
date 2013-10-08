@@ -12,6 +12,7 @@
 #include "main.h"
 
 extern struct treeNode_t *ast;
+extern int getLineNumber();
 
 int yyerror (char *mensagem) {
   fprintf (stderr, "IKS-parser: %s at line %d\n", mensagem, getLineNumber());
@@ -21,41 +22,41 @@ int sserror(int errCode, DictItem *symEntry) {
 	switch(errCode) {
 			/* Verificação de declarações */
 		case IKS_ERROR_UNDECLARED:
-			printf("IKS-ssa: Identificador ' %s ' @L:%d não declarado. \n", symEntry->symbol.name, symEntry->occLine); break;
+			printf("IKS-ssa:@l:%d Identificador ' %s ' não declarado. \n", symEntry->occLine, symEntry->symbol.name); break;
 		case IKS_ERROR_DECLARED:
-			printf("IKS-ssa: Redefinindo identificador ' %s ' (definido originalmente @L:%d). \n", symEntry->symbol.name, symEntry->occLine); break;
+			printf("IKS-ssa:@l:%d Redefinindo identificador ' %s ' (definido originalmente @l:%d). \n", getLineNumber(), symEntry->symbol.name, symEntry->occLine); break;
 			
 			/* Uso correto de identificadores */
 		case IKS_ERROR_VARIABLE:
-			printf("IKS-ssa: Identificador ' %s ' deve ser utilizado como variável. \n", symEntry->symbol.name); break;
+			printf("IKS-ssa:@l:%d Identificador ' %s ' deve ser utilizado como variável. \n", getLineNumber(), symEntry->symbol.name); break;
 		case IKS_ERROR_VECTOR:
-			printf("IKS-ssa: Identificador ' %s ' deve ser utilizado como vetor.\n", symEntry->symbol.name); break;
+			printf("IKS-ssa:@l:%d Identificador ' %s ' deve ser utilizado como vetor.\n", getLineNumber(), symEntry->symbol.name); break;
 		case IKS_ERROR_FUNCTION :
-			printf("IKS-ssa: Identificador ' %s ' deve ser utilizado como função.\n", symEntry->symbol.name); break;
+			printf("IKS-ssa:@l:%d Identificador ' %s ' deve ser utilizado como função.\n",getLineNumber(), symEntry->symbol.name); break;
 			
 			/* Tipos e tamanho de dados */
 		case IKS_ERROR_WRONG_TYPE: 
-			printf("IKS-ssa: Tipos incompatíveis.\n"); break;
+			printf("IKS-ssa:@l:%d Tipos incompatíveis.\n", getLineNumber()); break;
 		case IKS_ERROR_STRING_TO_X:
-			printf("IKS-ssa: Coerção impossível do tipo string.\n"); break;
+			printf("IKS-ssa:@l:%d Coerção impossível do tipo string.\n", getLineNumber()); break;
 		case IKS_ERROR_CHAR_TO_X:  
-			printf("IKS-ssa: Coerção impossível do tipo char.\n"); break;
+			printf("IKS-ssa:@l:%d Coerção impossível do tipo char.\n", getLineNumber()); break;
 			
 			/* Argumentos e parâmetros */
 		case IKS_ERROR_MISSING_ARGS:
-			printf("IKS-ssa: Faltam argumentos para funcao.\n"); break;
+			printf("IKS-ssa:@l:%d Faltam argumentos para funcao.\n", getLineNumber()); break;
 		case IKS_ERROR_EXCESS_ARGS: 
-			printf("IKS-ssa: Excesso de argumentos para funcao. \n"); break;
+			printf("IKS-ssa:@l:%d Excesso de argumentos para funcao. \n", getLineNumber()); break;
 		case IKS_ERROR_WRONG_TYPE_ARGS: 
-			printf("IKS-ssa: Argumentos incompatíveis para funcao. \n"); break;
+			printf("IKS-ssa:@l:%d Argumentos incompatíveis para funcao. \n", getLineNumber()); break;
 			
 			/* Verificação de tipos em comandos */
 		case IKS_ERROR_WRONG_PAR_INPUT: 
-			printf("IKS-ssa: Parâmetro no comando 'input' não é identificador. \n"); break;
+			printf("IKS-ssa:@l:%d Parâmetro no comando 'input' não é identificador. \n", getLineNumber()); break;
 		case IKS_ERROR_WRONG_PAR_OUTPUT: 
-			printf("IKS-ssa: Parâmetro no comando 'output' não é literal string ou expressão.\n"); break;
+			printf("IKS-ssa:@l:%d Parâmetro no comando 'output' não é literal string ou expressão.\n", getLineNumber()); break;
 		case IKS_ERROR_WRONG_PAR_RETURN: 
-			printf("IKS-ssa: Parâmetro no comando 'return' não é expressão compatível com tipo do retorno. \n"); break;
+			printf("IKS-ssa:@l:%d - Parâmetro no comando 'return' não é expressão compatível com tipo do retorno . \n", getLineNumber()); break;
 	}
 }
 
