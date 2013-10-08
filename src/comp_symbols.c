@@ -31,7 +31,7 @@ int eval_infer(int type1, int type2, int *newType1, int *newType2) {
 		if (type2 == SYMTYPE_INT) { // (float, int) -> float
 			if (newType1 != NULL) *newType1 = SYMTYPE_FLOAT;
 			if (newType2 != NULL) *newType2 = SYMTYPE_FLOAT;
-			return SYMTYPE_INT;
+			return SYMTYPE_FLOAT;
 		} else if (type2 == SYMTYPE_FLOAT) { // (float, float) -> float
 			if (newType1 != NULL) *newType1 = SYMTYPE_FLOAT;
 			if (newType2 != NULL) *newType2 = SYMTYPE_FLOAT;
@@ -138,3 +138,8 @@ int eval_infer(int type1, int type2, int *newType1, int *newType2) {
 		return SYMTYPE_UNDEF;
 	}
 }
+
+int eval_atrib(int type1, int *type2){
+	int aux;
+	eval_infer(type1,*type2, NULL, &aux);
+	

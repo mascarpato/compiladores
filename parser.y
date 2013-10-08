@@ -81,7 +81,7 @@ extern int sserror(int errCode, DictItem *symEntry);
 %type <tree> chamada-funcao
 %type <param> parametros-funcao-empty
 %type <param> parametros-declaracao-funcao
-%type <param> parametros-chamada-funcao
+%type <tree> parametros-chamada-funcao
 %type <tree> termo
 %type <tree> expr
 
@@ -330,11 +330,20 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 			sserror(IKS_ERROR_UNDECLARED, $1);
 			return(IKS_ERROR_UNDECLARED);
 		}
-		// Checks if identifier is a variable
-		if (!check_id_isvariable($1)) {
-			sserror(IKS_ERROR_VARIABLE, $1);
-			return(IKS_ERROR_VARIABLE);
+		// Checks if identifier is a vector
+		if (check_id_isvector($1)) {
+			sserror(IKS_ERROR_VECTOR, $1);
+			return(IKS_ERROR_VECTOR);
 		}
+		
+		// Checks if identifier is a function
+		if (check_id_isfunction($1)) {
+			sserror(IKS_ERROR_FUNCTION, $1);
+			return(IKS_ERROR_FUNCTION);
+		}
+        
+        if (eval_infer( $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, NULL, NULL));		
+		
 						
         Data data;
         data.nodeType = IKS_AST_ATRIBUICAO;
@@ -599,7 +608,7 @@ chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 				
 				{
 				  int err;
-				  if(err = check_paramlist($1->symbol.params, $3)){
+				  if(err = check_paramlist($1->symbol.params, $3->data.symEntry->symbol.params)){
 				    sserror(err, $1);
 				    return(err);
 				  }
@@ -621,7 +630,7 @@ chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 				treeInsert($3, father);
 				$$ = father; }
 ;
-parametros-funcao-empty : parametros-declaracao-funcao { $$ = $1 }
+parametros-funcao-empty : parametros-declaracao-funcao { $$ = $1; }
     | { }
 ;
 
@@ -635,14 +644,19 @@ parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR { ParamList* param = (Pa
 								   $$ = param; }
 ;
 parametros-chamada-funcao: expr { ParamList* param = (ParamList*)malloc(sizeof(ParamList));
-				  param->paramType = $1->semanticType & MASK_SYMTYPE_TYPE;
+				  param->paramType = $1->data.semanticType & MASK_SYMTYPE_TYPE;
 				  param->next = NULL;
-				  $$ = param; }
+				  $1->data.symEntry->symbol.params = param;
+				  
+				  $$ = $1; }
+				  
     | expr ',' parametros-chamada-funcao { ParamList* param = (ParamList*)malloc(sizeof(ParamList));
-					   param->paramType = $1->semanticType & MASK_SYMTYPE_TYPE;
-					   param->next = $3;
+					   param->paramType = $1->data.semanticType & MASK_SYMTYPE_TYPE;
+					   param->next = $3->data.symEntry->symbol.params;
+					   $1->data.symEntry->symbol.params = param;
+					   
 					   treeInsert($3, $1); // TODO verificar
-					   $$ = param; }
+					   $$ = $1; }
     | /* empty */ { $$ = NULL; }
 ;
 
