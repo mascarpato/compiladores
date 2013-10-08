@@ -2,9 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <comp_list.h>
+
 
 #ifndef __COMP_SYMBOLS
 #define __COMP_SYMBOLS
+
+//#include "semantic.h"
 
 #define MASK_SYMTYPE_TYPE 7
 #define SYMTYPE_UNDEF 0
@@ -22,6 +26,21 @@
 
 #define TRUE 1
 #define FALSE 0
+
+//Identificadores de Coersão
+#define NO_COERSION 0
+
+#define COER_INT_TO_BOOL 1
+#define COER_INT_TO_FLOAT 2
+
+#define COER_FLOAT_TO_INT 3
+#define COER_FLOAT_TO_BOOL 4
+
+#define COER_BOOL_TO_INT 5
+#define COER_BOOL_TO_FLOAT 6
+
+#define IKS_ERROR_STRING_TO_X 7 //coerção impossível do tipo string
+#define IKS_ERROR_CHAR_TO_X 8 //coerção impossível do tipo char
 
 typedef int32_t iks_int;
 typedef double iks_float;
@@ -44,13 +63,6 @@ typedef union SymValue_un {
 	iks_boolean value_bool; //! To store a boolean value (TRUE or FALSE)
 } SymValue_t;
 
-       /** AlList holding all parameters' type in a function declaration
-       */
-typedef struct param_list_t {
-	int paramType;
-	struct param_list_t* next;
-} ParamList;
-
 	/** Stores a symbol which may be used across the program
 	*/
 typedef struct Symbol_t_str {
@@ -58,7 +70,7 @@ typedef struct Symbol_t_str {
 	int symType; //! Symbol type. Possible types are found above.
 	SymValue_t value;
 	
-	ParamList *params; // Parameters list (used if it's a function)
+	ListNode *params; // Parameters list (used if it's a function)
 } Symbol_t;
 
 /**
@@ -70,5 +82,6 @@ typedef struct Symbol_t_str {
  * 
  * @return type to be inferred.*/
 int eval_infer(int type1, int type2, int *newType1, int *newType2);
+int eval_atrib(int type1, int type2, int *newType2);
 
 #endif

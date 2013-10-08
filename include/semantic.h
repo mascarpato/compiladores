@@ -1,6 +1,9 @@
 #include "comp_tree.h"
 #include "iks_ast.h"
 
+#ifndef __SEMANTIC
+#define __SEMANTIC
+
 #define IKS_SUCCESS 0 //caso não houver nenhum tipo de erro
 
 /* Verificação de declarações */
@@ -23,8 +26,16 @@
 #define IKS_ERROR_WRONG_PAR_OUTPUT 13 //parâmetro não é literal string ou expressão
 #define IKS_ERROR_WRONG_PAR_RETURN 14 //parâmetro não é expressão compatível com tipo do retorno
 
+//Erro fora da especificação
+#define IKS_ERROR_INDEX_NOT_INT //índice do vetor não corresponde a um inteiro   TODO
+
+
+
 int check_id_declr (DictItem *sym);
 int check_id_isfunction (DictItem *sym);
 int check_id_isvariable (DictItem *sym);
 int check_id_isvector (DictItem *sym);
 int check_paramlist (ParamList *paramsDecl, ParamList *paramsCall);
+int check_ListNode (ListNode *paramsDecl, ListNode *paramsCall);
+
+#endif

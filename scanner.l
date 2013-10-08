@@ -5,9 +5,6 @@
 
 #include "parser.h"
 
-#define SYM_TABLE_INITSIZE 500
-#define YY_USER_INIT dict_create(SYM_TABLE_INITSIZE);
-
 int num_lines=1;
 int pos_in_line = 0;
 int num_chars=0;
@@ -16,8 +13,6 @@ void inc_char_count();
 
 SymValue_t encodeSymVal(char *lexeme, int symbolType);
 Symbol_t encodeSymbol(char *lexeme, int symbolType);
-
-extern Dict *dict;
 
 %}
 

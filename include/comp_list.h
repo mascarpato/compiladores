@@ -10,11 +10,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef __COMP_LIST
+#define __COMP_LIST
+
+
 /*! \brief Basic Node element used in the list.
  * 
  */
 typedef struct comp_list_t {
-  void *data;
+  int data;
   struct comp_list_t *next;
 } ListNode;
 
@@ -28,13 +32,13 @@ extern ListNode *list_create();
  * 
  * 	Usage: list = list_prepend(list, &data);
  */
-extern ListNode *list_prepend(ListNode *begin, void *data);
+extern ListNode *list_prepend(ListNode *begin, int data);
 
 /** \brief Adds an element to the end of the list.
  * 
  * 	Usage: list = list_append(list, &data);
  */
-extern ListNode *list_append(ListNode *begin, void *data);
+extern ListNode *list_append(ListNode *begin, int data);
 
 /** \brief Gets an element (the node containing the element, actually) at position index. 
  * 
@@ -49,21 +53,21 @@ extern ListNode *list_get(ListNode *begin, int index);
  * 	Usage: list = list_remove(list, &data);
  * Note: This function does not remove(free) the data element itself. For this, use <list_remove_rdata>"()".
  */
-extern ListNode *list_remove(ListNode *begin, void *data);
+extern ListNode *list_remove(ListNode *begin, int data);
 
 /** \brief Removes the node containing data from the list.
  * 
  * 	Usage: list = list_remove(list, &data);
  * Note: this function also removes(frees) the data element itself.
  */
-extern ListNode *list_remove_rdata(ListNode *begin, void *data);
+extern ListNode *list_remove_rdata(ListNode *begin, int data);
 
 /** \brief Checks if the list contains the data element.
  * 
  * 	Usage: list_contains(list, &data);
  * \returns 0 if false, 1 otherwise.
  */
-extern int list_contains(ListNode *begin, void *data);
+extern int list_contains(ListNode *begin, int data);
 
 /** \brief Returns a new list made by concatenating list1 and list2.
  * 
@@ -87,3 +91,5 @@ extern int list_size(ListNode *begin);
 /** \brief Prints a human-readable representation of the list.
  */
 extern void list_print(ListNode *begin);
+
+#endif

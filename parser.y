@@ -3,8 +3,12 @@
 #include "iks_ast.h"
 #include "comp_tree.h"
 #include "semantic.h"
+#include "comp_dict.h"
+#include "comp_list.h"
 
 #define YYERROR_VERBOSE
+
+#define SYM_TABLE_INITSIZE 500
 
 struct treeNode_t *ast = NULL;
 extern int sserror(int errCode, DictItem *symEntry);
@@ -24,10 +28,11 @@ void declara_funcao(int tipo, DictItem *identifer);
 	struct treeNode_t *tree;
 	struct comp_dict_item_t *symEntry;
 	int tipo;
-	struct param_list_t *param;
+	struct comp_list_t *param;
 }
 
 %initial-action {
+    dict_create(SYM_TABLE_INITSIZE);
     Data data;
     data.nodeType = IKS_AST_PROGRAMA;
     data.symEntry = NULL;
@@ -397,7 +402,24 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 			sserror(IKS_ERROR_FUNCTION, $1);
 			return(IKS_ERROR_FUNCTION);
 		}
-        		
+
+	//operações de coersão	
+	int aux_coersion;
+				// Aqui eh um dict_item
+	aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, &($3->data.semanticType));
+	//Checks if atrib is valid and sets right coersion
+	if (aux_coersion == SYMTYPE_UNDEF){
+		sserror(IKS_ERROR_WRONG_TYPE, NULL);
+		return (IKS_ERROR_WRONG_TYPE);
+	}else if (aux_coersion == IKS_ERROR_STRING_TO_X){
+		sserror(IKS_ERROR_STRING_TO_X, NULL);
+		return (IKS_ERROR_STRING_TO_X);
+	}else if (aux_coersion == IKS_ERROR_CHAR_TO_X){
+		sserror(IKS_ERROR_CHAR_TO_X, NULL);
+		return (IKS_ERROR_CHAR_TO_X);
+	}
+
+	$3->data.coersionType = aux_coersion; //define tipo da coersão
 						
         Data data;
         data.nodeType = IKS_AST_ATRIBUICAO;
@@ -433,6 +455,25 @@ atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr {
 			sserror(IKS_ERROR_VARIABLE, $1);
 			return(IKS_ERROR_VARIABLE);
 		}
+
+	//operações de coersão	
+	int aux_coersion;
+					// aqui eh dict
+					// $1->symbol.symType & MASK_SYMTYPE_TYPE
+	aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $6->data.semanticType, &($6->data.semanticType));
+	//Checks if atrib is valid and sets right coersion
+	if (aux_coersion == SYMTYPE_UNDEF){
+		sserror(IKS_ERROR_WRONG_TYPE, NULL);
+		return (IKS_ERROR_WRONG_TYPE);
+	}else if (aux_coersion == IKS_ERROR_STRING_TO_X){
+		sserror(IKS_ERROR_STRING_TO_X, NULL);
+		return (IKS_ERROR_STRING_TO_X);
+	}else if (aux_coersion == IKS_ERROR_CHAR_TO_X){
+		sserror(IKS_ERROR_CHAR_TO_X, NULL);
+		return (IKS_ERROR_CHAR_TO_X);
+	}
+
+	$6->data.coersionType = aux_coersion; //define tipo da coersão
 
         Data data1;
         data1.nodeType = IKS_AST_ATRIBUICAO;
@@ -663,7 +704,7 @@ chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 				
 				if($3 != NULL){
 				  int err;
-				  if(err = check_paramlist($1->symbol.params, $3->data.symEntry->symbol.params)){
+				  if(err = check_ListNode($1->symbol.params, $3->data.symEntry->symbol.params)){
 				    sserror(err, $1);
 				    return(err);
 				  }
@@ -672,6 +713,10 @@ chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 				  sserror(IKS_ERROR_MISSING_ARGS, $1);
 				  return(IKS_ERROR_MISSING_ARGS);
 				}
+				
+				// Libera DictItem criado temporariamente
+				list_terminate($3->data.symEntry->symbol.params);
+				free($3->data.symEntry); 
 				  
 							
 				Data data;
@@ -690,29 +735,34 @@ chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 				$$ = father; }
 ;
 parametros-funcao-empty : parametros-declaracao-funcao { $$ = $1; }
-    | { }
+    | { $$ = NULL; }
 ;
 
-parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR { ParamList* param = (ParamList*)malloc(sizeof(ParamList));
-							  param->paramType = $1;
+parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR { ListNode* param = (ListNode*)malloc(sizeof(ListNode));
+							  param->data = $1;
 							  param->next = NULL;
 							  $$ = param; }
-    | tipo ':' TK_IDENTIFICADOR ',' parametros-declaracao-funcao { ParamList* param = (ParamList*)malloc(sizeof(ParamList));
-								   param->paramType = $1;
+    | tipo ':' TK_IDENTIFICADOR ',' parametros-declaracao-funcao { ListNode* param = (ListNode*)malloc(sizeof(ListNode));
+								   param->data = $1;
 								   param->next = $5;
 								   $$ = param; }
 ;
-parametros-chamada-funcao: expr { ParamList* param = (ParamList*)malloc(sizeof(ParamList));
-				  param->paramType = $1->data.semanticType & MASK_SYMTYPE_TYPE;
+parametros-chamada-funcao: expr { DictItem *tempDictItem = (DictItem*)malloc(sizeof(DictItem)); //DictItem criado temporariamente para passar os parametros, será liberado na sequencia
+				  $1->data.symEntry = tempDictItem;
+				  ListNode* param = (ListNode*)malloc(sizeof(ListNode));
+				  param->data = $1->data.semanticType & MASK_SYMTYPE_TYPE;
 				  param->next = NULL;
 				  $1->data.symEntry->symbol.params = param;
 				  
 				  $$ = $1; }
-    | expr ',' parametros-chamada-funcao { 
-						ParamList* param = (ParamList*) malloc(sizeof(ParamList));
-						param->paramType = $1->data.semanticType & MASK_SYMTYPE_TYPE;
-						param->next = $3->data.symEntry->symbol.params;
-						$1->data.symEntry->symbol.params = param;
+    | expr ',' parametros-chamada-funcao { DictItem *tempDictItem = (DictItem*)malloc(sizeof(DictItem)); //DictItem criado temporariamente para passar os parametros, será liberado na sequencia
+					   $1->data.symEntry = tempDictItem;
+					   ListNode* param = (ListNode*)malloc(sizeof(ListNode));
+					   param->data = $1->data.semanticType & MASK_SYMTYPE_TYPE;
+					   param->next = $3->data.symEntry->symbol.params;
+					   $1->data.symEntry->symbol.params = param;
+					   
+					   free($3->data.symEntry); // Libera tempDictItem criado pelo seu filho
 					   
 					   treeInsert($3, $1); // TODO verificar
 					   $$ = $1; }
