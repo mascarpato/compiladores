@@ -27,3 +27,4 @@ int check_id_declr (DictItem *sym);
 int check_id_isfunction (DictItem *sym);
 int check_id_isvariable (DictItem *sym);
 int check_id_isvector (DictItem *sym);
+int check_paramlist (ParamList *paramsDecl, ParamList *paramsCall);

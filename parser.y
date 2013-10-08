@@ -11,12 +11,13 @@ struct treeNode_t *ast = NULL;
 extern int sserror(int errCode, DictItem *symEntry);
 %}
 
-/* DeclaraÁ„o dos tokens da gram·tica da Linguagem K */
+/* Declara√ß√£o dos tokens da gram√°tica da Linguagem K */
 
 %union {
 	struct treeNode_t *tree;
 	struct comp_dict_item_t *symEntry;
 	int tipo;
+	struct param_list_t *param;
 }
 
 %initial-action {
@@ -78,14 +79,14 @@ extern int sserror(int errCode, DictItem *symEntry);
 %type <tree> atribuicao-simples
 %type <tree> atribuicao-vetor
 %type <tree> chamada-funcao
-%type <tree> parametros-funcao-empty
-%type <tree> parametros-declaracao-funcao
-%type <tree> parametros-chamada-funcao
+%type <param> parametros-funcao-empty
+%type <param> parametros-declaracao-funcao
+%type <param> parametros-chamada-funcao
 %type <tree> termo
 %type <tree> expr
 
 %%
-/* Regras (e aÁıes) da gram·tica da Linguagem K */
+/* Regras (e a√ß√µes) da gram√°tica da Linguagem K */
 programa: s { }
 ;
 
@@ -120,9 +121,9 @@ declaracao-funcao: tipo ':' TK_IDENTIFICADOR '(' parametros-funcao-empty ')' lis
 						}
 						Data data;
 						data.nodeType = IKS_AST_FUNCAO;
-						// data.semanticType = $1; // Nao È utilizado ?
+						// data.semanticType = $1; // Nao √© utilizado ?
 						data.symEntry = $3;
-						
+						data.symEntry->symbol.params = $5;
 						comp_tree_t *father = treeCreate(data);
 						treeInsert($8, father);
 						
@@ -595,6 +596,15 @@ chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 					sserror(IKS_ERROR_FUNCTION, $1);
 					return(IKS_ERROR_FUNCTION);
 				}
+				
+				{
+				  int err;
+				  if(err = check_paramlist($1->symbol.params, $3)){
+				    sserror(err, $1);
+				    return(err);
+				  }
+				}
+				  
 							
 				Data data;
 				data.nodeType = IKS_AST_CHAMADA_DE_FUNCAO;
@@ -611,17 +621,28 @@ chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 				treeInsert($3, father);
 				$$ = father; }
 ;
-parametros-funcao-empty : parametros-declaracao-funcao
+parametros-funcao-empty : parametros-declaracao-funcao { $$ = $1 }
     | { }
 ;
 
-parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR { }
-    | tipo ':' TK_IDENTIFICADOR ',' parametros-declaracao-funcao { }
+parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR { ParamList* param = (ParamList*)malloc(sizeof(ParamList));
+							  param->paramType = $1;
+							  param->next = NULL;
+							  $$ = param; }
+    | tipo ':' TK_IDENTIFICADOR ',' parametros-declaracao-funcao { ParamList* param = (ParamList*)malloc(sizeof(ParamList));
+								   param->paramType = $1;
+								   param->next = $5;
+								   $$ = param; }
 ;
-parametros-chamada-funcao: expr { $$ = $1; }
-    | expr ',' parametros-chamada-funcao {
-                                   treeInsert($3, $1); // TODO verificar
-                                   $$ = $1; }
+parametros-chamada-funcao: expr { ParamList* param = (ParamList*)malloc(sizeof(ParamList));
+				  param->paramType = $1->semanticType & MASK_SYMTYPE_TYPE;
+				  param->next = NULL;
+				  $$ = param; }
+    | expr ',' parametros-chamada-funcao { ParamList* param = (ParamList*)malloc(sizeof(ParamList));
+					   param->paramType = $1->semanticType & MASK_SYMTYPE_TYPE;
+					   param->next = $3;
+					   treeInsert($3, $1); // TODO verificar
+					   $$ = param; }
     | /* empty */ { $$ = NULL; }
 ;
 

@@ -74,9 +74,30 @@ int check_id_isvector (DictItem *sym) {
 		return 0;
 }
 
+
 int check_id_isstring (DictItem *sym) {
 	if ((sym->symbol.symType & MASK_SYMTYPE_TYPE) == SYMTYPE_STRING)
 		return 1;
 	else
 		return 0;
+}
+
+int check_paramlist (ParamList *paramsDecl, ParamList *paramsCall) {
+	int err = 0;
+	while(paramsDecl != NULL && paramsCall != NULL && !err) {
+	  if(paramsDecl->paramType != paramsCall->paramType){
+	    err = IKS_ERROR_WRONG_TYPE_ARGS;
+	  } else {
+	    paramsDecl = paramsDecl->next;
+	    paramsCall = paramsCall->next;
+	  }
+	}
+	
+	if(!err)
+	  if(paramsDecl == NULL && paramsCall != NULL)
+	    err = IKS_ERROR_MISSING_ARGS;
+	  else if(paramsDecl != NULL && paramsCall == NULL)
+	    err = IKS_ERROR_EXCESS_ARGS;
+	
+	return err;
 }

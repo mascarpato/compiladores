@@ -23,15 +23,15 @@ int sserror(int errCode, DictItem *symEntry) {
 		case IKS_ERROR_UNDECLARED:
 			printf("IKS-ssa: Identificador ' %s ' @L:%d não declarado. \n", symEntry->symbol.name, symEntry->occLine); break;
 		case IKS_ERROR_DECLARED:
-			printf("IKS-ssa: Redefinindo identificador ' %s ' (definido originalmente @L:%d). \n"); break;
+			printf("IKS-ssa: Redefinindo identificador ' %s ' (definido originalmente @L:%d). \n", symEntry->symbol.name, symEntry->occLine); break;
 			
 			/* Uso correto de identificadores */
 		case IKS_ERROR_VARIABLE:
-			printf("IKS-ssa: Identificador ' %s ' deve ser utilizado como variável. \n"); break;
+			printf("IKS-ssa: Identificador ' %s ' deve ser utilizado como variável. \n", symEntry->symbol.name); break;
 		case IKS_ERROR_VECTOR:
-			printf("IKS-ssa: Identificador ' %s ' deve ser utilizado como vetor.\n"); break;
+			printf("IKS-ssa: Identificador ' %s ' deve ser utilizado como vetor.\n", symEntry->symbol.name); break;
 		case IKS_ERROR_FUNCTION :
-			printf("IKS-ssa: Identificador ' %s ' deve ser utilizado como função.\n"); break;
+			printf("IKS-ssa: Identificador ' %s ' deve ser utilizado como função.\n", symEntry->symbol.name); break;
 			
 			/* Tipos e tamanho de dados */
 		case IKS_ERROR_WRONG_TYPE: 
