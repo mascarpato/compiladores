@@ -50,7 +50,7 @@ DictItem *dict_insert(Symbol_t symbol, char *key, int occLine) {
 	}
 
 	// First it looks for the key in the dictionaries below
-	if(ptrReturn = dict_get(dict->prev, key) != NULL)
+	if((ptrReturn = dict_get(dict->prev, key)) != NULL)
 	  return ptrReturn;
 	else {
 		  // Will try to insert the symbol at position pos

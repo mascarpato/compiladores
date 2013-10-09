@@ -129,11 +129,8 @@ true 			{	// Scanned TRUE
 					inc_char_count();
 					
 					DictItem *symEntry = dict_insert(encodeSymbol(yytext, SYMTYPE_IDENTIFIER), yytext,  getLineNumber());
-					
-					if (symEntry < dict->begin) 
-						printf("Whoaaa something wrong here!!\n");
-					else if (symEntry->valid != 1)
-						printf("Whoaaa something wrong here2!!\n");
+					if (symEntry->valid != 1)
+					  printf("Whoaaa something wrong here!!\n");
 					
 					yylval.symEntry = symEntry;					
 					

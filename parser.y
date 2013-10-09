@@ -99,7 +99,7 @@ void declara_funcao(int tipo, DictItem *identifer);
 %type <tree> expr
 
 %%
-/* Regras (e acoes) da gramática da Linguagem K */
+/* Regras (e acoes) da gramatica da Linguagem K */
 programa: s { }
 ;
 
@@ -126,8 +126,11 @@ tipo: TK_PR_INT { $$ = SYMTYPE_INT;}
     | TK_PR_STRING { $$ = SYMTYPE_STRING;}
 ;
 
-declaracao-funcao: tipo ':' TK_IDENTIFICADOR { declara_funcao($1, $3); } '(' parametros-funcao-empty ')' lista-var-local comando-funcao {
+declaracao-funcao: tipo ':' TK_IDENTIFICADOR { declara_funcao($1, $3); 
+					       dict_create(SYM_TABLE_INITSIZE); } 			
+			'(' parametros-funcao-empty ')' lista-var-local comando-funcao {
 						currentFunction = NULL;
+						dict_pop();
 						
 						Data data;
 						data.nodeType = IKS_AST_FUNCAO;
@@ -270,12 +273,10 @@ comando-retorno: TK_PR_RETURN expr {
 						}
 						//printf("chegay.");
 						if ($2->data.semanticType != (currentFunction->symbol.symType & MASK_SYMTYPE_TYPE)) {
-							//printf("Tipos sao %d e %d.\n", $2->data.semanticType, currentFunction->symbol.symType & MASK_SYMTYPE_TYPE);
 							sserror(IKS_ERROR_WRONG_PAR_RETURN, NULL);
 							return(IKS_ERROR_WRONG_PAR_RETURN);
 							//printf("cheguei aqui.");
-						} else
-							printf("Tipos sao %d e %d.\n", $2->data.semanticType, currentFunction->symbol.symType & MASK_SYMTYPE_TYPE);
+						}
 						
                         Data data;
                         data.nodeType = IKS_AST_RETURN;
@@ -691,15 +692,18 @@ expr: '(' expr ')' { $$ = $2; }
 ;
 
 chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
+			        
 				// Tests if variable has been defined.
 				if (!check_id_declr($1)) {
 					sserror(IKS_ERROR_UNDECLARED, $1);
 					return(IKS_ERROR_UNDECLARED);
 				}
+				
 				if (!check_id_isfunction($1)) {
 					sserror(IKS_ERROR_FUNCTION, $1);
 					return(IKS_ERROR_FUNCTION);
 				}
+				
 				if($3 != NULL){
 				  int err;
 				  if(err = check_paramlist($1->symbol.params, $3->data.symEntry->symbol.params)){
