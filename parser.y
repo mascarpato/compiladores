@@ -286,7 +286,7 @@ comando-retorno: TK_PR_RETURN expr {
                         
                         $$ = father; }
 ;
-	// até etapa3
+	// at\E9 etapa3
 	/*comando-entrada: TK_PR_INPUT TK_IDENTIFICADOR {
 						// Tests if variable has been defined.
 						if (!check_id_declr($2)) {
@@ -406,7 +406,7 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 	int aux_coersion;
 				// Aqui eh um dict_item
 	aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, &($3->data.semanticType));
-	//printf("tipo esquerda: %d, tipo direita: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
+	printf("tipo esquerda: %d, tipo direita: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
 	//Checks if atrib is valid and sets right coersion
 	if (aux_coersion == SYMTYPE_UNDEF){
 		sserror(IKS_ERROR_WRONG_TYPE, NULL);
@@ -783,7 +783,7 @@ termo: TK_IDENTIFICADOR {
 		Data data2;
 		data2.nodeType = IKS_AST_IDENTIFICADOR;
 		data2.symEntry = $1;
-		data2.semanticType = $1->symbol.symType;
+		data2.semanticType = $1->symbol.symType & MASK_SYMTYPE_TYPE;
 		comp_tree_t *daddy = treeCreate(data2); 
 		
 		$$ = daddy;
@@ -803,12 +803,12 @@ termo: TK_IDENTIFICADOR {
 		Data data;
 		data.nodeType = IKS_AST_VETOR_INDEXADO;
 		data.symEntry = $1;
-		data.semanticType = $1->symbol.symType;
+		data.semanticType = $1->symbol.symType & MASK_SYMTYPE_TYPE;
 		comp_tree_t *vader = treeCreate(data);
 		
 		Data data2;
 		data2.nodeType = IKS_AST_IDENTIFICADOR;
-		data2.semanticType = $1->symbol.symType;
+		data2.semanticType = $1->symbol.symType & MASK_SYMTYPE_TYPE;
 		data2.symEntry = $1;
 		comp_tree_t *luke = treeCreate(data2);
 		
