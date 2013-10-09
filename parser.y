@@ -24,7 +24,7 @@ void declara_vetor(int tipo, DictItem *identifier, comp_tree_t *exprNode);
 
 %}
 
-/* Declaracao dos tokens da gramÃ¡tica da Linguagem K */
+/* Declaracao dos tokens da gramatica da Linguagem K */
 
 %union {
 	struct treeNode_t *tree;
@@ -280,7 +280,7 @@ comando-retorno: TK_PR_RETURN expr {
                         
                         $$ = father; }
 ;
-	// até etapa3
+	// at\E9 etapa3
 	/*comando-entrada: TK_PR_INPUT TK_IDENTIFICADOR {
 						// Tests if variable has been defined.
 						if (!check_id_declr($2)) {
@@ -403,7 +403,7 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 	
 				// Aqui eh um dict_item
 	aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, &($3->data.semanticType));
-	//printf("tipo esquerda: %d, tipo direita: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
+	printf("tipo esquerda: %d, tipo direita: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
 	//Checks if atrib is valid and sets right coersion
 	if (aux_coersion == SYMTYPE_UNDEF){
 		sserror(IKS_ERROR_WRONG_TYPE, NULL);
@@ -712,24 +712,20 @@ chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 					sserror(IKS_ERROR_FUNCTION, $1);
 					return(IKS_ERROR_FUNCTION);
 				}
-				
-				
 				if($3 != NULL){
 				  int err;
-				  if(err = check_ListNode($1->symbol.params, $3->data.symEntry->symbol.params)){
+				  if(err = check_paramlist($1->symbol.params, $3->data.symEntry->symbol.params)){
 				    sserror(err, $1);
 				    return(err);
 				  }
+				  // Libera DictItem criado temporariamente
+				  list_terminate($3->data.symEntry->symbol.params);
+				  free($3->data.symEntry); 
 				}
 				else if($1->symbol.params != NULL){
 				  sserror(IKS_ERROR_MISSING_ARGS, $1);
 				  return(IKS_ERROR_MISSING_ARGS);
 				}
-				
-				// Libera DictItem criado temporariamente
-				list_terminate($3->data.symEntry->symbol.params);
-				free($3->data.symEntry); 
-				  
 							
 				Data data;
 				data.nodeType = IKS_AST_CHAMADA_DE_FUNCAO;

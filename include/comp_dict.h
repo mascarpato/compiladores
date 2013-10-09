@@ -54,13 +54,15 @@ extern Dict *dict_create(int size);
  */
 extern DictItem *dict_insert(Symbol_t symbol, char *key, int occLine);
 
-/*! \brief Gets the word with specified key.
+/*! \brief Gets the item with specified key, looking in all dictionaries starting from dictTarget.
  * 
- * Usage: word = dict_get(dict, "key");
+ * Usage: DictItem = dict_get(dictTarget, "key");
  * 
- * Note: Returns NULL if no word has the specified key.
+ * Note: Returns NULL if no item has the specified key.
  */
-extern DictItem *dict_get(char *key);
+
+extern DictItem* dict_get(Dict *dictTarget, char *key);
+
 
 /*! \brief Removes the word with key (key) from the dictionary. Nothing happens if the word is not found.
  * 
@@ -80,7 +82,7 @@ extern Dict *dict_pop();
  * 
  * Usage: dict = dict_terminate(dict)
  */
-extern Dict *dict_terminate();
+extern Dict *dict_terminate(Dict *dict);
 
 /*! \brief Gets the number of used slots in the dictionary.
  */
