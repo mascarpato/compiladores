@@ -128,9 +128,10 @@ tipo: TK_PR_INT { $$ = SYMTYPE_INT;}
     | TK_PR_STRING { $$ = SYMTYPE_STRING;}
 ;
 
-declaracao-funcao: tipo ':' TK_IDENTIFICADOR { declara_funcao($1, $3); 
+declaracao-funcao: tipo ':' TK_IDENTIFICADOR { declara_funcao($1, $3); 						
 					       dict_create(SYM_TABLE_INITSIZE); } 			
-			'(' parametros-funcao-empty ')' lista-var-local comando-funcao {
+			'(' parametros-funcao-empty ')' { $3->symbol.params = $6; }
+			lista-var-local comando-funcao {
 						currentFunction = NULL;
 						dict_pop();
 						
@@ -138,9 +139,9 @@ declaracao-funcao: tipo ':' TK_IDENTIFICADOR { declara_funcao($1, $3);
 						data.nodeType = IKS_AST_FUNCAO;
 						// data.semanticType = $1; // Nao é utilizado ?
 						data.symEntry = $3;
-						data.symEntry->symbol.params = $6;
+
 						comp_tree_t *father = treeCreate(data);
-						treeInsert($8, father);
+						treeInsert($9, father);
 						
 						$$ = father;
 }
@@ -850,6 +851,7 @@ chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 				  free($3->data.symEntry); 
 				}
 				else if($1->symbol.params != NULL){
+				  printf("\noi\n");
 				  sserror(IKS_ERROR_MISSING_ARGS, $1);
 				  return(IKS_ERROR_MISSING_ARGS);
 				}
