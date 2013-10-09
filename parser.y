@@ -19,10 +19,12 @@ struct comp_dict_item_t *currentFunction;
 
 	/* Acao semantica na declaracao de funcao */
 void declara_funcao(int tipo, DictItem *identifer);
+	/* Acao semantica na declaracao de vetor */
+void declara_vetor(int tipo, DictItem *identifier, comp_tree_t *exprNode);
 
 %}
 
-/* Declaracao dos tokens da gramática da Linguagem K */
+/* Declaracao dos tokens da gramatica da Linguagem K */
 
 %union {
 	struct treeNode_t *tree;
@@ -161,15 +163,7 @@ declaracao-var-simples: tipo ':' TK_IDENTIFICADOR {
 }
 ;
 
-declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']' { 
-			// Tests if function is being redefined .
-			if (check_id_declr($3)) {
-				sserror(IKS_ERROR_DECLARED, $3);
-				return(IKS_ERROR_DECLARED);
-			}
-			
-			$3->symbol.symType = $1 | SYMTYPE_VEC;
-}
+declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']' { declara_vetor($1, $3, $5); }
 ;
 
 comando: comando-composto 
@@ -365,6 +359,7 @@ argumento-saida: expr {
 			if ($1->data.semanticType == SYMTYPE_CHAR ||
 				$1->data.semanticType == SYMTYPE_BOOL) {
 				sserror(IKS_ERROR_WRONG_PAR_OUTPUT, NULL);
+				return(IKS_ERROR_WRONG_PAR_OUTPUT);
 				}
 			$$ = $1;
 			}
@@ -404,6 +399,8 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 
 	//operações de coersão	
 	int aux_coersion;
+	printf("tipo 1: %d tipo2: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
+	
 				// Aqui eh um dict_item
 	aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, &($3->data.semanticType));
 	printf("tipo esquerda: %d, tipo direita: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
@@ -454,6 +451,21 @@ atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr {
 		if (!check_id_isvector($1)) {
 			sserror(IKS_ERROR_VARIABLE, $1);
 			return(IKS_ERROR_VARIABLE);
+		}
+		// Checks if expression is an integer (char)
+		if ($3->data.semanticType == SYMTYPE_CHAR) {
+			sserror(IKS_ERROR_CHAR_TO_X, NULL);
+			return(IKS_ERROR_CHAR_TO_X);
+		}
+		// Checks if expression is an integer (string)
+		if ($3->data.semanticType == SYMTYPE_STRING) {
+			sserror(IKS_ERROR_STRING_TO_X, NULL);
+			return(IKS_ERROR_STRING_TO_X);
+		}
+		// Checks if expression is an integer (string)
+		if ($3->data.semanticType != SYMTYPE_INT) {
+			sserror(IKS_ERROR_WRONG_TYPE, NULL); //TODO futuro: incluir cod de erro para indice nao inteiro.
+			return(IKS_ERROR_WRONG_TYPE);
 		}
 
 	//operações de coersão	
@@ -823,24 +835,20 @@ chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 					sserror(IKS_ERROR_FUNCTION, $1);
 					return(IKS_ERROR_FUNCTION);
 				}
-				
-				
 				if($3 != NULL){
 				  int err;
-				  if(err = check_ListNode($1->symbol.params, $3->data.symEntry->symbol.params)){
+				  if(err = check_paramlist($1->symbol.params, $3->data.symEntry->symbol.params)){
 				    sserror(err, $1);
 				    return(err);
 				  }
+				  // Libera DictItem criado temporariamente
+				  list_terminate($3->data.symEntry->symbol.params);
+				  free($3->data.symEntry); 
 				}
 				else if($1->symbol.params != NULL){
 				  sserror(IKS_ERROR_MISSING_ARGS, $1);
 				  return(IKS_ERROR_MISSING_ARGS);
 				}
-				
-				// Libera DictItem criado temporariamente
-				list_terminate($3->data.symEntry->symbol.params);
-				free($3->data.symEntry); 
-				  
 							
 				Data data;
 				data.nodeType = IKS_AST_CHAMADA_DE_FUNCAO;
@@ -921,6 +929,21 @@ termo: TK_IDENTIFICADOR {
 			sserror(IKS_ERROR_FUNCTION, $1);
 			return(IKS_ERROR_FUNCTION);
 		}
+		// Checks if expression is an integer (char)
+		if ($3->data.semanticType == SYMTYPE_CHAR) {
+			sserror(IKS_ERROR_CHAR_TO_X, NULL);
+			return(IKS_ERROR_CHAR_TO_X);
+		}
+		// Checks if expression is an integer (string)
+		if ($3->data.semanticType == SYMTYPE_STRING) {
+			sserror(IKS_ERROR_STRING_TO_X, NULL);
+			return(IKS_ERROR_STRING_TO_X);
+		}
+		// Checks if expression is an integer (string)
+		if ($3->data.semanticType != SYMTYPE_INT) {
+			sserror(IKS_ERROR_WRONG_TYPE, NULL); //TODO futuro: incluir cod de erro para indice nao inteiro.
+			return(IKS_ERROR_WRONG_TYPE);
+		}
 			
 		/* -- Creates vector node --*/
 		Data data;
@@ -987,4 +1010,14 @@ void declara_funcao(int tipo, DictItem *identifier) {
 	}
 	currentFunction = identifier;
 	identifier->symbol.symType = tipo | SYMTYPE_FUN;
+}
+
+void declara_vetor(int tipo, DictItem *identifier, comp_tree_t *exprNode) {
+	// Tests if function is being redefined .
+	if (check_id_declr(identifier)) {
+		sserror(IKS_ERROR_DECLARED, identifier);
+		exit(IKS_ERROR_DECLARED);
+	}
+	
+	identifier->symbol.symType = tipo | SYMTYPE_VEC;
 }

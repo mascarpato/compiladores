@@ -11,7 +11,7 @@
 int dict_hashentry(char *key); 
 
 //Top of the stack, used in both scanner and parser
-Dict *dict;
+Dict *dict = NULL;
 
 Dict *dict_create(int size) {
 	Dict *newDict = (Dict*)malloc(sizeof(Dict));
@@ -31,60 +31,63 @@ Dict *dict_create(int size) {
 }
 
 DictItem *dict_insert(Symbol_t symbol, char *key, int occLine) {
-	int i=0, found = 0;
+	DictItem *ptrReturn = NULL;
+        int i=0, found = 0;
 
+	
+	if (key == NULL) {
+		printf("Hey. Why are you adding a null key?????");
+	}
 	//printf("Inserindo (%s) de tipo (%d) no dic!\n", key, symbol.symType);
 
-		// Will try to insert the symbol at position pos
-	int pos = dict_hashentry(key) % dict->max_size;
 	
 // 		// Augments dictionary size if it is full
-
+	
 	if (dict->size >= dict->max_size) {
 // 		dict_augment(dict); 		// Deprecated
 		printf("Symbol table has grown bigger than its limits. aborting...\n");
 		abort();
 	}
 
-		// Gets insertion position. Position pos may be taken, so will try to insert
-		// at next available position
-	found = 0;
-	i = pos;
-	while (dict->max_size && !found) {
-		if (dict->begin[i].valid == 0) {
-			found = 1; // Will insert new symbol here.
-			dict->size = dict->size+1;
-		} else {
-			if (strcmp(dict->begin[i].key, key) == 0) { // Will replace old symbol
-				found = 2;
-			} else
-				i++;
-		}
-		
-		// If already scanned whole dictionary(i is now out of bounds) and hasn't
-		// found insertion position, goes back to start.
-		if (i == dict->max_size)
-			i = 0;
-	}
-	
-	// Two cases: Will replace symbol or will leave it be.
-	if (found == 1) {
-		dict->begin[i].key = malloc(sizeof(char)*strlen(key)+1);
-		strcpy(dict->begin[i].key, key);
-		dict->begin[i].occLine = occLine;
-		dict->begin[i].valid=1;
-		
-		dict->begin[i].symbol = symbol;
-	}
+	// First it looks for the key in the dictionaries below
+	if(ptrReturn = dict_get(dict->prev, key) != NULL)
+	  return ptrReturn;
 	else {
-		// Do nothing
+		  // Will try to insert the symbol at position pos
+	  int pos = dict_hashentry(key) % dict->max_size;
+	  
+		  // Gets insertion position. Position pos may be taken, so will try to insert
+		  // at next available position
+	  i = pos;
+	  while (dict->max_size && !found) {
+		  if (dict->begin[i].valid == 0) {
+			  found = 1; // Will insert new symbol here.
+			  dict->size = dict->size+1;
+		  } else {
+			  if (strcmp(dict->begin[i].key, key) == 0) { // Will replace old symbol
+				  found = 2;
+			  } else
+				  i++;
+		  }
+		  
+		  // If already scanned whole dictionary(i is now out of bounds) and hasn't
+		  // found insertion position, goes back to start.
+		  if (i == dict->max_size)
+			  i = 0;
+	  }
+	  
+	  // Two cases: Will replace symbol or will leave it be.
+	  if (found == 1) {
+		  dict->begin[i].key = malloc(sizeof(char)*strlen(key)+1);
+		  strcpy(dict->begin[i].key, key);
+		  dict->begin[i].occLine = occLine;
+		  dict->begin[i].valid=1;
+		  
+		  dict->begin[i].symbol = symbol;
+	  }
+	  
+	  return &dict->begin[i];
 	}
-	
-	if (key == NULL) {
-		printf("Hey. Why are you adding a null key?????");
-	}
-	
-	return &(dict->begin[i]);
 }
 
 	// TODO CHECK. Has not been fixed after dictionary changed to fixed size.
@@ -116,7 +119,10 @@ Dict *dict_pop() {
 	return last_dict;
 }
 
-Dict *dict_terminate() {
+Dict *dict_terminate(Dict *dict) {
+	if(dict->prev != NULL)
+	  dict_terminate(dict->prev);
+	
 	int i;
 	
 	for (i = 0; i < dict->max_size; i++) {
@@ -170,36 +176,53 @@ int dict_getmaxsize() {
 		return -1;
 }
 
-DictItem *dict_get(char *key) {
-	DictItem *ptAux = dict->begin;
-	int found = 0, i = 0;
+DictItem* dict_get(Dict *dictTarget, char *key) {
+	if(dictTarget == NULL)
+	  //Not found anywhere
+	  return NULL;
+	else {
+	  int i = 0;
+	  for (i=0; i < dictTarget->max_size; i++) {
+		  if (dictTarget->begin[i].valid)
+			  if (strcmp(dictTarget->begin[i].key, key) == 0)
+				  return &dictTarget->begin[i];
+	  }
 	
-	for (i=0; i < dict->max_size && !found; i++) {
-		if (dict->begin[i].valid)
-			if (strcmp(dict->begin[i].key, key) == 0)
-				found = 1;
+	  //Not found here, searches in the dictionary below it
+	  return dict_get(dictTarget->prev, key);
 	}
-	
-	if (found) {
-		switch(dict->begin[i-1].symbol.symType) {
-			case SYMTYPE_INT:
-				return &dict->begin[i-1].symbol.value.value_int;
-			case SYMTYPE_FLOAT:
-				return &dict->begin[i-1].symbol.value.value_float;
-			case SYMTYPE_CHAR:
-				return &dict->begin[i-1].symbol.value.value_char;
-			case SYMTYPE_STRING:
-				return dict->begin[i-1].symbol.value.value_string;
-			case SYMTYPE_BOOL:
-				return &dict->begin[i-1].symbol.value.value_bool;
-			case SYMTYPE_IDENTIFIER:
-				return dict->begin[i-1].symbol.name;
-			default:
-				return NULL;
-		}
-	} else
-		return NULL;
 }
+
+// int dict_get(Dict *dict, char *key) {
+// 	DictItem *ptAux = dict->begin;
+// 	int found = 0, i = 0;
+// 	
+// 	for (i=0; i < dict->max_size && !found; i++) {
+// 		if (dict->begin[i].valid)
+// 			if (strcmp(dict->begin[i].key, key) == 0)
+// 				found = 1;
+// 	}
+// 	
+// 	if (found) {
+// 		switch(dict->begin[i-1].symbol.symType) {
+// 			case SYMTYPE_INT:
+// 				return &dict->begin[i-1].symbol.value.value_int;
+// 			case SYMTYPE_FLOAT:
+// 				return &dict->begin[i-1].symbol.value.value_float;
+// 			case SYMTYPE_CHAR:
+// 				return &dict->begin[i-1].symbol.value.value_char;
+// 			case SYMTYPE_STRING:
+// 				return dict->begin[i-1].symbol.value.value_string;
+// 			case SYMTYPE_BOOL:
+// 				return &dict->begin[i-1].symbol.value.value_bool;
+// 			case SYMTYPE_IDENTIFIER:
+// 				return dict->begin[i-1].symbol.name;
+// 			default:
+// 				return NULL;
+// 		}
+// 	} else
+// 		return NULL;
+// }
 
 int dict_hashentry(char *key) {
 	int i=0, hash=0;
