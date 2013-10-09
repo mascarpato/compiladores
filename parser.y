@@ -19,6 +19,8 @@ struct comp_dict_item_t *currentFunction;
 
 	/* Acao semantica na declaracao de funcao */
 void declara_funcao(int tipo, DictItem *identifer);
+	/* Acao semantica na declaracao de vetor */
+void declara_vetor(int tipo, DictItem *identifier, comp_tree_t *exprNode);
 
 %}
 
@@ -164,15 +166,7 @@ declaracao-var-simples: tipo ':' TK_IDENTIFICADOR {
 }
 ;
 
-declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']' { 
-			// Tests if function is being redefined .
-			if (check_id_declr($3)) {
-				sserror(IKS_ERROR_DECLARED, $3);
-				return(IKS_ERROR_DECLARED);
-			}
-			
-			$3->symbol.symType = $1 | SYMTYPE_VEC;
-}
+declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']' { declara_vetor($1, $3, $5); }
 ;
 
 comando: comando-composto 
@@ -366,6 +360,7 @@ argumento-saida: expr {
 			if ($1->data.semanticType == SYMTYPE_CHAR ||
 				$1->data.semanticType == SYMTYPE_BOOL) {
 				sserror(IKS_ERROR_WRONG_PAR_OUTPUT, NULL);
+				return(IKS_ERROR_WRONG_PAR_OUTPUT);
 				}
 			$$ = $1;
 			}
@@ -405,6 +400,8 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 
 	//operações de coersão	
 	int aux_coersion;
+	printf("tipo 1: %d tipo2: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
+	
 				// Aqui eh um dict_item
 	aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, &($3->data.semanticType));
 	printf("tipo esquerda: %d, tipo direita: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
@@ -455,6 +452,21 @@ atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr {
 		if (!check_id_isvector($1)) {
 			sserror(IKS_ERROR_VARIABLE, $1);
 			return(IKS_ERROR_VARIABLE);
+		}
+		// Checks if expression is an integer (char)
+		if ($3->data.semanticType == SYMTYPE_CHAR) {
+			sserror(IKS_ERROR_CHAR_TO_X, NULL);
+			return(IKS_ERROR_CHAR_TO_X);
+		}
+		// Checks if expression is an integer (string)
+		if ($3->data.semanticType == SYMTYPE_STRING) {
+			sserror(IKS_ERROR_STRING_TO_X, NULL);
+			return(IKS_ERROR_STRING_TO_X);
+		}
+		// Checks if expression is an integer (string)
+		if ($3->data.semanticType != SYMTYPE_INT) {
+			sserror(IKS_ERROR_WRONG_TYPE, NULL); //TODO futuro: incluir cod de erro para indice nao inteiro.
+			return(IKS_ERROR_WRONG_TYPE);
 		}
 
 	//operações de coersão	
@@ -509,6 +521,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_LE;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType))== IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -522,6 +544,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_GE;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType))== IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -535,6 +567,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_IGUAL;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType))== IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -548,6 +590,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_DIF;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -561,6 +613,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_L;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -574,6 +636,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_G;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -590,6 +662,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_E;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -603,6 +685,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_OU;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -616,6 +708,19 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_ARIM_SOMA;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	printf ("antes de entrar \n%d\n",eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) );
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType) ) == IKS_ERROR_STRING_TO_X)
+	{printf ("entrou1 \n");
+	sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{printf ("entrou2 \n");
+	sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -629,6 +734,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_ARIM_SUBTRACAO;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -642,6 +757,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_ARIM_MULTIPLICACAO;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -655,6 +780,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_ARIM_DIVISAO;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -798,6 +933,21 @@ termo: TK_IDENTIFICADOR {
 			sserror(IKS_ERROR_FUNCTION, $1);
 			return(IKS_ERROR_FUNCTION);
 		}
+		// Checks if expression is an integer (char)
+		if ($3->data.semanticType == SYMTYPE_CHAR) {
+			sserror(IKS_ERROR_CHAR_TO_X, NULL);
+			return(IKS_ERROR_CHAR_TO_X);
+		}
+		// Checks if expression is an integer (string)
+		if ($3->data.semanticType == SYMTYPE_STRING) {
+			sserror(IKS_ERROR_STRING_TO_X, NULL);
+			return(IKS_ERROR_STRING_TO_X);
+		}
+		// Checks if expression is an integer (string)
+		if ($3->data.semanticType != SYMTYPE_INT) {
+			sserror(IKS_ERROR_WRONG_TYPE, NULL); //TODO futuro: incluir cod de erro para indice nao inteiro.
+			return(IKS_ERROR_WRONG_TYPE);
+		}
 			
 		/* -- Creates vector node --*/
 		Data data;
@@ -864,4 +1014,14 @@ void declara_funcao(int tipo, DictItem *identifier) {
 	}
 	currentFunction = identifier;
 	identifier->symbol.symType = tipo | SYMTYPE_FUN;
+}
+
+void declara_vetor(int tipo, DictItem *identifier, comp_tree_t *exprNode) {
+	// Tests if function is being redefined .
+	if (check_id_declr(identifier)) {
+		sserror(IKS_ERROR_DECLARED, identifier);
+		exit(IKS_ERROR_DECLARED);
+	}
+	
+	identifier->symbol.symType = tipo | SYMTYPE_VEC;
 }
