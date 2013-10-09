@@ -82,8 +82,9 @@ int check_id_isstring (DictItem *sym) {
 		return 0;
 }
 
-int check_ListNode (ListNode *paramsDecl, ListNode *paramsCall) {
+int check_paramlist (ListNode *paramsDecl, ListNode *paramsCall) {
 	int err = 0;
+
 	while(paramsDecl != NULL && paramsCall != NULL && !err) {
 	  if(paramsDecl->data != paramsCall->data){
 	    err = IKS_ERROR_WRONG_TYPE_ARGS;
@@ -98,6 +99,6 @@ int check_ListNode (ListNode *paramsDecl, ListNode *paramsCall) {
 	    err = IKS_ERROR_MISSING_ARGS;
 	  else if(paramsDecl == NULL && paramsCall != NULL)
 	    err = IKS_ERROR_EXCESS_ARGS;
-	
+
 	return err;
 }

@@ -22,7 +22,7 @@ void declara_funcao(int tipo, DictItem *identifer);
 
 %}
 
-/* Declaracao dos tokens da gramática da Linguagem K */
+/* Declaracao dos tokens da gramatica da Linguagem K */
 
 %union {
 	struct treeNode_t *tree;
@@ -700,24 +700,20 @@ chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
 					sserror(IKS_ERROR_FUNCTION, $1);
 					return(IKS_ERROR_FUNCTION);
 				}
-				
-				
 				if($3 != NULL){
 				  int err;
-				  if(err = check_ListNode($1->symbol.params, $3->data.symEntry->symbol.params)){
+				  if(err = check_paramlist($1->symbol.params, $3->data.symEntry->symbol.params)){
 				    sserror(err, $1);
 				    return(err);
 				  }
+				  // Libera DictItem criado temporariamente
+				  list_terminate($3->data.symEntry->symbol.params);
+				  free($3->data.symEntry); 
 				}
 				else if($1->symbol.params != NULL){
 				  sserror(IKS_ERROR_MISSING_ARGS, $1);
 				  return(IKS_ERROR_MISSING_ARGS);
 				}
-				
-				// Libera DictItem criado temporariamente
-				list_terminate($3->data.symEntry->symbol.params);
-				free($3->data.symEntry); 
-				  
 							
 				Data data;
 				data.nodeType = IKS_AST_CHAMADA_DE_FUNCAO;
