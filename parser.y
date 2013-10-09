@@ -508,6 +508,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_LE;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType))== IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -521,6 +531,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_GE;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType))== IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -534,6 +554,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_IGUAL;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType))== IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -547,6 +577,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_DIF;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -560,6 +600,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_L;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -573,6 +623,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_G;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -589,6 +649,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_E;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -602,6 +672,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_LOGICO_OU;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -615,6 +695,19 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_ARIM_SOMA;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	printf ("antes de entrar \n%d\n",eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) );
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType) ) == IKS_ERROR_STRING_TO_X)
+	{printf ("entrou1 \n");
+	sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{printf ("entrou2 \n");
+	sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -628,6 +721,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_ARIM_SUBTRACAO;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -641,6 +744,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_ARIM_MULTIPLICACAO;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
@@ -654,6 +767,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_ARIM_DIVISAO;
         data.symEntry = NULL;
+	//Detecção de erros com string ou char
+	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
+	{sserror(IKS_ERROR_STRING_TO_X, NULL);
+	return (IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
+	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
+	return (IKS_ERROR_CHAR_TO_X);
+	};
+	//
         data.semanticType = eval_infer(
 				$1->data.semanticType, $3->data.semanticType,
 				&($1->data.semanticType), &($3->data.semanticType));
