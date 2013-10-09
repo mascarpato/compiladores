@@ -170,7 +170,7 @@ int dict_getmaxsize() {
 		return -1;
 }
 
-int dict_get(char *key) {
+DictItem *dict_get(char *key) {
 	DictItem *ptAux = dict->begin;
 	int found = 0, i = 0;
 	

@@ -60,7 +60,7 @@ extern DictItem *dict_insert(Symbol_t symbol, char *key, int occLine);
  * 
  * Note: Returns NULL if no word has the specified key.
  */
-extern int dict_get(char *key);
+extern DictItem *dict_get(char *key);
 
 /*! \brief Removes the word with key (key) from the dictionary. Nothing happens if the word is not found.
  * 

@@ -28,7 +28,7 @@
 #define FALSE 0
 
 //Identificadores de Coersão
-#define NO_COERSION 0
+#define NO_COERSION -1
 
 #define COER_INT_TO_BOOL 1
 #define COER_INT_TO_FLOAT 2

@@ -268,12 +268,12 @@ comando-retorno: TK_PR_RETURN expr {
 							printf("Compiler internal error. should not ocurr.\n");
 							exit(-1);
 						}
-						printf("chegay.");
+						//printf("chegay.");
 						if ($2->data.semanticType != (currentFunction->symbol.symType & MASK_SYMTYPE_TYPE)) {
-							printf("Tipos sao %d e %d.\n", $2->data.semanticType, currentFunction->symbol.symType & MASK_SYMTYPE_TYPE);
+							//printf("Tipos sao %d e %d.\n", $2->data.semanticType, currentFunction->symbol.symType & MASK_SYMTYPE_TYPE);
 							sserror(IKS_ERROR_WRONG_PAR_RETURN, NULL);
 							return(IKS_ERROR_WRONG_PAR_RETURN);
-							printf("cheguei aqui.");
+							//printf("cheguei aqui.");
 						} else
 							printf("Tipos sao %d e %d.\n", $2->data.semanticType, currentFunction->symbol.symType & MASK_SYMTYPE_TYPE);
 						
@@ -314,7 +314,7 @@ comando-retorno: TK_PR_RETURN expr {
                         $$ = father; }
 	;*/
 comando-entrada: TK_PR_INPUT expr {
-			// Tests if expr is something valie (i.e. is declared in symbol table)
+			// Tests if expr is something valid (i.e. is declared in symbol table)
 			if ($2->data.symEntry == NULL) {
 				sserror(IKS_ERROR_WRONG_PAR_INPUT, NULL);
 				return(IKS_ERROR_WRONG_PAR_INPUT);
@@ -361,25 +361,24 @@ comando-saida: TK_PR_OUTPUT argumento-saida {
                         
                         $$ = father; }
 ;
-argumento-saida: expr { $$ = $1;
-// 						// Tests if variable has been defined.
-// 						if (!check_id_declr($1->data.symEntry))
-// 							return(IKS_ERROR_UNDECLARED);
-// 						// Tests if identifier is a variable
-// 						if (!check_id_isvariable($1->data.symEntry))
-// 							return(IKS_ERROR_WRONG_PAR_INPUT);
-					}
-				| expr ',' argumento-saida {
-					/*	// Tests if variable has been defined.
-						if (!check_id_declr($1->data.symEntry))
-							return(IKS_ERROR_UNDECLARED);
-						// Tests if identifier is a variable
-						if (!check_id_isvariable($1->data.symEntry))
-							return(IKS_ERROR_WRONG_PAR_INPUT);*/
-							
-							treeInsert($3, $1);
-							$$ = $1; 
+argumento-saida: expr { 
+			if ($1->data.semanticType == SYMTYPE_CHAR ||
+				$1->data.semanticType == SYMTYPE_BOOL) {
+				sserror(IKS_ERROR_WRONG_PAR_OUTPUT, NULL);
 				}
+			$$ = $1;
+			}
+			| expr ',' argumento-saida {
+				/*	// Tests if variable has been defined.
+					if (!check_id_declr($1->data.symEntry))
+						return(IKS_ERROR_UNDECLARED);
+					// Tests if identifier is a variable
+					if (!check_id_isvariable($1->data.symEntry))
+						return(IKS_ERROR_WRONG_PAR_INPUT);*/
+						
+						treeInsert($3, $1);
+						$$ = $1; 
+			}
 ;
 
 atribuicao: atribuicao-simples { $$ = $1; }
@@ -407,6 +406,7 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 	int aux_coersion;
 				// Aqui eh um dict_item
 	aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, &($3->data.semanticType));
+	//printf("tipo esquerda: %d, tipo direita: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
 	//Checks if atrib is valid and sets right coersion
 	if (aux_coersion == SYMTYPE_UNDEF){
 		sserror(IKS_ERROR_WRONG_TYPE, NULL);
