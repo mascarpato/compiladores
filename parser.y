@@ -267,10 +267,18 @@ comando-retorno: TK_PR_RETURN expr {
 							exit(-1);
 						}
 						//printf("chegay.");
-						if ($2->data.semanticType != (currentFunction->symbol.symType & MASK_SYMTYPE_TYPE)) {
+/*						if ($2->data.semanticType != (currentFunction->symbol.symType & MASK_SYMTYPE_TYPE)) {
 							sserror(IKS_ERROR_WRONG_PAR_RETURN, NULL);
 							return(IKS_ERROR_WRONG_PAR_RETURN);
 							//printf("cheguei aqui.");
+						}*/
+						
+						// Embelezar o trecho a seguir antes de lancar o produto, pfv
+						if (eval_atrib(currentFunction->symbol.symType & MASK_SYMTYPE_TYPE, $2->data.semanticType, NULL) == IKS_ERROR_CHAR_TO_X ||
+							eval_atrib(currentFunction->symbol.symType & MASK_SYMTYPE_TYPE, $2->data.semanticType, NULL) == IKS_ERROR_STRING_TO_X ||
+							eval_atrib(currentFunction->symbol.symType & MASK_SYMTYPE_TYPE, $2->data.semanticType, NULL) == SYMTYPE_UNDEF) {
+							sserror(IKS_ERROR_WRONG_PAR_RETURN, NULL);
+							return(IKS_ERROR_WRONG_PAR_RETURN);
 						}
 						
                         Data data;
@@ -518,6 +526,7 @@ atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr {
 ;
 
 expr: '(' expr ')' { $$ = $2; }
+	| termo { $$ = $1; } 
     | expr TK_OC_LE expr {
         Data data;
         data.nodeType = IKS_AST_LOGICO_COMP_LE;
@@ -709,12 +718,16 @@ expr: '(' expr ')' { $$ = $2; }
         Data data;
         data.nodeType = IKS_AST_ARIM_SOMA;
         data.symEntry = NULL;
-	//Detecção de erros com string ou char
+        
+    printf("reduzindo expr(tipo:%d) + expr(tipo:%d))\n", $1->data.semanticType, $3->data.semanticType);
+
+    //Detecção de erros com string ou char
 	printf ("antes de entrar \n%d\n",eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) );
 	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType) ) == IKS_ERROR_STRING_TO_X)
-	{printf ("entrou1 \n");
-	sserror(IKS_ERROR_STRING_TO_X, NULL);
-	return (IKS_ERROR_STRING_TO_X);
+	{
+		printf ("entrou1 \n");
+		sserror(IKS_ERROR_STRING_TO_X, NULL);
+		return (IKS_ERROR_STRING_TO_X);
 	}
 	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
 	{printf ("entrou2 \n");
@@ -823,8 +836,6 @@ expr: '(' expr ')' { $$ = $2; }
         
         
         $$ = father; }    
-
-	| termo { $$ = $1; }
 ;
 
 chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
