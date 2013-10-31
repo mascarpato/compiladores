@@ -77,6 +77,7 @@ void declara_vetor(int tipo, DictItem *identifier);
 %type <tree> declaracao-var-simples
 %type <tree> declaracao-vetor
 %type <tree> lista-dimensoes /*instavel*/
+%type <tree> lista-dimensoes-atr /*instavel*/
 %type <tipo> tipo
 %type <tree> comando
 %type <tree> comando-composto
@@ -421,11 +422,11 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 
 	//operações de coersão	
 	int aux_coersion;
-	printf("tipo 1: %d tipo2: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
+	//printf("tipo 1: %d tipo2: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
 	
 				// Aqui eh um dict_item
 	aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, &($3->data.semanticType));
-	printf("tipo esquerda: %d, tipo direita: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
+	//printf("tipo esquerda: %d, tipo direita: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
 	//Checks if atrib is valid and sets right coersion
 	if (aux_coersion == SYMTYPE_UNDEF){
 		sserror(IKS_ERROR_WRONG_TYPE, NULL);
@@ -463,7 +464,7 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
         $$ = attributionNode; }
 ;
 
-atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr { //TODO: adicionar suporte para atrib em vetor multidimens
+atribuicao-vetor: TK_IDENTIFICADOR lista-dimensoes-atr '=' expr { //TODO: adicionar suporte para atrib em vetor multidimens
 		// Tests if variable has been defined.
 		if (!check_id_declr($1)) {
 			sserror(IKS_ERROR_UNDECLARED, $1);
@@ -474,6 +475,8 @@ atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr { //TODO: adicionar sup
 			sserror(IKS_ERROR_VARIABLE, $1);
 			return(IKS_ERROR_VARIABLE);
 		}
+/* TESTE MULTIDIM
+		
 		// Checks if expression is an integer (char)
 		if ($3->data.semanticType == SYMTYPE_CHAR) {
 			sserror(IKS_ERROR_CHAR_TO_X, NULL);
@@ -489,12 +492,12 @@ atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr { //TODO: adicionar sup
 			sserror(IKS_ERROR_WRONG_TYPE, NULL); //TODO futuro: incluir cod de erro para indice nao inteiro.
 			return(IKS_ERROR_WRONG_TYPE);
 		}
-
+*/
 	//operações de coersão	
 	int aux_coersion;
 					// aqui eh dict
 					// $1->symbol.symType & MASK_SYMTYPE_TYPE
-	aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $6->data.semanticType, &($6->data.semanticType));
+	aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $4->data.semanticType, &($4->data.semanticType)); // 4==6
 	//Checks if atrib is valid and sets right coersion
 	if (aux_coersion == SYMTYPE_UNDEF){
 		sserror(IKS_ERROR_WRONG_TYPE, NULL);
@@ -507,7 +510,7 @@ atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr { //TODO: adicionar sup
 		return (IKS_ERROR_CHAR_TO_X);
 	}
 
-	$6->data.coersionType = aux_coersion; //define tipo da coersão
+	$4->data.coersionType = aux_coersion; //define tipo da coersão 4==6
 
         Data data1;
         data1.nodeType = IKS_AST_ATRIBUICAO;
@@ -527,15 +530,43 @@ atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr { //TODO: adicionar sup
 		comp_tree_t *luke = treeCreate(data3);
 		
 		treeInsert(luke, vader);
-		treeInsert($3, vader);
+		//treeInsert($3, vader); TESTE MULTIDIM
 		/* -- -- */
 		
 		/* -- Inserts vector and expr nodes into attribution node */ 
 		treeInsert(vader, attributionNode);
-		treeInsert($6, attributionNode);
+		treeInsert($4, attributionNode);  //4==6
 		
         $$ = attributionNode; }
 ;
+
+////////teste
+lista-dimensoes-atr: '[' expr ']' lista-dimensoes-atr {
+		if ($2->data.semanticType == SYMTYPE_CHAR) {
+			sserror(IKS_ERROR_CHAR_TO_X, NULL);
+			return(IKS_ERROR_CHAR_TO_X);
+		}
+		// Checks if expression is an integer (string)
+		if ($2->data.semanticType == SYMTYPE_STRING) {
+			sserror(IKS_ERROR_STRING_TO_X, NULL);
+			return(IKS_ERROR_STRING_TO_X);
+		}
+		// Checks if expression is an integer (string)
+		if ($2->data.semanticType != SYMTYPE_INT) {
+			sserror(IKS_ERROR_WRONG_TYPE, NULL); //TODO futuro: incluir cod de erro para indice nao inteiro.
+			return(IKS_ERROR_WRONG_TYPE);
+		}
+
+		Data data;
+		comp_tree_t *dimNode = treeCreate(data);
+		
+		treeInsert($2, dimNode);
+		$$=dimNode;
+}	
+	| /*empty*/ {}
+;
+
+////////fim_de_teste
 
 expr: '(' expr ')' { $$ = $2; }
 	| termo { $$ = $1; } 
