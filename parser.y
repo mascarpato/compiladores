@@ -20,7 +20,7 @@ struct comp_dict_item_t *currentFunction;
 	/* Acao semantica na declaracao de funcao */
 void declara_funcao(int tipo, DictItem *identifer);
 	/* Acao semantica na declaracao de vetor */
-void declara_vetor(int tipo, DictItem *identifier, comp_tree_t *exprNode);
+void declara_vetor(int tipo, DictItem *identifier);
 
 %}
 
@@ -76,6 +76,7 @@ void declara_vetor(int tipo, DictItem *identifier, comp_tree_t *exprNode);
 %type <tree> declaracao-varglobal
 %type <tree> declaracao-var-simples
 %type <tree> declaracao-vetor
+%type <tree> lista-dimensoes /*instavel*/
 %type <tipo> tipo
 %type <tree> comando
 %type <tree> comando-composto
@@ -167,8 +168,19 @@ declaracao-var-simples: tipo ':' TK_IDENTIFICADOR {
 }
 ;
 
-declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']' { declara_vetor($1, $3, $5); }
+//declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']' { declara_vetor($1, $3, $5); }
+//;
+
+//modificacoes instaveis
+
+declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']' lista-dimensoes { declara_vetor($1, $3); }
 ;
+
+lista-dimensoes: '[' expr ']' lista-dimensoes {}
+		 | {}
+;
+
+//fim modificacoes instaveis
 
 comando: comando-composto 
     | comando-simples
@@ -451,7 +463,7 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
         $$ = attributionNode; }
 ;
 
-atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr {
+atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' '=' expr { //TODO: adicionar suporte para atrib em vetor multidimens
 		// Tests if variable has been defined.
 		if (!check_id_declr($1)) {
 			sserror(IKS_ERROR_UNDECLARED, $1);
@@ -1029,7 +1041,7 @@ void declara_funcao(int tipo, DictItem *identifier) {
 	identifier->symbol.symType = tipo | SYMTYPE_FUN;
 }
 
-void declara_vetor(int tipo, DictItem *identifier, comp_tree_t *exprNode) {
+void declara_vetor(int tipo, DictItem *identifier) {
 	// Tests if function is being redefined .
 	if (check_id_declr(identifier)) {
 		sserror(IKS_ERROR_DECLARED, identifier);
