@@ -104,7 +104,7 @@ void declara_vetor(int tipo, DictItem *identifier);
 
 %%
 /* Regras (e acoes) da gramatica da Linguagem K */
-programa: s { }
+programa: s { generateCode($1); }
 ;
 
 s: s declaracao-varglobal ';'  { $$ = NULL; }
