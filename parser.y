@@ -22,9 +22,9 @@ void declara_funcao(int tipo, DictItem *identifer);
 	/* Acao semantica na declaracao de vetor */
 void declara_vetor(int tipo, DictItem *identifier);
 
-%}
+void declara_varsimples(int tipo, DictItem *identifier);
 
-/* Declaracao dos tokens da gramatica da Linguagem K */
+%}
 
 %union {
 	struct treeNode_t *tree;
@@ -41,6 +41,8 @@ void declara_vetor(int tipo, DictItem *identifier);
     ast = treeCreate(data);
     currentFunction = NULL;
 }
+
+/* Declaracao dos tokens da gramatica da Linguagem IKS */
 
 %token TK_PR_INT
 %token TK_PR_FLOAT
@@ -104,20 +106,20 @@ void declara_vetor(int tipo, DictItem *identifier);
 
 %%
 /* Regras (e acoes) da gramatica da Linguagem K */
-programa: s { generateCode($1); }
+programa: s //{ generateCode($1); }
 ;
 
 s: s declaracao-varglobal ';'  { $$ = NULL; }
     | s declaracao-funcao {
-					if (ast->left == NULL) {
-						//printf("Inserindo %s na raiz!\n",
-						$2->data.symEntry->key;
-						treeInsert($2, ast);
-					} else {
-						//printf("Inserindo %s na arvore ja com raiz!\n",
-						$2->data.symEntry->key;
-						treeInsert($2, $1);
-					}
+                                        if (ast->left == NULL) {
+                                                //printf("Inserindo %s na raiz!\n",
+                                                $2->data.symEntry->key;
+                                                treeInsert($2, ast);
+                                        } else {
+                                                //printf("Inserindo %s na arvore ja com raiz!\
+                                                $2->data.symEntry->key;
+                                                treeInsert($2, $1);
+                                        }
                     $$ = $2;
                     }
     | { $$ = NULL; }
@@ -130,23 +132,9 @@ tipo: TK_PR_INT { $$ = SYMTYPE_INT;}
     | TK_PR_STRING { $$ = SYMTYPE_STRING;}
 ;
 
-declaracao-funcao: tipo ':' TK_IDENTIFICADOR { declara_funcao($1, $3); 						
-					       dict_create(SYM_TABLE_INITSIZE); } 			
-			'(' parametros-funcao-empty ')' { $3->symbol.params = $6; }
-			lista-var-local comando-funcao {
-						currentFunction = NULL;
-						dict_pop();
-						
-						Data data;
-						data.nodeType = IKS_AST_FUNCAO;
-						// data.semanticType = $1; // Nao é utilizado ?
-						data.symEntry = $3;
-
-						comp_tree_t *father = treeCreate(data);
-						treeInsert($9, father);
-						
-						$$ = father;
-}
+declaracao-funcao: tipo ':' TK_IDENTIFICADOR { declara_funcao($1, $3); dict_create(SYM_TABLE_INITSIZE); }   
+                        '(' parametros-funcao-empty ')' { $3->symbol.params = $6; }
+                        lista-var-local comando-funcao { currentFunction = NULL; dict_pop(); $$ = ast_criano_funcao($3, $10); }
 ;
 
 lista-var-local: declaracao-var-simples ';' lista-var-local
@@ -157,20 +145,8 @@ declaracao-varglobal: declaracao-var-simples
     | declaracao-vetor
 ;
 
-declaracao-var-simples: tipo ':' TK_IDENTIFICADOR { 
-						//printf("Symbol type is %d\n", $3->symbol.symType);
-			// Tests if function is being redefined .
-			if (check_id_declr($3)) {
-				sserror(IKS_ERROR_DECLARED, $3);
-				return(IKS_ERROR_DECLARED);
-			}
-
-			$3->symbol.symType = $1 | SYMTYPE_VAR;
-}
+declaracao-var-simples: tipo ':' TK_IDENTIFICADOR { declara_varsimples($1, $3); }
 ;
-
-//declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']' { declara_vetor($1, $3, $5); }
-//;
 
 //modificacoes instaveis
 
@@ -187,28 +163,19 @@ comando: comando-composto
     | comando-simples
 ;
 comando-composto: '{' comando-sequencia '}' {
-	Data data;
-	data.nodeType = IKS_AST_BLOCO;
-	data.symEntry = NULL;
-	comp_tree_t *father = treeCreate(data);
-	treeInsert($2, father);
 	
 	//printf("Leu bloco de comando(composto)!\n");
 
-	$$ = father;
+	$$ = ast_criano_bloco($2);
 }
 ;
 comando-funcao: '{' comando-sequencia '}'{ $$ = $2;}
 ;
 
 comando-sequencia: comando-simples { $$ = $1; }
-    | comando-simples ';' comando-sequencia { 
-                                treeInsert($3, $1);
-                                $$ = $1; } //TODO verificar
+    | comando-simples ';' comando-sequencia { treeInsert($3, $1); $$ = $1; } //TODO verificar
     | comando-composto { $$ = $1; }
-    | comando-composto ';' comando-sequencia {
-                                treeInsert($3, $1);
-                                $$ = $1; } //TODO verificar
+    | comando-composto ';' comando-sequencia { treeInsert($3, $1); $$ = $1; } //TODO verificar    
     | { $$ = NULL; }
 ; 
 comando-simples: condicional { $$ = $1; }
@@ -223,44 +190,15 @@ comando-simples: condicional { $$ = $1; }
     | ';' { $$ = NULL; }
 ;
 
-condicional: TK_PR_IF '(' expr ')' TK_PR_THEN comando {
-                    Data data;
-                    data.nodeType = IKS_AST_IF_ELSE;
-                    data.symEntry = NULL;
-                    comp_tree_t *father = treeCreate(data);
-                                
-                    treeInsert($3, father);
-                    treeInsert($6, father);
-                    treeInsert(NULL, father); // No else command
-            
-                    $$ = father; }
-            | TK_PR_IF '(' expr ')' TK_PR_THEN comando TK_PR_ELSE comando {
-                    Data data;
-                    data.nodeType = IKS_AST_IF_ELSE;
-                    data.symEntry = NULL;
-                    comp_tree_t *father = treeCreate(data);
-                    
-                    treeInsert($3, father);
-                    treeInsert($6, father);
-                    treeInsert($8, father);
-                    
-                    $$ = father; }
+condicional: TK_PR_IF '(' expr ')' TK_PR_THEN comando { $$ = ast_criano_ifthenelse($3, $6, NULL); }
+            | TK_PR_IF '(' expr ')' TK_PR_THEN comando TK_PR_ELSE comando { $$ = ast_criano_ifthenelse($3, $6, $8); }
 ;
 laco: do-while
     | while
 ;
 
     // c-style do while
-do-while: TK_PR_DO comando TK_PR_WHILE '(' expr ')' ';' {
-                    Data data;
-                    data.nodeType = IKS_AST_DO_WHILE;
-                    data.symEntry = NULL;
-                    comp_tree_t *father = treeCreate(data);                  
-
-                    treeInsert($2, father);
-                    treeInsert($5, father);
-                    
-                    $$ = father; } 
+do-while: TK_PR_DO comando TK_PR_WHILE '(' expr ')' ';' { $$ = ast_criano_dowhile($2, $5); } 
 ;
 while: TK_PR_WHILE '(' expr ')' TK_PR_DO comando {
                     Data data;
@@ -279,12 +217,6 @@ comando-retorno: TK_PR_RETURN expr {
 							printf("Compiler internal error. should not ocurr.\n");
 							exit(-1);
 						}
-						//printf("chegay.");
-/*						if ($2->data.semanticType != (currentFunction->symbol.symType & MASK_SYMTYPE_TYPE)) {
-							sserror(IKS_ERROR_WRONG_PAR_RETURN, NULL);
-							return(IKS_ERROR_WRONG_PAR_RETURN);
-							//printf("cheguei aqui.");
-						}*/
 						
 						// Embelezar o trecho a seguir antes de lancar o produto, pfv
 						if (eval_atrib(currentFunction->symbol.symType & MASK_SYMTYPE_TYPE, $2->data.semanticType, NULL) == IKS_ERROR_CHAR_TO_X ||
@@ -294,109 +226,17 @@ comando-retorno: TK_PR_RETURN expr {
 							return(IKS_ERROR_WRONG_PAR_RETURN);
 						}
 						
-                        Data data;
-                        data.nodeType = IKS_AST_RETURN;
-                        data.symEntry = NULL;
-                        
-                        comp_tree_t *father = treeCreate(data);
-                        treeInsert($2, father);
-                        
-                        $$ = father; }
-;
-	// at\E9 etapa3
-	/*comando-entrada: TK_PR_INPUT TK_IDENTIFICADOR {
-						// Tests if variable has been defined.
-						if (!check_id_declr($2)) {
-							sserror(IKS_ERROR_UNDECLARED, $2);
-							return(IKS_ERROR_UNDECLARED);
-						}
-						// Tests if identifier is a variable
-						// TODO Check: Using identifier = vector or function allowed?
-// 						if (!check_id_isvariable($2))
-// 							return(IKS_ERROR_WRONG_PAR_INPUT);
-
-                        Data data;
-                        data.nodeType = IKS_AST_INPUT;
-                        data.symEntry = NULL;
-                        // Nau utilizado data.semanticType
-                        comp_tree_t *father = treeCreate(data);
-                        
-                        Data data2;
-                        data2.nodeType = IKS_AST_IDENTIFICADOR;
-                        data2.symEntry = $2;
-                        comp_tree_t *son = treeCreate(data2);
-                        
-                        treeInsert(son, father);
-                        
-                        $$ = father; }
-	;*/
-comando-entrada: TK_PR_INPUT expr {
-			// Tests if expr is something valid (i.e. is declared in symbol table)
-			if ($2->data.symEntry == NULL) {
-				sserror(IKS_ERROR_WRONG_PAR_INPUT, NULL);
-				return(IKS_ERROR_WRONG_PAR_INPUT);
-			}
-			// Tests if identifier is a variable or vector
-			if (!check_id_isvariable($2->data.symEntry)) {
-				sserror(IKS_ERROR_WRONG_PAR_INPUT, $2->data.symEntry);
-				return(IKS_ERROR_WRONG_PAR_INPUT);
-			}
-			if (!check_id_isvector($2->data.symEntry)) {
-				sserror(IKS_ERROR_WRONG_PAR_INPUT, $2->data.symEntry);
-				return(IKS_ERROR_WRONG_PAR_INPUT);
-			}			
-			// Tests if variable has been defined (typed)
-			if (!check_id_declr($2->data.symEntry)) {
-				sserror(IKS_ERROR_UNDECLARED, $2->data.symEntry);
-				return(IKS_ERROR_UNDECLARED);
-			}
-			
-			Data data;
-			data.nodeType = IKS_AST_INPUT;
-			data.symEntry = NULL;
-			// Nau utilizado data.semanticType
-			comp_tree_t *father = treeCreate(data);
-			
-			Data data2;
-			data2.nodeType = IKS_AST_IDENTIFICADOR;
-			data2.symEntry = $2->data.symEntry;
-			comp_tree_t *son = treeCreate(data2);
-			
-			treeInsert(son, father);
-			
-			$$ = father;
-}
+                        $$ = ast_criano_return($2); }
 ;
 
-comando-saida: TK_PR_OUTPUT argumento-saida {
-                        Data data;
-                        data.nodeType = IKS_AST_OUTPUT;
-                        data.symEntry = NULL;
-                        
-                        comp_tree_t *father = treeCreate(data);
-                        treeInsert($2, father);
-                        
-                        $$ = father; }
+comando-entrada: TK_PR_INPUT expr { check_is_valid_input($2); $$ = ast_criano_entrada($2); }
 ;
-argumento-saida: expr { 
-			if ($1->data.semanticType == SYMTYPE_CHAR ||
-				$1->data.semanticType == SYMTYPE_BOOL) {
-				sserror(IKS_ERROR_WRONG_PAR_OUTPUT, NULL);
-				return(IKS_ERROR_WRONG_PAR_OUTPUT);
-				}
-			$$ = $1;
-			}
-			| expr ',' argumento-saida {
-				/*	// Tests if variable has been defined.
-					if (!check_id_declr($1->data.symEntry))
-						return(IKS_ERROR_UNDECLARED);
-					// Tests if identifier is a variable
-					if (!check_id_isvariable($1->data.symEntry))
-						return(IKS_ERROR_WRONG_PAR_INPUT);*/
-						
-						treeInsert($3, $1);
-						$$ = $1; 
-			}
+
+comando-saida: TK_PR_OUTPUT argumento-saida { $$ = ast_criano_saida($2); }
+;
+
+argumento-saida: expr { check_is_valid_output($1); $$ = $1; }
+				| expr ',' argumento-saida { check_is_valid_output($1); treeInsert($3, $1); $$ = $1; }
 ;
 
 atribuicao: atribuicao-simples { $$ = $1; }
@@ -420,48 +260,28 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 			return(IKS_ERROR_FUNCTION);
 		}
 
-	//operações de coersão	
-	int aux_coersion;
-	//printf("tipo 1: %d tipo2: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
-	
-				// Aqui eh um dict_item
-	aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, &($3->data.semanticType));
-	//printf("tipo esquerda: %d, tipo direita: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
-	//Checks if atrib is valid and sets right coersion
-	if (aux_coersion == SYMTYPE_UNDEF){
-		sserror(IKS_ERROR_WRONG_TYPE, NULL);
-		return (IKS_ERROR_WRONG_TYPE);
-	}else if (aux_coersion == IKS_ERROR_STRING_TO_X){
-		sserror(IKS_ERROR_STRING_TO_X, NULL);
-		return (IKS_ERROR_STRING_TO_X);
-	}else if (aux_coersion == IKS_ERROR_CHAR_TO_X){
-		sserror(IKS_ERROR_CHAR_TO_X, NULL);
-		return (IKS_ERROR_CHAR_TO_X);
-	}
+		//operações de coersão	
+		int aux_coersion;
+		//printf("tipo 1: %d tipo2: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
+		
+					// Aqui eh um dict_item
+		aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, &($3->data.semanticType));
+		//printf("tipo esquerda: %d, tipo direita: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
+		//Checks if atrib is valid and sets right coersion
+		if (aux_coersion == SYMTYPE_UNDEF){
+			sserror(IKS_ERROR_WRONG_TYPE, NULL);
+			return (IKS_ERROR_WRONG_TYPE);
+		}else if (aux_coersion == IKS_ERROR_STRING_TO_X){
+			sserror(IKS_ERROR_STRING_TO_X, NULL);
+			return (IKS_ERROR_STRING_TO_X);
+		}else if (aux_coersion == IKS_ERROR_CHAR_TO_X){
+			sserror(IKS_ERROR_CHAR_TO_X, NULL);
+			return (IKS_ERROR_CHAR_TO_X);
+		}
 
-	$3->data.coersionType = aux_coersion; //define tipo da coersão
-						
-        Data data;
-        data.nodeType = IKS_AST_ATRIBUICAO;
-        data.symEntry = NULL;
-        data.semanticType = $1->symbol.symType & MASK_SYMTYPE_TYPE;
-        comp_tree_t *attributionNode = treeCreate(data);
-        
-		Data data2;
-		data2.nodeType = IKS_AST_IDENTIFICADOR;
-		data2.symEntry = $1;
-        // Redundante ? data2.semanticType
-		comp_tree_t *id = treeCreate(data2);
-        
-        treeInsert(id, attributionNode);
-        treeInsert($3, attributionNode);
-        
-/*        printf("Attribution node @ %p: \n", attributionNode);
-        printf("---- leftside.name = %s, rightside.nodeType = %s \n",
-				attributionNode->left->data.symEntry->key,
-				attributionNode->left->right->data.symEntry->key);*/
-        
-        $$ = attributionNode; }
+		$3->data.coersionType = aux_coersion; //define tipo da coersão
+		
+		$$ = ast_criano_atrib($1, $3); }
 ;
 
 atribuicao-vetor: TK_IDENTIFICADOR lista-dimensoes-atr '=' expr { //TODO: adicionar suporte para atrib em vetor multidimens
@@ -570,499 +390,95 @@ lista-dimensoes-atr: '[' expr ']' lista-dimensoes-atr {
 
 expr: '(' expr ')' { $$ = $2; }
 	| termo { $$ = $1; } 
-    | expr TK_OC_LE expr {
-        Data data;
-        data.nodeType = IKS_AST_LOGICO_COMP_LE;
-        data.symEntry = NULL;
-	//Detecção de erros com string ou char
-	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType))== IKS_ERROR_STRING_TO_X)
-	{sserror(IKS_ERROR_STRING_TO_X, NULL);
-	return (IKS_ERROR_STRING_TO_X);
-	}
-	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
-	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
-	return (IKS_ERROR_CHAR_TO_X);
-	};
-	//
-        data.semanticType = eval_infer(
-				$1->data.semanticType, $3->data.semanticType,
-				&($1->data.semanticType), &($3->data.semanticType));
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($1, father);
-        treeInsert($3, father);
-        
-        $$ = father; }
-    | expr TK_OC_GE expr {
-        Data data;
-        data.nodeType = IKS_AST_LOGICO_COMP_GE;
-        data.symEntry = NULL;
-	//Detecção de erros com string ou char
-	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType))== IKS_ERROR_STRING_TO_X)
-	{sserror(IKS_ERROR_STRING_TO_X, NULL);
-	return (IKS_ERROR_STRING_TO_X);
-	}
-	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
-	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
-	return (IKS_ERROR_CHAR_TO_X);
-	};
-	//
-        data.semanticType = eval_infer(
-				$1->data.semanticType, $3->data.semanticType,
-				&($1->data.semanticType), &($3->data.semanticType));
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($1, father);
-        treeInsert($3, father);
-        
-        $$ = father; }
-    | expr TK_OC_EQ expr {
-        Data data;
-        data.nodeType = IKS_AST_LOGICO_COMP_IGUAL;
-        data.symEntry = NULL;
-	//Detecção de erros com string ou char
-	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType))== IKS_ERROR_STRING_TO_X)
-	{sserror(IKS_ERROR_STRING_TO_X, NULL);
-	return (IKS_ERROR_STRING_TO_X);
-	}
-	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
-	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
-	return (IKS_ERROR_CHAR_TO_X);
-	};
-	//
-        data.semanticType = eval_infer(
-				$1->data.semanticType, $3->data.semanticType,
-				&($1->data.semanticType), &($3->data.semanticType));
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($1, father);
-        treeInsert($3, father);
-        
-        $$ = father; }
-    | expr TK_OC_NE expr {
-        Data data;
-        data.nodeType = IKS_AST_LOGICO_COMP_DIF;
-        data.symEntry = NULL;
-	//Detecção de erros com string ou char
-	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
-	{sserror(IKS_ERROR_STRING_TO_X, NULL);
-	return (IKS_ERROR_STRING_TO_X);
-	}
-	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
-	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
-	return (IKS_ERROR_CHAR_TO_X);
-	};
-	//
-        data.semanticType = eval_infer(
-				$1->data.semanticType, $3->data.semanticType,
-				&($1->data.semanticType), &($3->data.semanticType));
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($1, father);
-        treeInsert($3, father);
-        
-        $$ = father; }
-    | expr '<' expr {
-        Data data;
-        data.nodeType = IKS_AST_LOGICO_COMP_L;
-        data.symEntry = NULL;
-	//Detecção de erros com string ou char
-	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
-	{sserror(IKS_ERROR_STRING_TO_X, NULL);
-	return (IKS_ERROR_STRING_TO_X);
-	}
-	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
-	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
-	return (IKS_ERROR_CHAR_TO_X);
-	};
-	//
-        data.semanticType = eval_infer(
-				$1->data.semanticType, $3->data.semanticType,
-				&($1->data.semanticType), &($3->data.semanticType));
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($1, father);
-        treeInsert($3, father);
-        
-        $$ = father; }
-    | expr '>' expr {
-        Data data;
-        data.nodeType = IKS_AST_LOGICO_COMP_G;
-        data.symEntry = NULL;
-	//Detecção de erros com string ou char
-	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
-	{sserror(IKS_ERROR_STRING_TO_X, NULL);
-	return (IKS_ERROR_STRING_TO_X);
-	}
-	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
-	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
-	return (IKS_ERROR_CHAR_TO_X);
-	};
-	//
-        data.semanticType = eval_infer(
-				$1->data.semanticType, $3->data.semanticType,
-				&($1->data.semanticType), &($3->data.semanticType));
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($1, father);
-        treeInsert($3, father);
-        
-        $$ = father; }
-        // | expr '=' expr { Eliminado a partir da etapa 3
-        //
-        //11}
-    | expr TK_OC_AND expr {
-        Data data;
-        data.nodeType = IKS_AST_LOGICO_E;
-        data.symEntry = NULL;
-	//Detecção de erros com string ou char
-	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
-	{sserror(IKS_ERROR_STRING_TO_X, NULL);
-	return (IKS_ERROR_STRING_TO_X);
-	}
-	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
-	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
-	return (IKS_ERROR_CHAR_TO_X);
-	};
-	//
-        data.semanticType = eval_infer(
-				$1->data.semanticType, $3->data.semanticType,
-				&($1->data.semanticType), &($3->data.semanticType));
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($1, father);
-        treeInsert($3, father);
-        
-        $$ = father; }
-    | expr TK_OC_OR expr {
-        Data data;
-        data.nodeType = IKS_AST_LOGICO_OU;
-        data.symEntry = NULL;
-	//Detecção de erros com string ou char
-	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
-	{sserror(IKS_ERROR_STRING_TO_X, NULL);
-	return (IKS_ERROR_STRING_TO_X);
-	}
-	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
-	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
-	return (IKS_ERROR_CHAR_TO_X);
-	};
-	//
-        data.semanticType = eval_infer(
-				$1->data.semanticType, $3->data.semanticType,
-				&($1->data.semanticType), &($3->data.semanticType));
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($1, father);
-        treeInsert($3, father);
-        
-        $$ = father; }
-    | expr '+' expr { 
-        Data data;
-        data.nodeType = IKS_AST_ARIM_SOMA;
-        data.symEntry = NULL;
-        
-    printf("reduzindo expr(tipo:%d) + expr(tipo:%d))\n", $1->data.semanticType, $3->data.semanticType);
-
-    //Detecção de erros com string ou char
-	printf ("antes de entrar \n%d\n",eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) );
-	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType) ) == IKS_ERROR_STRING_TO_X)
-	{
-		printf ("entrou1 \n");
-		sserror(IKS_ERROR_STRING_TO_X, NULL);
-		return (IKS_ERROR_STRING_TO_X);
-	}
-	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
-	{printf ("entrou2 \n");
-	sserror(IKS_ERROR_CHAR_TO_X, NULL);
-	return (IKS_ERROR_CHAR_TO_X);
-	};
-	//
-        data.semanticType = eval_infer(
-				$1->data.semanticType, $3->data.semanticType,
-				&($1->data.semanticType), &($3->data.semanticType));
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($1, father);
-        treeInsert($3, father);
-        
-        $$ = father; }
-    | expr '-' expr {
-        Data data;
-        data.nodeType = IKS_AST_ARIM_SUBTRACAO;
-        data.symEntry = NULL;
-	//Detecção de erros com string ou char
-	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
-	{sserror(IKS_ERROR_STRING_TO_X, NULL);
-	return (IKS_ERROR_STRING_TO_X);
-	}
-	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
-	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
-	return (IKS_ERROR_CHAR_TO_X);
-	};
-	//
-        data.semanticType = eval_infer(
-				$1->data.semanticType, $3->data.semanticType,
-				&($1->data.semanticType), &($3->data.semanticType));
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($1, father);
-        treeInsert($3, father);
-        
-        $$ = father; }
-    | expr '*' expr {
-        Data data;
-        data.nodeType = IKS_AST_ARIM_MULTIPLICACAO;
-        data.symEntry = NULL;
-	//Detecção de erros com string ou char
-	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
-	{sserror(IKS_ERROR_STRING_TO_X, NULL);
-	return (IKS_ERROR_STRING_TO_X);
-	}
-	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
-	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
-	return (IKS_ERROR_CHAR_TO_X);
-	};
-	//
-        data.semanticType = eval_infer(
-				$1->data.semanticType, $3->data.semanticType,
-				&($1->data.semanticType), &($3->data.semanticType));
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($1, father);
-        treeInsert($3, father); 
-        
-        $$ = father; }
-    | expr '/' expr {
-        Data data;
-        data.nodeType = IKS_AST_ARIM_DIVISAO;
-        data.symEntry = NULL;
-	//Detecção de erros com string ou char
-	if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_STRING_TO_X)
-	{sserror(IKS_ERROR_STRING_TO_X, NULL);
-	return (IKS_ERROR_STRING_TO_X);
-	}
-	else if (eval_infer($1->data.semanticType, $3->data.semanticType,&($1->data.semanticType), &($3->data.semanticType)) == IKS_ERROR_CHAR_TO_X)
-	{sserror(IKS_ERROR_CHAR_TO_X, NULL);
-	return (IKS_ERROR_CHAR_TO_X);
-	};
-	//
-        data.semanticType = eval_infer(
-				$1->data.semanticType, $3->data.semanticType,
-				&($1->data.semanticType), &($3->data.semanticType));
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($1, father);
-        treeInsert($3, father); 
-        
-        $$ = father; }
-    
-     | '!' termo {
-        Data data;
-        data.nodeType = IKS_AST_LOGICO_COMP_NEGACAO;
-        data.symEntry = NULL;
-        data.semanticType = $2->data.semanticType;
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($2, father);
-        
-        $$ = father; }
-
-	| '-' expr { 
-        Data data;
-        data.nodeType = IKS_AST_ARIM_INVERSAO;
-        data.symEntry = NULL;
-        data.semanticType = $2->data.semanticType;
-        comp_tree_t *father = treeCreate(data);
-        
-        treeInsert($2, father);
-        
-        
-        $$ = father; }    
+    | expr TK_OC_LE expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_cmpLE($1, $3); }
+    | expr TK_OC_GE expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_cmpGE($1, $3); }
+    | expr TK_OC_EQ expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_cmpEQ($1, $3); }
+    | expr TK_OC_NE expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_cmpNE($1, $3); }
+    | expr '<' expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_cmpL($1, $3); }
+    | expr '>' expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_cmpG($1, $3); }
+	| expr TK_OC_AND expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_and($1, $3); }
+	| expr TK_OC_OR expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_or($1,$3); }
+	| expr '+' expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_soma($1, $3); }
+	| expr '-' expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_sub($1, $3); }
+	| expr '*' expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_mult($1, $3); }
+	| expr '/' expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_div($1, $3); }
+	| '!' termo { ast_criano_neg($2); }
+	| '-' expr { ast_criano_inv($2);}    
 ;
 
 chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {
-			        
-				// Tests if variable has been defined.
-				if (!check_id_declr($1)) {
-					sserror(IKS_ERROR_UNDECLARED, $1);
-					return(IKS_ERROR_UNDECLARED);
-				}
-				
-				if (!check_id_isfunction($1)) {
-					sserror(IKS_ERROR_FUNCTION, $1);
-					return(IKS_ERROR_FUNCTION);
-				}
+				check_is_id_fun($1);
 				
 				if($3 != NULL){
-				  int err;
-				  if(err = check_paramlist($1->symbol.params, $3->data.symEntry->symbol.params)){
-				    sserror(err, $1);
-				    return(err);
-				  }
-				  // Libera DictItem criado temporariamente
-				  list_terminate($3->data.symEntry->symbol.params);
-				  free($3->data.symEntry); 
+					int err;
+					if(err = check_paramlist($1->symbol.params, $3->data.symEntry->symbol.params)){
+						sserror(err, $1);
+						return(err);
+					}
+					// Libera DictItem criado temporariamente
+					list_terminate($3->data.symEntry->symbol.params);
+					free($3->data.symEntry); 
 				}
 				else if($1->symbol.params != NULL){
-				  printf("\noi\n");
-				  sserror(IKS_ERROR_MISSING_ARGS, $1);
-				  return(IKS_ERROR_MISSING_ARGS);
+					printf("\noi\n");
+					sserror(IKS_ERROR_MISSING_ARGS, $1);
+					return(IKS_ERROR_MISSING_ARGS);
 				}
-							
-				Data data;
-				data.nodeType = IKS_AST_CHAMADA_DE_FUNCAO;
-				data.symEntry = NULL;
-				data.semanticType = $1->symbol.symType & MASK_SYMTYPE_TYPE;
-				comp_tree_t *father = treeCreate(data);
 				
-				Data data2;
-				data2.nodeType = IKS_AST_IDENTIFICADOR;
-				data2.symEntry = $1;
-				comp_tree_t *son = treeCreate(data2); 
-				
-				treeInsert(son, father);
-				treeInsert($3, father);
-				$$ = father; }
+				$$ = ast_criano_chamadafuncao($1, $3); }
 ;
 parametros-funcao-empty : parametros-declaracao-funcao { $$ = $1; }
     | { $$ = NULL; }
 ;
 
-parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR { ListNode* param = (ListNode*)malloc(sizeof(ListNode));
-							  param->data = $1;
-							  param->next = NULL;
-							  $$ = param; }
-    | tipo ':' TK_IDENTIFICADOR ',' parametros-declaracao-funcao { ListNode* param = (ListNode*)malloc(sizeof(ListNode));
-								   param->data = $1;
-								   param->next = $5;
-								   $$ = param; }
-;
-parametros-chamada-funcao: expr { DictItem *tempDictItem = (DictItem*)malloc(sizeof(DictItem)); //DictItem criado temporariamente para passar os parametros, será liberado na sequencia
-				  $1->data.symEntry = tempDictItem;
-				  ListNode* param = (ListNode*)malloc(sizeof(ListNode));
-				  param->data = $1->data.semanticType & MASK_SYMTYPE_TYPE;
-				  param->next = NULL;
-				  $1->data.symEntry->symbol.params = param;
-				  
-				  $$ = $1; }
-    | expr ',' parametros-chamada-funcao { DictItem *tempDictItem = (DictItem*)malloc(sizeof(DictItem)); //DictItem criado temporariamente para passar os parametros, será liberado na sequencia
-					   $1->data.symEntry = tempDictItem;
-					   ListNode* param = (ListNode*)malloc(sizeof(ListNode));
-					   param->data = $1->data.semanticType & MASK_SYMTYPE_TYPE;
-					   param->next = $3->data.symEntry->symbol.params;
-					   $1->data.symEntry->symbol.params = param;
-					   
-					   free($3->data.symEntry); // Libera tempDictItem criado pelo seu filho
-					   
-					   treeInsert($3, $1); // TODO verificar
-					   $$ = $1; }
-    | /* empty */ { $$ = NULL; }
+parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR { 
+							ListNode* param = (ListNode*)malloc(sizeof(ListNode));
+							param->data = $1;
+							param->next = NULL;
+							$$ = param; }
+    | tipo ':' TK_IDENTIFICADOR ',' parametros-declaracao-funcao { 
+							ListNode* param = (ListNode*)malloc(sizeof(ListNode));
+							param->data = $1;
+							param->next = $5;
+							$$ = param; }
 ;
 
-termo: TK_IDENTIFICADOR {
-		// Tests if variable has been defined.
-		if (!check_id_declr($1)) {
-			sserror(IKS_ERROR_UNDECLARED, $1);
-			return(IKS_ERROR_UNDECLARED);
-		}
-		if (!check_id_isvariable($1)) {
-			sserror(IKS_ERROR_VARIABLE, $1);
-			return(IKS_ERROR_VARIABLE);
-		}
-			
-		Data data2;
-		data2.nodeType = IKS_AST_IDENTIFICADOR;
-		data2.symEntry = $1;
-		data2.semanticType = $1->symbol.symType & MASK_SYMTYPE_TYPE;
-		comp_tree_t *daddy = treeCreate(data2); 
-		
-		$$ = daddy;
-	}
-    | TK_IDENTIFICADOR '[' expr ']' {
-		// Tests if variable has been defined.
-		if (!check_id_declr($1)) {
-			sserror(IKS_ERROR_UNDECLARED, $1);
-			return(IKS_ERROR_UNDECLARED);
-		}
-		if (!check_id_isvector($1)) {
-			sserror(IKS_ERROR_FUNCTION, $1);
-			return(IKS_ERROR_FUNCTION);
-		}
-		// Checks if expression is an integer (char)
-		if ($3->data.semanticType == SYMTYPE_CHAR) {
-			sserror(IKS_ERROR_CHAR_TO_X, NULL);
-			return(IKS_ERROR_CHAR_TO_X);
-		}
-		// Checks if expression is an integer (string)
-		if ($3->data.semanticType == SYMTYPE_STRING) {
-			sserror(IKS_ERROR_STRING_TO_X, NULL);
-			return(IKS_ERROR_STRING_TO_X);
-		}
-		// Checks if expression is an integer (string)
-		if ($3->data.semanticType != SYMTYPE_INT) {
-			sserror(IKS_ERROR_WRONG_TYPE, NULL); //TODO futuro: incluir cod de erro para indice nao inteiro.
-			return(IKS_ERROR_WRONG_TYPE);
-		}
-			
-		/* -- Creates vector node --*/
-		Data data;
-		data.nodeType = IKS_AST_VETOR_INDEXADO;
-		data.symEntry = $1;
-		data.semanticType = $1->symbol.symType & MASK_SYMTYPE_TYPE;
-		comp_tree_t *vader = treeCreate(data);
-		
-		Data data2;
-		data2.nodeType = IKS_AST_IDENTIFICADOR;
-		data2.semanticType = $1->symbol.symType & MASK_SYMTYPE_TYPE;
-		data2.symEntry = $1;
-		comp_tree_t *luke = treeCreate(data2);
-		
-		treeInsert(luke, vader);
-		treeInsert($3, vader);
-		
-		$$ = vader;
-    }
+parametros-chamada-funcao: expr { DictItem *tempDictItem = (DictItem*)malloc(sizeof(DictItem)); //DictItem criado temporariamente para passar os parametros, será liberado na sequencia
+					$1->data.symEntry = tempDictItem;
+					ListNode* param = (ListNode*)malloc(sizeof(ListNode));
+					param->data = $1->data.semanticType & MASK_SYMTYPE_TYPE;
+					param->next = NULL;
+					$1->data.symEntry->symbol.params = param;
+				  
+					$$ = $1; }
+    | expr ',' parametros-chamada-funcao { 
+					DictItem *tempDictItem = (DictItem*)malloc(sizeof(DictItem)); //DictItem criado temporariamente para passar os parametros, será liberado na sequencia
+					$1->data.symEntry = tempDictItem;
+					ListNode* param = (ListNode*)malloc(sizeof(ListNode));
+					param->data = $1->data.semanticType & MASK_SYMTYPE_TYPE;
+					param->next = $3->data.symEntry->symbol.params;
+					$1->data.symEntry->symbol.params = param;
+					   
+					free($3->data.symEntry); // Libera tempDictItem criado pelo seu filho
+					   
+					treeInsert($3, $1); // TODO verificar
+					$$ = $1; }
+    | { $$ = NULL; }
+;
+
+termo: TK_IDENTIFICADOR { check_is_id_var($1); $$ = ast_criano_identificador($1); }
+    | TK_IDENTIFICADOR '[' expr ']' { check_is_valid_indexed_vector($1, $3); $$ = ast_criano_vetor($1, $3); }
     | chamada-funcao 
-    | TK_LIT_INT { 	Data data;
-					data.nodeType = IKS_AST_LITERAL;
-					data.semanticType = SYMTYPE_INT;
-					data.symEntry = $1;
-					
-					$$ = treeCreate(data); }
-    | TK_LIT_FLOAT { Data data;
-					data.nodeType = IKS_AST_LITERAL;
-					data.semanticType = SYMTYPE_FLOAT;
-					data.symEntry = $1;
-					
-					$$ = treeCreate(data); }
-    | TK_LIT_FALSE { Data data;
-					data.nodeType = IKS_AST_LITERAL;
-					data.semanticType = SYMTYPE_BOOL;
-					data.symEntry = $1;
-					
-					$$ = treeCreate(data); }
-    | TK_LIT_TRUE { Data data;
-					data.nodeType = IKS_AST_LITERAL;
-					data.semanticType = SYMTYPE_BOOL;
-					data.symEntry = $1;
-					
-					$$ = treeCreate(data); }
-    | TK_LIT_CHAR { Data data;
-					data.nodeType = IKS_AST_LITERAL;
-					data.semanticType = SYMTYPE_CHAR;
-					data.symEntry = $1;
-					
-					$$ = treeCreate(data); }
-    | TK_LIT_STRING { Data data;
-					data.nodeType = IKS_AST_LITERAL;
-					data.semanticType = SYMTYPE_STRING;
-					data.symEntry = $1;
-					
-					$$ = treeCreate(data); }
+    | TK_LIT_INT { $$ = ast_criano_literal($1, SYMTYPE_INT); }
+    | TK_LIT_FLOAT { $$ = ast_criano_literal($1, SYMTYPE_FLOAT); }
+    | TK_LIT_FALSE { $$ = ast_criano_literal($1, SYMTYPE_BOOL); }
+    | TK_LIT_TRUE { $$ = ast_criano_literal($1, SYMTYPE_BOOL); }
+    | TK_LIT_CHAR { $$ = ast_criano_literal($1, SYMTYPE_CHAR); }
+    | TK_LIT_STRING { $$ = ast_criano_literal($1, SYMTYPE_STRING); }
 %%
 
-void declara_funcao(int tipo, DictItem *identifier) {
+void declara_funcao(int tipo, DictItem *identifier)
+{
 	// Tests if function is being redefined .
 	if (check_id_declr(identifier)) {
 		sserror(IKS_ERROR_DECLARED, identifier);
@@ -1070,9 +486,12 @@ void declara_funcao(int tipo, DictItem *identifier) {
 	}
 	currentFunction = identifier;
 	identifier->symbol.symType = tipo | SYMTYPE_FUN;
+	
+	dict_create(SYM_TABLE_INITSIZE);
 }
 
-void declara_vetor(int tipo, DictItem *identifier) {
+void declara_vetor(int tipo, DictItem *identifier)
+{
 	// Tests if function is being redefined .
 	if (check_id_declr(identifier)) {
 		sserror(IKS_ERROR_DECLARED, identifier);
@@ -1080,4 +499,15 @@ void declara_vetor(int tipo, DictItem *identifier) {
 	}
 	
 	identifier->symbol.symType = tipo | SYMTYPE_VEC;
+}
+
+void declara_varsimples(int tipo, DictItem *identifier)
+{
+	// Tests if function is being redefined .
+	if (check_id_declr(identifier)) {
+		sserror(IKS_ERROR_DECLARED, identifier);
+		exit(IKS_ERROR_DECLARED);
+	}
+
+	identifier->symbol.symType = tipo | SYMTYPE_VAR;
 }

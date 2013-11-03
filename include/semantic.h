@@ -37,4 +37,15 @@ int check_id_isvariable (DictItem *sym);
 int check_id_isvector (DictItem *sym);
 int check_paramlist (ListNode *paramsDecl, ListNode *paramsCall);
 
+void check_is_id_var(DictItem *var);
+void check_is_id_fun(DictItem *fun);
+void check_is_valid_indexed_vector(DictItem *vector, comp_tree_t *int_expr);
+
+/** Detecção de erros com string ou char */
+void check_coercaoimpossivel_char_string(comp_tree_t *expr1, comp_tree_t *expr2);
+
+void check_is_valid_input(comp_tree_t *expr);
+void check_is_valid_output(comp_tree_t *expr);
+
+
 #endif

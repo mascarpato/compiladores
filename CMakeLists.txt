@@ -11,6 +11,7 @@ ADD_EXECUTABLE(main
   src/comp_symbols.c
   src/comp_dict.c
   src/comp_tree.c
+  src/iks_ast.c
   src/comp_list.c
   src/comp_graph.c
   ${FLEX_scanner_OUTPUTS}

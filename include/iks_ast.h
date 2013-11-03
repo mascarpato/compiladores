@@ -3,6 +3,8 @@
 
   Este arquivo contém as constantes para os tipos dos nós da AST.
 */
+#include "comp_tree.h"
+
 #ifndef __IKS_AST_H
 #define __IKS_AST_H
 #define IKS_AST_PROGRAMA             0
@@ -35,3 +37,34 @@
 #define IKS_AST_CHAMADA_DE_FUNCAO   27
 
 #endif
+
+comp_tree_t *ast_encadeiano_funcao(comp_tree_t *root, comp_tree_t *father, comp_tree_t *child);
+comp_tree_t *ast_criano_funcao(DictItem *function_sym, comp_tree_t *commands);
+comp_tree_t *ast_criano_bloco(comp_tree_t *seq_comandos);
+comp_tree_t *ast_criano_ifthenelse(comp_tree_t *expr, comp_tree_t *com_tree, comp_tree_t *com_false);
+comp_tree_t *ast_criano_dowhile(comp_tree_t *com, comp_tree_t *expr);
+comp_tree_t *ast_criano_return(comp_tree_t *expr);
+comp_tree_t *ast_criano_entrada(comp_tree_t *expr);
+comp_tree_t *ast_criano_saida(comp_tree_t *saida);
+comp_tree_t *ast_criano_chamadafuncao(DictItem *identifier, comp_tree_t *args);
+comp_tree_t *ast_criano_identificador(DictItem *identifer);
+comp_tree_t *ast_criano_vetor(DictItem *identifier, comp_tree_t *exprnode);
+comp_tree_t *ast_criano_literal(DictItem *identifier, int symType);
+comp_tree_t *ast_criano_atrib(DictItem *identifier, comp_tree_t *expr);
+
+comp_tree_t *ast_criano_soma(comp_tree_t *expr1, comp_tree_t *expr2);
+comp_tree_t *ast_criano_sub(comp_tree_t *expr1, comp_tree_t *expr2);
+comp_tree_t *ast_criano_mult(comp_tree_t *expr1, comp_tree_t *expr2);
+comp_tree_t *ast_criano_div(comp_tree_t *expr1, comp_tree_t *expr2);
+comp_tree_t *ast_criano_and(comp_tree_t *expr1, comp_tree_t *expr2);
+comp_tree_t *ast_criano_or(comp_tree_t *expr1, comp_tree_t *expr2);
+
+comp_tree_t *ast_criano_neg(comp_tree_t *expr);
+comp_tree_t *ast_criano_inv(comp_tree_t *expr);
+
+comp_tree_t *ast_criano_cmpLE(comp_tree_t *expr1, comp_tree_t *expr2);
+comp_tree_t *ast_criano_cmpGE(comp_tree_t *expr1, comp_tree_t *expr2);
+comp_tree_t *ast_criano_cmpEQ(comp_tree_t *expr1, comp_tree_t *expr2);
+comp_tree_t *ast_criano_cmpNE(comp_tree_t *expr1, comp_tree_t *expr2);
+comp_tree_t *ast_criano_cmpL(comp_tree_t *expr1, comp_tree_t *expr2);
+comp_tree_t *ast_criano_cmpG(comp_tree_t *expr1, comp_tree_t *expr2);

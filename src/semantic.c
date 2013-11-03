@@ -102,3 +102,101 @@ int check_paramlist (ListNode *paramsDecl, ListNode *paramsCall) {
 
 	return err;
 }
+
+void check_is_id_var(DictItem *var)
+{
+	// Tests if variable has been defined.
+	if (!check_id_declr(var)) {
+		sserror(IKS_ERROR_UNDECLARED, var);
+		exit(IKS_ERROR_UNDECLARED);
+	}
+	
+	if (!check_id_isvariable(var)) {
+		sserror(IKS_ERROR_VARIABLE, var);
+		exit(IKS_ERROR_VARIABLE);
+	}
+}
+
+void check_is_id_fun(DictItem *fun)
+{
+	// Tests if variable has been defined.
+	if (!check_id_declr(fun)) {
+		sserror(IKS_ERROR_UNDECLARED, fun);
+		exit(IKS_ERROR_UNDECLARED);
+	}
+	// Tests if was defined as function
+	if (!check_id_isfunction(fun)) {
+		sserror(IKS_ERROR_FUNCTION, fun);
+		exit(IKS_ERROR_FUNCTION);
+	}
+}
+
+void check_is_valid_indexed_vector(DictItem *vector, comp_tree_t *int_expr)
+{
+	// Tests if variable has been defined.
+	if (!check_id_declr(vector)) {
+		sserror(IKS_ERROR_UNDECLARED, vector);
+		exit(IKS_ERROR_UNDECLARED);
+	}
+	if (!check_id_isvector(vector)) {
+		sserror(IKS_ERROR_FUNCTION, vector);
+		exit(IKS_ERROR_FUNCTION);
+	}
+	// Checks if expression is an integer (char)
+	if (int_expr->data.semanticType == SYMTYPE_CHAR) {
+		sserror(IKS_ERROR_CHAR_TO_X, NULL);
+		exit(IKS_ERROR_CHAR_TO_X);
+	}
+	// Checks if expression is an integer (string)
+	if (int_expr->data.semanticType == SYMTYPE_STRING) {
+		sserror(IKS_ERROR_STRING_TO_X, NULL);
+		exit(IKS_ERROR_STRING_TO_X);
+	}
+	// Checks if expression is an integer (string)
+	if (int_expr->data.semanticType != SYMTYPE_INT) {
+		sserror(IKS_ERROR_WRONG_TYPE, NULL); //TODO futuro: incluir cod de erro para indice nao inteiro.
+		exit(IKS_ERROR_WRONG_TYPE);
+	}	
+}
+
+/** Detecção de erros com string ou char */
+void check_coercaoimpossivel_char_string(comp_tree_t *expr1, comp_tree_t *expr2)
+{
+	if (eval_infer(expr1->data.semanticType, expr2->data.semanticType,&(expr1->data.semanticType), &(expr2->data.semanticType)) == IKS_ERROR_STRING_TO_X) {
+		sserror(IKS_ERROR_STRING_TO_X, NULL);
+		exit(IKS_ERROR_STRING_TO_X);
+	}
+	else if (eval_infer(expr1->data.semanticType, expr2->data.semanticType,&(expr1->data.semanticType), &(expr2->data.semanticType)) == IKS_ERROR_CHAR_TO_X) {
+		sserror(IKS_ERROR_CHAR_TO_X, NULL);
+		exit(IKS_ERROR_CHAR_TO_X);
+	}
+}
+void check_is_valid_input(comp_tree_t *expr)
+{
+	// Tests if expr is something valid (i.e. is declared in symbol table)
+	if (expr->data.symEntry == NULL) {
+		sserror(IKS_ERROR_WRONG_PAR_INPUT, NULL);
+		exit(IKS_ERROR_WRONG_PAR_INPUT);
+	}
+	// Tests if identifier is a variable or vector
+	if (!check_id_isvariable(expr->data.symEntry)) {
+		sserror(IKS_ERROR_WRONG_PAR_INPUT, expr->data.symEntry);
+		exit(IKS_ERROR_WRONG_PAR_INPUT);
+	}
+	if (!check_id_isvector(expr->data.symEntry)) {
+		sserror(IKS_ERROR_WRONG_PAR_INPUT, expr->data.symEntry);
+		exit(IKS_ERROR_WRONG_PAR_INPUT);
+	}			
+	// Tests if variable has been defined (typed)
+	if (!check_id_declr(expr->data.symEntry)) {
+		sserror(IKS_ERROR_UNDECLARED, expr->data.symEntry);
+		exit(IKS_ERROR_UNDECLARED);
+	}
+}
+void check_is_valid_output(comp_tree_t *expr)
+{
+	if (expr->data.semanticType == SYMTYPE_CHAR || expr->data.semanticType == SYMTYPE_BOOL) {
+		sserror(IKS_ERROR_WRONG_PAR_OUTPUT, NULL);
+		exit(IKS_ERROR_WRONG_PAR_OUTPUT);
+	}
+}
