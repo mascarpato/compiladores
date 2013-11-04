@@ -33,6 +33,29 @@ TAC* geraCod_noIdent(comp_tree_t *node)
 	return tac1;	
 }
 
+TAC *geraCod_noAnd(comp_tree_t *node)
+{
+	TAC *tac1 = malloc(sizeof(TAC));
+	tac1->type = TAC_LOADI;
+	tac1->res = &node->data.local;
+	tac1->op1 = malloc(sizeof(int));
+	*tac1->op1 = 0;
+	
+	TAC *tac2 = malloc(sizeof(TAC));
+	tac1->type = TAC_CMP;
+	tac1->res = &node->data.local;
+	tac1->op1 = malloc(sizeof(int));
+	*tac1->op1 = 0;
+	
+	tac1->prev = NULL;
+	
+}
+
+B -> E1 and E2
+
+
+
+
 TAC* generateCode(comp_tree_t *node)
 {
   // TODO 
@@ -61,7 +84,9 @@ TAC* generateCode(comp_tree_t *node)
 		case IKS_AST_ARIM_MULTIPLICACAO:
 		case IKS_AST_ARIM_DIVISAO:
 		case IKS_AST_ARIM_INVERSAO:
+// 			node->data.code = geraCod_noInversao(node); break;
 		case IKS_AST_LOGICO_E:
+			node->data.code = geraCod_noAnd(node); break;
 		case IKS_AST_LOGICO_OU:
 		case IKS_AST_LOGICO_COMP_DIF:
 		case IKS_AST_LOGICO_COMP_IGUAL:

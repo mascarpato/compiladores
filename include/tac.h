@@ -52,6 +52,7 @@
 
 // Other TAC types
 #define TAC_SYMBOL 256
+#define TAC_LABEL 257
 //#define TAC_BLABLABLA 257
 
 // Doubly linked list
