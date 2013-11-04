@@ -14,7 +14,7 @@ TAC* create_tac (int type, DictItem *res, DictItem *op1, DictItem *op2)
 	return tac;
 }
 
-TAC* join_tac (TAC *l1, TAC *l2)
+TAC* join_tac (TAC *l1, TAC *l2) 
 {
 
 	TAC* tac = NULL;
@@ -32,6 +32,28 @@ TAC* join_tac (TAC *l1, TAC *l2)
 	l2->prev = tac;
 
 	return l1;
+}
+
+TAC* revert_tac (TAC *list)
+{
+	TAC* aux = list;
+	TAC* temp = NULL;
+
+	if (list == NULL)
+		return NULL;
+	
+	while (aux != NULL)
+	{
+		temp = aux->prev;
+		aux->prev = aux->next;
+		aux->next = temp;
+		aux = aux->prev;
+	}
+	
+	list = aux->prev;
+
+	return list;	
+	
 }	  
 	
 

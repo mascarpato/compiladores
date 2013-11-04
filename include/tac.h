@@ -62,5 +62,4 @@ typedef struct tacstruct
 //TAC operations
 TAC* create_tac (int type, DictItem *res, DictItem *op1, DictItem *op2);
 TAC* join_tac (TAC *l1, TAC *l2);
-
-
+TAC* revert_tac (TAC *list);
