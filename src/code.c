@@ -2,33 +2,37 @@
 
 TAC* geraCod_noLiteral(comp_tree_t *node)
 {
-	TAC *tac = malloc(sizeof(TAC));
+	TAC *tac; /* = malloc(sizeof(TAC));
 	
 	tac->type = TAC_LOADI;
 	tac->res = &node->data.local;
 	tac->op1 = &node->data.symEntry->symbol.value;
 	tac->prev = NULL;
-	tac->next = NULL;
+	tac->next = NULL;*/
+	tac = create_tac (TAC_LOADI, &node->data.local, &node->data.symEntry->symbol.value, NULL);
 	
 	return tac;
 }
 
 TAC* geraCod_noIdent(comp_tree_t *node)
 {
-	TAC *tac1 = malloc(sizeof(TAC));
+	TAC *tac1; /* = malloc(sizeof(TAC));
 	tac1->type = TAC_LOADI;
 	tac1->res = &node->data.local;
-	tac1->op1 = &node->data.symEntry->symbol.symAddr;
+	tac1->op1 = &node->data.symEntry->symbol.symAddr;*/
+	tac1 = create_tac (TAC_LOADI, &node->data.local, &node->data.symEntry->symbol.symAddr, NULL);
 	
-	TAC *tac2 = malloc(sizeof(TAC));
+	TAC *tac2; /* = malloc(sizeof(TAC));
 	tac2->type = TAC_LOAD;
 	tac2->res = node->data.local;
-	tac2->op1 = &node->data.local;
-	
-	tac1->prev = NULL;
+	tac2->op1 = &node->data.local;*/
+	tac2 = create_tac (TAC_LOAD, node->data.local, &node->data.local, NULL);
+	 
+	/*tac1->prev = NULL;
 	tac1->next = tac2;
 	tac2->prev = tac1;
-	tac2->next = NULL;
+	tac2->next = NULL;*/
+	tac1 = join_tac (tac1, tac2);
 	
 	return tac1;	
 }
