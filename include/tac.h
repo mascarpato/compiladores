@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include "comp_dict.h"
 
+#ifndef COMP_TAC_H
+#define COMP_TAC_H
+
 //Instruction opcodes
 #define TAC_NOP 0
 #define TAC_ADD 1
@@ -55,7 +58,7 @@
 typedef struct tacstruct
 {
     int type;
-    DictItem *res, *op1, *op2;
+    void *res, *op1, *op2;
     struct tacstruct *prev, *next;
 } TAC;
 
@@ -63,4 +66,6 @@ typedef struct tacstruct
 TAC* create_tac (int type, DictItem *res, DictItem *op1, DictItem *op2);
 TAC* join_tac (TAC *l1, TAC *l2);
 
+char *geraTemp();
 
+#endif

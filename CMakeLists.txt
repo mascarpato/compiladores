@@ -10,10 +10,11 @@ INCLUDE_DIRECTORIES(${compilador_SOURCE_DIR}/src/)
 ADD_EXECUTABLE(main
   src/comp_symbols.c
   src/comp_dict.c
-  src/comp_tree.c
   src/iks_ast.c
+  src/comp_tree.c
   src/comp_list.c
   src/comp_graph.c
+  src/tac.c
   ${FLEX_scanner_OUTPUTS}
   ${BISON_parser_OUTPUTS}
   src/main.c
