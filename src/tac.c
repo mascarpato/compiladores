@@ -1,11 +1,11 @@
-#include "tac."
+#include "tac.h"
 
 TAC* create_tac (int type, DictItem *res, DictItem *op1, DictItem *op2)
 {
 	TAC *tac = NULL;
 	tac = (TAC*)malloc(sizeof(TAC));
 	tac->type = type;
-	tac->target = res;
+	tac->res = res;
 	tac->op1 = op1;	
 	tac->op2 = op2;
 	tac->prev = NULL;

@@ -19,6 +19,8 @@ ADD_EXECUTABLE(main
   src/main.c
   src/gv.c
   src/semantic.c
+  src/tac.c
+  src/code.c
 )
 TARGET_LINK_LIBRARIES(main ${FLEX_LIBRARIES})
 

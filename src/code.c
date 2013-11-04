@@ -13,7 +13,7 @@ TAC* generateCode(comp_tree_t *node)
   TAC* brothers = generateCode(node->right);
 
   // TODO
-  switch(node->data.type)
+  switch(node->data.nodeType)
   {
     case TAC_ADD: // return other_function(...);
     break;
