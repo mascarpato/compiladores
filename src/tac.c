@@ -1,6 +1,19 @@
 #include "tac.h"
 
+
 int regCnt = 0;
+
+TAC* create_tac (int type, DictItem *res, DictItem *op1, DictItem *op2)
+{
+	TAC *tac = NULL;
+	tac = (TAC*)malloc(sizeof(TAC));
+	tac->type = type;
+	tac->res = res;
+	tac->op1 = op1;	
+	tac->op2 = op2;
+	tac->prev = NULL;
+	tac->next = NULL;
+}
 
 // TAC* create_tac (int type, void *res, void *op1, void *op2)
 // {
@@ -16,7 +29,7 @@ int regCnt = 0;
 // 	return tac;
 // }
 
-TAC* join_tac (TAC *l1, TAC *l2)
+TAC* join_tac (TAC *l1, TAC *l2) 
 {
 
 	TAC* tac = NULL;
@@ -35,6 +48,28 @@ TAC* join_tac (TAC *l1, TAC *l2)
 
 	return l1;
 }
+
+TAC* revert_tac (TAC *list)
+{
+	TAC* aux = list;
+	TAC* temp = NULL;
+
+	if (list == NULL)
+		return NULL;
+	
+	while (aux != NULL)
+	{
+		temp = aux->prev;
+		aux->prev = aux->next;
+		aux->next = temp;
+		aux = aux->prev;
+	}
+	
+	list = aux->prev;
+
+	return list;	
+	
+}	  
 	
 char *geraTemp() {
 	char *regName = malloc(sizeof(char) * 7);

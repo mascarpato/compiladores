@@ -68,6 +68,7 @@ typedef union SymValue_un {
 typedef struct Symbol_t_str {
 	char *name; //! Symbol name
 	int symType; //! Symbol type. Possible types are found above.
+	int symAddr; //! Relative symbol address
 	SymValue_t value;
 	
 	ListNode *params; // Parameters list (used if it's a function)
@@ -82,6 +83,7 @@ typedef struct Symbol_t_str {
  * 
  * @return type to be inferred.*/
 int eval_infer(int type1, int type2, int *newType1, int *newType2);
+
 int eval_atrib(int type1, int type2, int *newType2);
 
 #endif

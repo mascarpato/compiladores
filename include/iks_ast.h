@@ -7,6 +7,7 @@
 
 #ifndef __IKS_AST_H
 #define __IKS_AST_H
+
 #define IKS_AST_PROGRAMA             0
 #define IKS_AST_FUNCAO               1
 #define IKS_AST_IF_ELSE              2
@@ -35,7 +36,6 @@
 #define IKS_AST_LOGICO_COMP_NEGACAO 25 //TODO !
 #define IKS_AST_VETOR_INDEXADO      26 // para var[exp] quando o índice exp é acessado no vetor var
 #define IKS_AST_CHAMADA_DE_FUNCAO   27
-
 #endif
 
 comp_tree_t *ast_encadeiano_funcao(comp_tree_t *root, comp_tree_t *father, comp_tree_t *child);

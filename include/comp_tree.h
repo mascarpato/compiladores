@@ -14,6 +14,7 @@
  */
 #include "comp_symbols.h"
 #include "comp_dict.h"
+#include "tac.h"
 
 #ifndef COMP_TREE_H
 #define COMP_TREE_H
@@ -27,6 +28,10 @@ typedef struct data_t {
 	int nodeType;
 	int semanticType;
 	int coersionType;
+	
+	char* local;
+	TAC *code;
+	
 	DictItem *symEntry;
 } Data;
 

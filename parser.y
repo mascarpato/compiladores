@@ -5,6 +5,7 @@
 #include "semantic.h"
 #include "comp_dict.h"
 #include "comp_list.h"
+#include "tac.h"
 
 #define YYERROR_VERBOSE
 
@@ -22,7 +23,14 @@ void declara_funcao(int tipo, DictItem *identifer);
 	/* Acao semantica na declaracao de vetor */
 void declara_vetor(int tipo, DictItem *identifier);
 
-void declara_varsimples(int tipo, DictItem *identifier);
+void declara_varglobal(int tipo, DictItem *identifier);
+
+	/** Usado para alocar espaco para as variaveis declaradas globalmente */
+int globalVarAddrCnt = 0;
+	/** Usado para alocar espaco para as variaveis declaradas localmente */
+int localVarAddrCnt = 0;
+	/* Marca uso do escopo local ou global durante execucao do parser. */
+	/*short usingLocalScope = 0;*/
 
 %}
 
@@ -145,7 +153,7 @@ declaracao-varglobal: declaracao-var-simples
     | declaracao-vetor
 ;
 
-declaracao-var-simples: tipo ':' TK_IDENTIFICADOR { declara_varsimples($1, $3); }
+declaracao-var-simples: tipo ':' TK_IDENTIFICADOR { declara_varglobal($1, $3); }
 ;
 
 //modificacoes instaveis
@@ -260,7 +268,7 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 			return(IKS_ERROR_FUNCTION);
 		}
 
-		//operações de coersão	
+		//operações de coersão
 		int aux_coersion;
 		//printf("tipo 1: %d tipo2: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
 		
@@ -443,7 +451,7 @@ parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR {
 							$$ = param; }
 ;
 
-parametros-chamada-funcao: expr { DictItem *tempDictItem = (DictItem*)malloc(sizeof(DictItem)); //DictItem criado temporariamente para passar os parametros, será liberado na sequencia
+parametros-chamada-funcao: expr { DictItem *tempDictItem = (DictItem*) malloc(sizeof(DictItem)); //DictItem criado temporariamente para passar os parametros, será liberado na sequencia
 					$1->data.symEntry = tempDictItem;
 					ListNode* param = (ListNode*)malloc(sizeof(ListNode));
 					param->data = $1->data.semanticType & MASK_SYMTYPE_TYPE;
@@ -501,7 +509,7 @@ void declara_vetor(int tipo, DictItem *identifier)
 	identifier->symbol.symType = tipo | SYMTYPE_VEC;
 }
 
-void declara_varsimples(int tipo, DictItem *identifier)
+void declara_varglobal(int tipo, DictItem *identifier)
 {
 	// Tests if function is being redefined .
 	if (check_id_declr(identifier)) {
@@ -510,4 +518,24 @@ void declara_varsimples(int tipo, DictItem *identifier)
 	}
 
 	identifier->symbol.symType = tipo | SYMTYPE_VAR;
+	
+	int *varAddr;
+/*	if (usingLocalScope)
+		varAddr = &localVarAddrCnt;*/
+/* 	else */
+		varAddr = &globalVarAddrCnt;
+	
+	// Evaluates var address and increments, to hold current variable being defined.
+/*	switch(tipo) {
+		case SYMTYPE_INT:
+			identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_int); break;
+		case SYMTYPE_FLOAT:
+			identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_float); break;
+		case SYMTYPE_CHAR:
+			identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_char); break;
+		case SYMTYPE_STRING:
+			identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_char)*strlen((char*) identifier->symbol.value.value_string); break;
+		case SYMTYPE_BOOL:
+			identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_boolean); break;
+	}*/
 }
