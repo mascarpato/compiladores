@@ -3,7 +3,7 @@
 
 int regCnt = 0;
 
-TAC* create_tac (int type, DictItem *res, DictItem *op1, DictItem *op2)
+TAC* create_tac (int type, void *res, void *op1, void *op2)
 {
 	TAC *tac = NULL;
 	tac = (TAC*)malloc(sizeof(TAC));
@@ -13,21 +13,10 @@ TAC* create_tac (int type, DictItem *res, DictItem *op1, DictItem *op2)
 	tac->op2 = op2;
 	tac->prev = NULL;
 	tac->next = NULL;
+
+	return tac;
 }
 
-// TAC* create_tac (int type, void *res, void *op1, void *op2)
-// {
-// 	TAC *tac = NULL;
-// 	tac = (TAC*)malloc(sizeof(TAC));
-// 	tac->type = type;
-// 	tac->target = res;
-// 	tac->op1 = op1;	
-// 	tac->op2 = op2;
-// 	tac->prev = NULL;
-// 	tac->next = NULL;
-// 
-// 	return tac;
-// }
 
 TAC* join_tac (TAC *l1, TAC *l2) 
 {
