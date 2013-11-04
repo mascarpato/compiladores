@@ -1,5 +1,7 @@
 #include "code.h"
 
+int zero = 0;
+
 TAC* geraCod_noLiteral(comp_tree_t *node)
 {
 	TAC *tac; /* = malloc(sizeof(TAC));
@@ -9,7 +11,7 @@ TAC* geraCod_noLiteral(comp_tree_t *node)
 	tac->op1 = &node->data.symEntry->symbol.value;
 	tac->prev = NULL;
 	tac->next = NULL;*/
-	tac = create_tac (TAC_LOADI, &node->data.local, &node->data.symEntry->symbol.value, NULL);
+	tac = create_tac(TAC_LOADI, &node->data.local, &node->data.symEntry->symbol.value, NULL);
 	
 	return tac;
 }
@@ -39,24 +41,28 @@ TAC* geraCod_noIdent(comp_tree_t *node)
 
 TAC *geraCod_noAnd(comp_tree_t *node)
 {
-	TAC *tac1 = malloc(sizeof(TAC));
-	tac1->type = TAC_LOADI;
-	tac1->res = &node->data.local;
-	tac1->op1 = malloc(sizeof(int));
-	*tac1->op1 = 0;
+	char* regZero = geraTemp();
+	char* rotContinua = geraRot();
+	char* rotFim = geraRot();
 	
-	TAC *tac2 = malloc(sizeof(TAC));
-	tac1->type = TAC_CMP;
-	tac1->res = &node->data.local;
-	tac1->op1 = malloc(sizeof(int));
-	*tac1->op1 = 0;
+	comp_tree_t *expr1 = node->left;
+	comp_tree_t *expr2 = node->left->right;
 	
-	tac1->prev = NULL;
+	TAC *tac1 = create_tac(TAC_LOADI, regZero, &zero, NULL);
+	TAC *tac2 = create_tac(TAC_CMP_EQ, &node->data.local, &expr1->data.local, regZero);
+	TAC *tac3 = create_tac(TAC_CBR, &node->data.local, rotFim, rotContinua);
+	TAC *tac4 = create_tac(TAC_LABEL, rotContinua, NULL, NULL);
+	TAC *tac5 = create_tac(TAC_CMP_EQ. &node->data.local, &expr2->data.local, regZero);
+	TAC *tac6 = create_tac(TAC_LABEL, rotFim, NULL, NULL);
 	
+	tac5 = join_tac(tac5, tac6);
+	tac4 = join_tac(tac4, tac5);
+	tac3 = join_tac(tac3, tac4);
+	tac2 = join_tac(tac2, tac3);
+	tac1 = join_tac(tac1, tac2);
+	
+	return tac1;
 }
-
-B -> E1 and E2
-
 
 
 
