@@ -1,6 +1,7 @@
 #include "code.h"
 
 int zero = 0;
+int one = 1;
 
 TAC* geraCod_noLiteral(comp_tree_t *node)
 {
@@ -52,7 +53,7 @@ TAC *geraCod_noAnd(comp_tree_t *node)
 	TAC *tac2 = create_tac(TAC_CMP_EQ, &node->data.local, &expr1->data.local, regZero);
 	TAC *tac3 = create_tac(TAC_CBR, &node->data.local, rotFim, rotContinua);
 	TAC *tac4 = create_tac(TAC_LABEL, rotContinua, NULL, NULL);
-	TAC *tac5 = create_tac(TAC_CMP_EQ. &node->data.local, &expr2->data.local, regZero);
+	TAC *tac5 = create_tac(TAC_CMP_EQ, &node->data.local, &expr2->data.local, regZero);
 	TAC *tac6 = create_tac(TAC_LABEL, rotFim, NULL, NULL);
 	
 	tac5 = join_tac(tac5, tac6);
@@ -62,6 +63,36 @@ TAC *geraCod_noAnd(comp_tree_t *node)
 	tac1 = join_tac(tac1, tac2);
 	
 	return tac1;
+}
+
+TAC *geraCod_noOr(comp_tree_t *node)
+{
+	char* regOne = geraTemp();
+	char* rotContinua = geraRot();
+	char* rotFim = geraRot();
+	
+	comp_tree_t *expr1 = node->left;
+	comp_tree_t *expr2 = node->left->right;
+	
+	TAC *tac1 = create_tac(TAC_LOADI, regOne, &one, NULL);
+	TAC *tac2 = create_tac(TAC_CMP_EQ, &node->data.local, &expr1->data.local, regOne);
+	TAC *tac3 = create_tac(TAC_CBR, &node->data.local, rotFim, rotContinua);
+	TAC *tac4 = create_tac(TAC_LABEL, rotContinua, NULL, NULL);
+	TAC *tac5 = create_tac(TAC_CMP_EQ, &node->data.local, &expr2->data.local, regOne);
+	TAC *tac6 = create_tac(TAC_LABEL, rotFim, NULL, NULL);
+	
+	tac5 = join_tac(tac5, tac6);
+	tac4 = join_tac(tac4, tac5);
+	tac3 = join_tac(tac3, tac4);
+	tac2 = join_tac(tac2, tac3);
+	tac1 = join_tac(tac1, tac2);
+	
+	return tac1;
+}
+
+TAC *geraCod_noIfThenElse(comp_tree_t *node)
+{
+	
 }
 
 
@@ -78,6 +109,7 @@ TAC* generateCode(comp_tree_t *node)
 		case IKS_AST_PROGRAMA:
 		case IKS_AST_FUNCAO:
 		case IKS_AST_IF_ELSE:
+			//node->data.code = geraCod_noIfThenElse(node); break;
 		case IKS_AST_DO_WHILE:
 		case IKS_AST_WHILE_DO:
 		case IKS_AST_INPUT:
@@ -98,6 +130,7 @@ TAC* generateCode(comp_tree_t *node)
 		case IKS_AST_LOGICO_E:
 			node->data.code = geraCod_noAnd(node); break;
 		case IKS_AST_LOGICO_OU:
+			node->data.code = geraCod_noOr(node); break;
 		case IKS_AST_LOGICO_COMP_DIF:
 		case IKS_AST_LOGICO_COMP_IGUAL:
 		case IKS_AST_LOGICO_COMP_LE:

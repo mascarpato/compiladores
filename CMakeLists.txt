@@ -15,6 +15,7 @@ ADD_EXECUTABLE(main
   src/comp_list.c
   src/comp_graph.c
   src/tac.c
+  src/code.c
   ${FLEX_scanner_OUTPUTS}
   ${BISON_parser_OUTPUTS}
   src/main.c

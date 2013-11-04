@@ -1,7 +1,7 @@
 #include "tac.h"
 
-
 int regCnt = 0;
+int rotCnt = 0;
 
 TAC* create_tac (int type, void *res, void *op1, void *op2)
 {
@@ -62,8 +62,14 @@ TAC* revert_tac (TAC *list)
 	
 char *geraTemp() {
 	char *regName = malloc(sizeof(char) * 7);
-	regName[0] = 'r';
-	sprintf(regName+1, "r%d", regCnt++);
+	sprintf(regName, "r%d", regCnt++);
 	
 	return regName;
+}
+
+char *geraRot() {
+	char *rotName = malloc(sizeof(char) * 7);
+	sprintf(rotName, "L%d", regCnt++);
+	
+	return rotName;
 }

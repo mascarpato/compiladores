@@ -69,5 +69,6 @@ TAC* join_tac (TAC *l1, TAC *l2);
 TAC* revert_tac (TAC *list);
 
 char *geraTemp();
+char *geraRot();
 
 #endif
