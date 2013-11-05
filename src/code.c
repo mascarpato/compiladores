@@ -95,6 +95,25 @@ TAC *geraCod_noIfThenElse(comp_tree_t *node)
 	
 }
 
+TAC* geraCod_aritOpt(comp_tree_t *node, int TAC_type)
+{
+	
+	char* regOne = geraTemp();
+	char* regTwo = geraTemp();
+	char* regThree = geraTemp();
+		
+	regOne = node->left->data.local
+	regTwo = node->left->right->data.local
+
+	TAC *tac = create_tac(TAC_type, regThree, regOne, regTwo);
+	
+	tac2 = join_tac (tac2, tac3);
+	tac1 = join_tac (tac1, tac2);
+	
+	return tac;
+
+}
+
 
 
 TAC* generateCode(comp_tree_t *node)
@@ -122,9 +141,13 @@ TAC* generateCode(comp_tree_t *node)
 		case IKS_AST_LITERAL:
 			node->data.code = geraCod_noLiteral(node); break;
 		case IKS_AST_ARIM_SOMA:
+			node->data.code = geraCod_aritOpt(node, TAC_ADD); break;
 		case IKS_AST_ARIM_SUBTRACAO:
+			node->data.code = geraCod_aritOpt(node, TAC_SUB); break;
 		case IKS_AST_ARIM_MULTIPLICACAO:
+			node->data.code = geraCod_aritOpt(node, TAC_MUL); break;
 		case IKS_AST_ARIM_DIVISAO:
+			node->data.code = geraCod_aritOpt(node, TAC_DIV); break;
 		case IKS_AST_ARIM_INVERSAO:
 // 			node->data.code = geraCod_noInversao(node); break;
 		case IKS_AST_LOGICO_E:

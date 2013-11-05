@@ -67,6 +67,7 @@ typedef struct tacstruct
 TAC* create_tac (int type, void *res, void *op1, void *op2);
 TAC* join_tac (TAC *l1, TAC *l2);
 TAC* revert_tac (TAC *list);
+void print_tac (TAC *list);
 
 char *geraTemp();
 char *geraRot();

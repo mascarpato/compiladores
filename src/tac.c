@@ -58,6 +58,24 @@ TAC* revert_tac (TAC *list)
 
 	return list;	
 	
+}
+
+void print_tac (TAC *list)
+{
+	TAC* aux = list;
+
+	if (list == NULL)
+		return NULL;
+
+	printf ("\nTAC LIST: ");		
+	
+	while (aux != NULL)
+	{
+		printf ("%d - ",aux->type); 
+	}
+	printf ("\n");
+	
+	
 }	  
 	
 char *geraTemp() {
