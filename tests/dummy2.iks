@@ -1,0 +1,12 @@
+int:x;
+int:y;
+int:z;
+
+int:main() {
+	x = 5;
+	if (x <= 11) then
+		x = 10;
+	//return x
+	y = 100;
+	z = 1000;
+}

@@ -31,7 +31,7 @@ int globalVarAddrCnt = 0;
 int localVarAddrCnt = 0;
 	/* Marca uso do escopo local ou global durante execucao do parser. */
 	/*short usingLocalScope = 0;*/
-
+	
 %}
 
 %union {
@@ -114,7 +114,7 @@ int localVarAddrCnt = 0;
 
 %%
 /* Regras (e acoes) da gramatica da Linguagem K */
-programa: s //{ generateCode($1); }
+programa: s { generateCode(ast); }
 ;
 
 s: s declaracao-varglobal ';'  { $$ = NULL; }

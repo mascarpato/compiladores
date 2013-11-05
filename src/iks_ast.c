@@ -44,6 +44,7 @@ comp_tree_t *ast_criano_ifthenelse(comp_tree_t *expr, comp_tree_t *com_true, com
 	Data data;
 	data.nodeType = IKS_AST_IF_ELSE;
 	data.symEntry = NULL;
+	data.local = geraTemp();
 	comp_tree_t *father = treeCreate(data);
 				
 	treeInsert(expr, father);
@@ -131,6 +132,7 @@ comp_tree_t *ast_criano_identificador(DictItem *identifer)
 	Data data;
 	data.nodeType = IKS_AST_IDENTIFICADOR;
 	data.symEntry = identifer;
+	data.local = geraTemp();
 	data.semanticType = identifer->symbol.symType & MASK_SYMTYPE_TYPE;
 	comp_tree_t *daddy = treeCreate(data);
 	
@@ -162,6 +164,7 @@ comp_tree_t *ast_criano_literal(DictItem *identifier, int symType)
 	Data data;
 	data.nodeType = IKS_AST_LITERAL;
 	data.semanticType = symType;
+	data.local = geraTemp();
 	data.symEntry = identifier;
 	
 	return treeCreate(data);
@@ -172,6 +175,7 @@ comp_tree_t *ast_criano_atrib(DictItem *identifier, comp_tree_t *expr)
 	Data data;
 	data.nodeType = IKS_AST_ATRIBUICAO;
 	data.symEntry = NULL;
+	data.local = geraTemp();
 	data.semanticType = identifier->symbol.symType & MASK_SYMTYPE_TYPE;
 	comp_tree_t *attributionNode = treeCreate(data);
 	
@@ -271,6 +275,7 @@ comp_tree_t *ast_criano_cmp(comp_tree_t *expr1, comp_tree_t *expr2, int nodeType
 {
 	Data data;
 	data.nodeType = nodeType;
+	data.local = geraTemp();
 	data.symEntry = NULL;
 	
 	data.semanticType = eval_infer(
