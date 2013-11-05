@@ -65,16 +65,15 @@ void print_tac (TAC *list)
 	TAC* aux = list;
 
 	if (list == NULL)
-		return NULL;
+		return;
 
-	printf ("\nTAC LIST: ");		
+	printf ("\nTAC LIST: ");
 	
 	while (aux != NULL)
 	{
 		printf ("%d - ",aux->type); 
 	}
 	printf ("\n");
-	
 	
 }	  
 	

@@ -5,39 +5,20 @@ int one = 1;
 
 TAC* geraCod_noLiteral(comp_tree_t *node)
 {
-	TAC *tac; /* = malloc(sizeof(TAC));
-	
-	tac->type = TAC_LOADI;
-	tac->res = &node->data.local;
-	tac->op1 = &node->data.symEntry->symbol.value;
-	tac->prev = NULL;
-	tac->next = NULL;*/
-	tac = create_tac(TAC_LOADI, &node->data.local, &node->data.symEntry->symbol.value, NULL);
+	TAC *tac = create_tac(TAC_LOADI, &node->data.local, &node->data.symEntry->symbol.value, NULL);
 	
 	return tac;
 }
 
 TAC* geraCod_noIdent(comp_tree_t *node)
 {
-	TAC *tac1; /* = malloc(sizeof(TAC));
-	tac1->type = TAC_LOADI;
-	tac1->res = &node->data.local;
-	tac1->op1 = &node->data.symEntry->symbol.symAddr;*/
-	tac1 = create_tac (TAC_LOADI, &node->data.local, &node->data.symEntry->symbol.symAddr, NULL);
+	TAC *tac1 = create_tac (TAC_LOADI, &node->data.local, &node->data.symEntry->symbol.symAddr, NULL);
 	
-	TAC *tac2; /* = malloc(sizeof(TAC));
-	tac2->type = TAC_LOAD;
-	tac2->res = node->data.local;
-	tac2->op1 = &node->data.local;*/
-	tac2 = create_tac (TAC_LOAD, node->data.local, &node->data.local, NULL);
-	 
-	/*tac1->prev = NULL;
-	tac1->next = tac2;
-	tac2->prev = tac1;
-	tac2->next = NULL;*/
+	TAC *tac2 = create_tac (TAC_LOAD, node->data.local, &node->data.local, NULL);
+	
 	tac1 = join_tac (tac1, tac2);
 	
-	return tac1;	
+	return tac1;
 }
 
 TAC *geraCod_noAnd(comp_tree_t *node)
@@ -90,13 +71,13 @@ TAC *geraCod_noOr(comp_tree_t *node)
 	return tac1;
 }
 
-TAC *geraCod_noIfThenElse(comp_tree_t *ifnode, TAC *truecode, TAC *falsecode)
+TAC *geraCod_noIfThenElse(comp_tree_t *ifnode, TAC *expr, TAC *truecode, TAC *falsecode)
 {
 	char* labTrue = geraRot();
 	char *labFalse = geraRot();
 	char *labFim = geraRot();
 	
-	TAC *tac1 = create_tac(TAC_CBR, ifnode->left, labTrue, labFalse);
+	TAC *tac1 = create_tac(TAC_CBR, ifnode->left->data.local, labTrue, labFalse);
 	
 	TAC *tac2 = create_tac(TAC_LABEL, labTrue, NULL, NULL);
 	tac2 = join_tac(tac2, truecode);
@@ -122,41 +103,67 @@ TAC* geraCod_aritOpt(comp_tree_t *node, int TAC_type)
 	char* regTwo = geraTemp();
 	char* regThree = geraTemp();
 		
-	regOne = node->left->data.local
-	regTwo = node->left->right->data.local
+	regOne = node->left->data.local;
+	regTwo = node->left->right->data.local;
 
 	TAC *tac = create_tac(TAC_type, regThree, regOne, regTwo);
 	
-	tac2 = join_tac (tac2, tac3);
-	tac1 = join_tac (tac1, tac2);
-	
 	return tac;
-
 }
 
+TAC *geraCod_noAtrib(comp_tree_t *node, TAC *expr)
+{
+	TAC *tac1 = create_tac(TAC_LOADI, 
+				node->data.local, &node->left->data.symEntry->symbol.symAddr, NULL);
+	TAC *tac2 = create_tac(TAC_STORE,
+				node->left->right->data.local, node->data.local, NULL);
 
+	tac1 = join_tac(expr, tac1);
+	tac1 = join_tac(tac1, tac2);
+	
+	return tac1;	
+}
+
+TAC *geraCod_noCmpLe(comp_tree_t *node)
+{
+	TAC *tac1 = create_tac(TAC_CMP_LE,
+		node->data.local, node->left->data.local, node->left->right->data.local);
+	
+	return tac1;
+}
 
 TAC* generateCode(comp_tree_t *node)
 {
-  // TODO 
-  TAC* children = generateCode(node->left);
-  TAC* brothers = generateCode(node->right);
+	if (node == NULL)
+		return NULL;
+	
+		// 4 childs max
+	TAC *babyTAC[] = {NULL, NULL, NULL, NULL};
+	babyTAC[0] = generateCode(node->left);
+	if (node->left != NULL)
+		babyTAC[1] = generateCode(node->left->right);
+	if (node->left->right != NULL)
+		babyTAC[2] = generateCode(node->left->right->right);
+	if (node->left->right->right != NULL)
+		babyTAC[2] = generateCode(node->left->right->right->right);
+	// Yes it looks ugly. but it works.
 
-  
-  
-  // TODO
 	switch(node->data.nodeType)
 	{
 		case IKS_AST_PROGRAMA:
 		case IKS_AST_FUNCAO:
 		case IKS_AST_IF_ELSE:
-			//node->data.code = geraCod_noIfThenElse(node); break;
+			node->data.code = geraCod_noIfThenElse(node, babyTAC[0], babyTAC[1], babyTAC[2]); break;
 		case IKS_AST_DO_WHILE:
 		case IKS_AST_WHILE_DO:
 		case IKS_AST_INPUT:
 		case IKS_AST_OUTPUT:
 		case IKS_AST_ATRIBUICAO:
+			node->data.code = geraCod_noAtrib(node, babyTAC[1]); 
+			node->data.code = join_tac(node->data.code, babyTAC[2]); // Chain com proximo comando
+			break;
 		case IKS_AST_RETURN:
+			node->data.code = NULL; break;
 		case IKS_AST_BLOCO:
 		case IKS_AST_IDENTIFICADOR:
 			node->data.code = geraCod_noIdent(node); break;
@@ -179,6 +186,7 @@ TAC* generateCode(comp_tree_t *node)
 		case IKS_AST_LOGICO_COMP_DIF:
 		case IKS_AST_LOGICO_COMP_IGUAL:
 		case IKS_AST_LOGICO_COMP_LE:
+			node->data.code = geraCod_noCmpLe(node); break;
 		case IKS_AST_LOGICO_COMP_GE:
 		case IKS_AST_LOGICO_COMP_L:
 		case IKS_AST_LOGICO_COMP_G:
@@ -187,6 +195,5 @@ TAC* generateCode(comp_tree_t *node)
 		case IKS_AST_CHAMADA_DE_FUNCAO: break;
 	}
   
-  // TODO
-  return NULL;
+  return node->data.code;
 }
