@@ -90,9 +90,29 @@ TAC *geraCod_noOr(comp_tree_t *node)
 	return tac1;
 }
 
-TAC *geraCod_noIfThenElse(comp_tree_t *node)
+TAC *geraCod_noIfThenElse(comp_tree_t *ifnode, TAC *truecode, TAC *falsecode)
 {
+	char* labTrue = geraRot();
+	char *labFalse = geraRot();
+	char *labFim = geraRot();
 	
+	TAC *tac1 = create_tac(TAC_CBR, ifnode->left, labTrue, labFalse);
+	
+	TAC *tac2 = create_tac(TAC_LABEL, labTrue, NULL, NULL);
+	tac2 = join_tac(tac2, truecode);
+	TAC *tac5 = create_tac(TAC_JUMPI, labFim, NULL, NULL);
+	tac2 = join_tac(tac2, tac5);
+	
+	TAC *tac3 = create_tac(TAC_LABEL, labFalse, NULL, NULL);
+	tac3 = join_tac(tac2, falsecode);
+	
+	TAC *tac4 = create_tac(TAC_LABEL, labFim, NULL, NULL);
+	
+	tac1 = join_tac(tac1, tac2);
+	tac1 = join_tac(tac1, tac3);
+	tac1 = join_tac(tac1, tac4);
+	
+	return tac1;
 }
 
 TAC* geraCod_aritOpt(comp_tree_t *node, int TAC_type)
@@ -122,6 +142,8 @@ TAC* generateCode(comp_tree_t *node)
   TAC* children = generateCode(node->left);
   TAC* brothers = generateCode(node->right);
 
+  
+  
   // TODO
 	switch(node->data.nodeType)
 	{
