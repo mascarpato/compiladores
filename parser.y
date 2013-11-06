@@ -533,13 +533,8 @@ void declara_varglobal(int tipo, DictItem *identifier)
 			identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_float); break;
 		case SYMTYPE_CHAR:
 			identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_char); break;
-/*		case SYMTYPE_STRING: //TODO Verificar. Caso da string vazia aloca apenas um char.
-			if (identifier->symbol.value.value_string == NULL) { 
-				identifier->symbol.symAddr = *varAddr; varAddr += sizeof(iks_char); break;
-			} else {
-				identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_char)*strlen(identifier->symbol.value.value_string); break;
-				// fprintf(stdout, "strlen eh %d.\n", strlen(identifier->symbol.value.value_string));
-			}*/
+		case SYMTYPE_STRING:
+			identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_string); break;
 		case SYMTYPE_BOOL:
 			identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_boolean); break;
 	}

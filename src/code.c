@@ -10,7 +10,7 @@ TAC *geraCod_noOr(comp_tree_t *node);
 TAC *geraCod_noIfThenElse(comp_tree_t *ifnode, TAC *expr, TAC *truecode, TAC *falsecode, TAC *next);
 TAC* geraCod_aritOpt(comp_tree_t *node, int TAC_type);
 TAC *geraCod_noAtrib(comp_tree_t *node, TAC *expr);
-TAC *geraCod_noCmpLe(comp_tree_t *node, TAC *expr1, TAC *expr2);
+TAC *geraCod_noCmp(int TAC_TYPE, comp_tree_t *node, TAC *expr1, TAC *expr2);
 TAC *geraCod_noInversao(comp_tree_t *node);
 TAC *geraCod_noWhile(comp_tree_t *node, TAC *expr, TAC *comm);
 TAC *geraCod_noDoWhile(comp_tree_t *node, TAC *comm, TAC *expr);
@@ -100,13 +100,18 @@ TAC* generateCode(comp_tree_t *node)
 		case IKS_AST_LOGICO_OU:
 			node->data.code = geraCod_noOr(node); break;
 		case IKS_AST_LOGICO_COMP_DIF:
+			node->data.code = geraCod_noCmp(TAC_CMP_NE, node, babyTAC[0], babyTAC[1]); break;
 		case IKS_AST_LOGICO_COMP_IGUAL:
+			node->data.code = geraCod_noCmp(TAC_CMP_EQ, node, babyTAC[0], babyTAC[1]); break;
 		case IKS_AST_LOGICO_COMP_LE:
-			node->data.code = geraCod_noCmpLe(node, babyTAC[0], babyTAC[1]); break;
+			node->data.code = geraCod_noCmp(TAC_CMP_LE, node, babyTAC[0], babyTAC[1]); break;
 		case IKS_AST_LOGICO_COMP_GE:
+			node->data.code = geraCod_noCmp(TAC_CMP_GE, node, babyTAC[0], babyTAC[1]); break;
 		case IKS_AST_LOGICO_COMP_L:
+			node->data.code = geraCod_noCmp(TAC_CMP_LT, node, babyTAC[0], babyTAC[1]); break;
 		case IKS_AST_LOGICO_COMP_G:
-		case IKS_AST_LOGICO_COMP_NEGACAO:
+			node->data.code = geraCod_noCmp(TAC_CMP_GT, node, babyTAC[0], babyTAC[1]); break;
+		case IKS_AST_LOGICO_COMP_NEGACAO: // TODO Errado
 		case IKS_AST_VETOR_INDEXADO: break;
 		case IKS_AST_CHAMADA_DE_FUNCAO: break;
   }
@@ -243,9 +248,9 @@ TAC *geraCod_noAtrib(comp_tree_t *node, TAC *expr)
 	return tac1;	
 }
 
-TAC *geraCod_noCmpLe(comp_tree_t *node, TAC *expr1, TAC *expr2)
+TAC *geraCod_noCmp(int TAC_TYPE, comp_tree_t *node, TAC *expr1, TAC *expr2)
 {
-	TAC *tac1 = create_tac(TAC_CMP_LE,
+	TAC *tac1 = create_tac(TAC_TYPE,
 		node->data.local, node->left->data.local, node->left->right->data.local);
 	tac1 = join_tac(expr1, tac1);
 	tac1 = join_tac(expr2, tac1);
