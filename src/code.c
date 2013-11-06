@@ -3,6 +3,117 @@
 int zero = 0;
 int one = 1;
 
+TAC* geraCod_noLiteral(comp_tree_t *node);
+TAC* geraCod_noIdent(comp_tree_t *node);
+TAC *geraCod_noAnd(comp_tree_t *node);
+TAC *geraCod_noOr(comp_tree_t *node);
+TAC *geraCod_noIfThenElse(comp_tree_t *ifnode, TAC *expr, TAC *truecode, TAC *falsecode, TAC *next);
+TAC* geraCod_aritOpt(comp_tree_t *node, int TAC_type);
+TAC *geraCod_noAtrib(comp_tree_t *node, TAC *expr);
+TAC *geraCod_noCmpLe(comp_tree_t *node, TAC *expr1, TAC *expr2);
+TAC *geraCod_noInversao(comp_tree_t *node);
+TAC *geraCod_noWhile(comp_tree_t *node, TAC *expr, TAC *comm);
+TAC *geraCod_noDoWhile(comp_tree_t *node, TAC *comm, TAC *expr);
+
+TAC* generateCode(comp_tree_t *node)
+{
+	if (node == NULL)
+		return NULL;
+	
+	// printf("Trancou na recursao.\n");
+	
+		// 4 childs max
+	TAC *babyTAC[] = {NULL, NULL, NULL, NULL};
+	babyTAC[0] = generateCode(node->left);
+	if (node->left != NULL) {
+		babyTAC[1] = generateCode(node->left->right);
+		if (node->left->right != NULL) {
+			babyTAC[2] = generateCode(node->left->right->right);
+			if (node->left->right->right != NULL) {
+				babyTAC[3] = generateCode(node->left->right->right->right);
+			}
+		}
+	}
+	// Yes it looks ugly. but it works.
+
+	switch(node->data.nodeType)
+	{
+		case IKS_AST_PROGRAMA:
+			node->data.code = babyTAC[0];
+			//printf("TAC Prog: \n"); print_tac(node->data.code);
+			print_tac(node->data.code); break;
+		case IKS_AST_FUNCAO:
+			node->data.code = babyTAC[0];
+			//printf("TAC Fun: \n"); print_tac(node->data.code);
+			node->data.code = join_tac(node->data.code, babyTAC[1]); 
+			//printf("TAC Fun+chain: \n"); print_tac(node->data.code); 
+			break;
+		case IKS_AST_IF_ELSE:
+			node->data.code = geraCod_noIfThenElse(node, babyTAC[0], babyTAC[1], babyTAC[2], babyTAC[3]); break;
+		case IKS_AST_DO_WHILE:
+			node->data.code = geraCod_noDoWhile(node, babyTAC[0], babyTAC[1]);
+			node->data.code = join_tac(node->data.code, babyTAC[2]); break;
+		case IKS_AST_WHILE_DO:
+			node->data.code = geraCod_noWhile(node, babyTAC[0], babyTAC[1]);
+			node->data.code = join_tac(node->data.code, babyTAC[2]); break;
+		case IKS_AST_INPUT:
+		case IKS_AST_OUTPUT:
+		case IKS_AST_ATRIBUICAO:
+			node->data.code = geraCod_noAtrib(node, babyTAC[1]);
+			//printf("TAC Atrib: \n"); print_tac(node->data.code);
+			node->data.code = join_tac(node->data.code, babyTAC[2]); // Chain com proximo comando
+			//printf("TAC Atrib+chain: \n"); print_tac(node->data.code);
+			break;
+		case IKS_AST_RETURN:
+			node->data.code = NULL; break;
+		case IKS_AST_BLOCO:
+			node->data.code = babyTAC[0]; break;
+		case IKS_AST_IDENTIFICADOR:
+			node->data.code = geraCod_noIdent(node);
+			//printf("TAC Idenfiticador: \n"); print_tac(node->data.code); 
+			break;
+		case IKS_AST_LITERAL:
+			node->data.code = geraCod_noLiteral(node);
+			//printf("TAC Literal: \n"); print_tac(node->data.code); 
+			break;
+		case IKS_AST_ARIM_SOMA:
+			node->data.code = geraCod_aritOpt(node, TAC_ADD); 
+			node->data.code = join_tac(babyTAC[1], node->data.code);
+			node->data.code = join_tac(babyTAC[0], node->data.code); break;
+		case IKS_AST_ARIM_SUBTRACAO:
+			node->data.code = geraCod_aritOpt(node, TAC_SUB); 
+			node->data.code = join_tac(babyTAC[1], node->data.code);
+			node->data.code = join_tac(babyTAC[0], node->data.code); break;
+		case IKS_AST_ARIM_MULTIPLICACAO:
+			node->data.code = geraCod_aritOpt(node, TAC_MUL);
+			node->data.code = join_tac(babyTAC[1], node->data.code);
+			node->data.code = join_tac(babyTAC[0], node->data.code); break;
+		case IKS_AST_ARIM_DIVISAO:
+			node->data.code = geraCod_aritOpt(node, TAC_DIV);
+			node->data.code = join_tac(babyTAC[1], node->data.code);
+			node->data.code = join_tac(babyTAC[0], node->data.code); break;
+		case IKS_AST_ARIM_INVERSAO:
+ 			node->data.code = geraCod_noInversao(node); 
+			node->data.code = join_tac(babyTAC[0], node->data.code); break;
+		case IKS_AST_LOGICO_E:
+			node->data.code = geraCod_noAnd(node); break;
+		case IKS_AST_LOGICO_OU:
+			node->data.code = geraCod_noOr(node); break;
+		case IKS_AST_LOGICO_COMP_DIF:
+		case IKS_AST_LOGICO_COMP_IGUAL:
+		case IKS_AST_LOGICO_COMP_LE:
+			node->data.code = geraCod_noCmpLe(node, babyTAC[0], babyTAC[1]); break;
+		case IKS_AST_LOGICO_COMP_GE:
+		case IKS_AST_LOGICO_COMP_L:
+		case IKS_AST_LOGICO_COMP_G:
+		case IKS_AST_LOGICO_COMP_NEGACAO:
+		case IKS_AST_VETOR_INDEXADO: break;
+		case IKS_AST_CHAMADA_DE_FUNCAO: break;
+  }
+  
+  return node->data.code;
+}
+
 TAC* geraCod_noLiteral(comp_tree_t *node)
 {
 	TAC *tac = create_tac(TAC_LOADI, node->data.local, &node->data.symEntry->symbol.value, NULL);
@@ -30,10 +141,10 @@ TAC *geraCod_noAnd(comp_tree_t *node)
 	comp_tree_t *expr2 = node->left->right;
 	
 	TAC *tac1 = create_tac(TAC_LOADI, regZero, &zero, NULL);
-	TAC *tac2 = create_tac(TAC_CMP_EQ, node->data.local, &expr1->data.local, regZero);
+	TAC *tac2 = create_tac(TAC_CMP_EQ, node->data.local, expr1->data.local, regZero);
 	TAC *tac3 = create_tac(TAC_CBR, node->data.local, rotFim, rotContinua);
 	TAC *tac4 = create_tac(TAC_LABEL, rotContinua, NULL, NULL);
-	TAC *tac5 = create_tac(TAC_CMP_EQ, &node->data.local, &expr2->data.local, regZero);
+	TAC *tac5 = create_tac(TAC_CMP_EQ, node->data.local, expr2->data.local, regZero);
 	TAC *tac6 = create_tac(TAC_LABEL, rotFim, NULL, NULL);
 	
 	tac5 = join_tac(tac5, tac6);
@@ -55,10 +166,10 @@ TAC *geraCod_noOr(comp_tree_t *node)
 	comp_tree_t *expr2 = node->left->right;
 	
 	TAC *tac1 = create_tac(TAC_LOADI, regOne, &one, NULL);
-	TAC *tac2 = create_tac(TAC_CMP_EQ, &node->data.local, &expr1->data.local, regOne);
+	TAC *tac2 = create_tac(TAC_CMP_EQ, node->data.local, expr1->data.local, regOne);
 	TAC *tac3 = create_tac(TAC_CBR, node->data.local, rotFim, rotContinua);
 	TAC *tac4 = create_tac(TAC_LABEL, rotContinua, NULL, NULL);
-	TAC *tac5 = create_tac(TAC_CMP_EQ, &node->data.local, &expr2->data.local, regOne);
+	TAC *tac5 = create_tac(TAC_CMP_EQ, node->data.local, expr2->data.local, regOne);
 	TAC *tac6 = create_tac(TAC_LABEL, rotFim, NULL, NULL);
 	
 	tac5 = join_tac(tac5, tac6);
@@ -110,12 +221,9 @@ TAC *geraCod_noIfThenElse(comp_tree_t *ifnode, TAC *expr, TAC *truecode, TAC *fa
 TAC* geraCod_aritOpt(comp_tree_t *node, int TAC_type)
 {
 	
-	char* regOne = geraTemp();
-	char* regTwo = geraTemp();
-	char* regThree = geraTemp();
-		
-	regOne = node->left->data.local;
-	regTwo = node->left->right->data.local;
+	char* regOne = node->left->data.local;;
+	char* regTwo = node->left->right->data.local;
+	char* regThree = node->data.local;
 
 	TAC *tac = create_tac(TAC_type, regThree, regOne, regTwo);
 	
@@ -145,87 +253,66 @@ TAC *geraCod_noCmpLe(comp_tree_t *node, TAC *expr1, TAC *expr2)
 	return tac1;
 }
 
-TAC* generateCode(comp_tree_t *node)
+TAC *geraCod_noInversao(comp_tree_t *node) 
 {
-	if (node == NULL)
-		return NULL;
+	TAC *tac1 = create_tac(TAC_LOADI,
+		node->data.local, &zero, NULL);
+	TAC *tac2 = create_tac(TAC_SUB,
+		node->data.local, node->data.local, node->left->data.local);
 	
-	// printf("Trancou na recursao.\n");
+	tac1 = join_tac(tac1, tac2);
 	
-		// 4 childs max
-	TAC *babyTAC[] = {NULL, NULL, NULL, NULL};
-	babyTAC[0] = generateCode(node->left);
-	if (node->left != NULL) {
-		babyTAC[1] = generateCode(node->left->right);
-		if (node->left->right != NULL) {
-			babyTAC[2] = generateCode(node->left->right->right);
-			if (node->left->right->right != NULL) {
-				babyTAC[3] = generateCode(node->left->right->right->right);
-			}
-		}
-	}
-	// Yes it looks ugly. but it works.
+	return tac1;
+}
 
-	switch(node->data.nodeType)
-	{
-		case IKS_AST_PROGRAMA:
-			node->data.code = babyTAC[0];
-			//printf("TAC Prog: \n"); print_tac(node->data.code);
-			print_tac(node->data.code); break;
-		case IKS_AST_FUNCAO:
-			node->data.code = babyTAC[0];
-			//printf("TAC Fun: \n"); print_tac(node->data.code);
-			node->data.code = join_tac(node->data.code, babyTAC[1]); 
-			//printf("TAC Fun+chain: \n"); print_tac(node->data.code); 
-			break;
-		case IKS_AST_IF_ELSE:
-			node->data.code = geraCod_noIfThenElse(node, babyTAC[0], babyTAC[1], babyTAC[2], babyTAC[3]); break;
-		case IKS_AST_DO_WHILE:
-		case IKS_AST_WHILE_DO:
-		case IKS_AST_INPUT:
-		case IKS_AST_OUTPUT:
-		case IKS_AST_ATRIBUICAO:
-			node->data.code = geraCod_noAtrib(node, babyTAC[1]);
-			//printf("TAC Atrib: \n"); print_tac(node->data.code);
-			node->data.code = join_tac(node->data.code, babyTAC[2]); // Chain com proximo comando
-			//printf("TAC Atrib+chain: \n"); print_tac(node->data.code);
-			break;
-		case IKS_AST_RETURN:
-			node->data.code = NULL; break;
-		case IKS_AST_BLOCO:
-		case IKS_AST_IDENTIFICADOR:
-			node->data.code = geraCod_noIdent(node);
-			//printf("TAC Idenfiticador: \n"); print_tac(node->data.code); 
-			break;
-		case IKS_AST_LITERAL:
-			node->data.code = geraCod_noLiteral(node);
-			//printf("TAC Literal: \n"); print_tac(node->data.code); 
-			break;
-		case IKS_AST_ARIM_SOMA:
-			node->data.code = geraCod_aritOpt(node, TAC_ADD); break;
-		case IKS_AST_ARIM_SUBTRACAO:
-			node->data.code = geraCod_aritOpt(node, TAC_SUB); break;
-		case IKS_AST_ARIM_MULTIPLICACAO:
-			node->data.code = geraCod_aritOpt(node, TAC_MUL); break;
-		case IKS_AST_ARIM_DIVISAO:
-			node->data.code = geraCod_aritOpt(node, TAC_DIV); break;
-		case IKS_AST_ARIM_INVERSAO:
-// 			node->data.code = geraCod_noInversao(node); break;
-		case IKS_AST_LOGICO_E:
-			node->data.code = geraCod_noAnd(node); break;
-		case IKS_AST_LOGICO_OU:
-			node->data.code = geraCod_noOr(node); break;
-		case IKS_AST_LOGICO_COMP_DIF:
-		case IKS_AST_LOGICO_COMP_IGUAL:
-		case IKS_AST_LOGICO_COMP_LE:
-			node->data.code = geraCod_noCmpLe(node, babyTAC[0], babyTAC[1]); break;
-		case IKS_AST_LOGICO_COMP_GE:
-		case IKS_AST_LOGICO_COMP_L:
-		case IKS_AST_LOGICO_COMP_G:
-		case IKS_AST_LOGICO_COMP_NEGACAO:
-		case IKS_AST_VETOR_INDEXADO: break;
-		case IKS_AST_CHAMADA_DE_FUNCAO: break;
-  }
-  
-  return node->data.code;
+
+TAC *geraCod_noWhile(comp_tree_t *node, TAC *expr, TAC *comm)
+{
+	char *rotControle = geraRot();
+	char *rotBloco = geraRot();
+	char *rotContinua = geraRot();
+	
+	TAC *tac1 = create_tac(TAC_LABEL,
+		rotControle, NULL, NULL);
+	tac1 = join_tac(tac1, expr);
+	
+	TAC *tac2 = create_tac(TAC_CBR,
+			node->left->data.local, rotBloco, rotContinua);
+	tac2 = join_tac(tac1, tac2);
+	
+	TAC *tac3 = create_tac(TAC_LABEL,
+			rotBloco, NULL, NULL);
+	tac2 = join_tac(tac2, tac3);
+	tac2 = join_tac(tac2, comm);
+	
+	TAC *tac4 = create_tac(TAC_JUMPI,
+			rotControle, NULL, NULL);
+	tac2 = join_tac(tac2, tac4);
+	
+	TAC *tac5 = create_tac(TAC_LABEL,
+		rotContinua, NULL, NULL);
+	tac2 = join_tac(tac2, tac5);
+	
+	return tac2;
+}
+
+TAC *geraCod_noDoWhile(comp_tree_t *node, TAC *comm, TAC *expr)
+{
+	char *rotBloco = geraRot();
+	char *rotContinua = geraRot();
+	
+	TAC *tac1 = create_tac(TAC_LABEL,
+		rotBloco, NULL, NULL);
+	tac1 = join_tac(tac1, comm);	
+	
+	tac1 = join_tac(tac1, expr);
+	TAC *tac2 = create_tac(TAC_CBR,
+			node->left->right->data.local, rotBloco, rotContinua);
+	tac1 = join_tac(tac1, tac2);
+	
+	TAC *tac3 = create_tac(TAC_LABEL,
+			rotContinua, NULL, NULL);
+	tac1 = join_tac(tac1, tac3);
+	
+	return tac1;
 }

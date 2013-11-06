@@ -1,10 +1,14 @@
+/** @file tac.h 
+ * 
+ * Contains definitions for a TAC code, as OPCodes, structures for holding an instruction ... 
+ */
+
 #include <stdio.h>
 #include "comp_dict.h"
 
 #ifndef COMP_TAC_H
 #define COMP_TAC_H
 
-//Instruction opcodes
 #define TAC_NOP 0
 #define TAC_ADD 1
 #define TAC_SUB 2
@@ -51,11 +55,15 @@
 #define TAC_CMP_NE 43
 
 // Other TAC types
-#define TAC_SYMBOL 256
 #define TAC_LABEL 257
-//#define TAC_BLABLABLA 257
 
-// Doubly linked list
+/** 
+ * Stores one TAC in a list-wise fashion.
+ * 
+ * A TAC is identified by OPCode, result, op1, op2.
+ * 
+ * Ex: ADD Rresult, Rop1, Rop2.
+ */
 typedef struct tacstruct
 {
     int type;
@@ -63,11 +71,30 @@ typedef struct tacstruct
     struct tacstruct *prev, *next;
 } TAC;
 
-//TAC operations
+/** 
+ * Creates a TAC, alloc'ing memory for it and filling up it's fields.
+ * */
 TAC* create_tac (int type, void *res, void *op1, void *op2);
+
+/** Joins two TACs in a list.
+ * 
+ * @param l1 Beginning of the list
+ * @param l2 List to be attached to l1
+ * 
+ * @return new list = l1 concat l2
+ */
 TAC* join_tac (TAC *l1, TAC *l2);
+
+/** 
+ * Converts a list that goes this (->) way into a list that goes that (<-) way.
+ */
 TAC* revert_tac (TAC *list);
+
+/**
+ * Prints the whole TAC list in a human-readable way. 
+ */
 void print_tac (TAC *list);
+
 
 char *geraTemp();
 char *geraRot();

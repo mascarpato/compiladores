@@ -185,6 +185,8 @@ comp_tree_t *ast_criano_atrib(DictItem *identifier, comp_tree_t *expr)
 	// Redundante ? data2.semanticType
 	comp_tree_t *id = treeCreate(data2);
 	
+	
+	
 	treeInsert(id, attributionNode);
 	treeInsert(expr, attributionNode);
 	
@@ -239,7 +241,7 @@ comp_tree_t *ast_criano_or(comp_tree_t *expr1, comp_tree_t *expr2)
 	return ast_criano_op(expr1, expr2, IKS_AST_LOGICO_OU);
 }
 
-comp_tree_t *ast_criano_neg(comp_tree_t *expr)
+comp_tree_t *ast_criano_neg(comp_tree_t *expr) // TODO Tá fazendo isso errado. Nao é nao é nó cmp_negacao.
 {
 	Data data;
 	data.nodeType = IKS_AST_LOGICO_COMP_NEGACAO;
@@ -261,8 +263,9 @@ comp_tree_t *ast_criano_inv(comp_tree_t *expr)
 	data.nodeType = IKS_AST_ARIM_INVERSAO;
 	data.symEntry = NULL;
 	data.semanticType = expr->data.semanticType;
-	
 	data.local = geraTemp();
+	
+	// printf("expr.semType = %d\n", data.semanticType);	
 	
 	comp_tree_t *father = treeCreate(data);
 	

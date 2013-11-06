@@ -42,15 +42,16 @@
 #define IKS_ERROR_STRING_TO_X 7 //coerção impossível do tipo string
 #define IKS_ERROR_CHAR_TO_X 8 //coerção impossível do tipo char
 
+/** Tipo INT de 4Bytes na linguagem IKS. */
 typedef int32_t iks_int;
+/** Tipo FLOAT de 8Bytes na linguagem IKS. */
 typedef double iks_float;
+/** Tipo CHAR de 1Byte na linguagem IKS. */
 typedef char iks_char;
+/** Tipo STRING de n*1Byte na linguagem IKS. */
 typedef char* iks_string;
+/** Tipo BOOLEAN de 1Byte na linguagem IKS. */
 typedef int8_t iks_boolean;
-
-	/** Used to handle boolean variables, which may take a 0 
-	* (FALSE) or 1 (TRUE) value. */
-typedef int8_t Boolean;
 
 	/** Couples all possible datatypes from the IKS language in this union.
 	* 

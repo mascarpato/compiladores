@@ -206,7 +206,7 @@ laco: do-while
 ;
 
     // c-style do while
-do-while: TK_PR_DO comando TK_PR_WHILE '(' expr ')' ';' { $$ = ast_criano_dowhile($2, $5); } 
+do-while: TK_PR_DO comando TK_PR_WHILE '(' expr ')' { $$ = ast_criano_dowhile($2, $5); } 
 ;
 while: TK_PR_WHILE '(' expr ')' TK_PR_DO comando {
                     Data data;
@@ -410,8 +410,8 @@ expr: '(' expr ')' { $$ = $2; }
 	| expr '-' expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_sub($1, $3); }
 	| expr '*' expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_mult($1, $3); }
 	| expr '/' expr { check_coercaoimpossivel_char_string($1, $3); $$ = ast_criano_div($1, $3); }
-	| '!' termo { ast_criano_neg($2); }
-	| '-' expr { ast_criano_inv($2);}    
+	| '!' termo { $$ = ast_criano_neg($2); }
+	| '-' expr { $$ = ast_criano_inv($2);}    
 ;
 
 chamada-funcao: TK_IDENTIFICADOR '(' parametros-chamada-funcao ')' {

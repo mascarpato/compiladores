@@ -75,13 +75,13 @@ void print_tac (TAC *list)
 			case TAC_NOP:
 				printf("NOP \n"); break;
 			case TAC_ADD:
-				printf("ADD \n"); break;
+				printf("ADD %s, %s => %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_SUB:
-				printf("SUB \n"); break;
+				printf("SUB %s, %s => %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_MUL:
 				printf("MUL \n"); break;
 			case TAC_DIV:
-				printf("DIV \n"); break;
+				printf("DIV %s, %s => %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_ADDI:
 				printf("ADDI \n"); break;
 			case TAC_SUBI:
@@ -115,15 +115,15 @@ void print_tac (TAC *list)
 			case TAC_XORI:
 				printf("XORI \n"); break;
 			case TAC_LOADI:
-				printf("LOADI %s, %d\n", aux->res, *((int*) aux->op1)); break;
+				printf("LOADI %d => %s\n", *((int*) aux->op1), aux->res); break;
 			case TAC_LOAD:
-				printf("LOAD %s, %s\n", aux->res, aux->op1); break;
+				printf("LOAD %s => %s\n", aux->op1, aux->res); break;
 			case TAC_LOADAI:
 				printf("LOADAI \n"); break;
 			case TAC_LOADAO:
 				printf("LOADAO \n"); break;
 			case TAC_STORE:
-				printf("STORE %s, %s\n", aux->res, aux->op1); break;
+				printf("STORE %s => %s\n", aux->res, aux->op1); break;
 			case TAC_STOREAI:
 				printf("STOREAI \n"); break;
 			case TAC_STOREAO:
@@ -143,16 +143,16 @@ void print_tac (TAC *list)
 			case TAC_I2C:
 				printf("I2C \n"); break;
 			case TAC_JUMPI:
-				printf("JUMPI %s\n", aux->res); break;
+				printf("JUMPI -> %s\n", aux->res); break;
 			case TAC_JUMP:
 				printf("JUMP \n"); break;
 			case TAC_CBR:
-				printf("CBR %s, %s, %s\n", aux->res, aux->op1, aux->op2); 
+				printf("CBR %s -> %s, %s\n", aux->res, aux->op1, aux->op2); 
 				break;
 			case TAC_CMP_LT:
 				printf("CMP_LT \n"); break;
 			case TAC_CMP_LE:
-				printf("CMP_LE %s, %s, %s\n", aux->res, aux->op1, aux->op2); break;
+				printf("CMP_LE %s, %s -> %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_CMP_EQ:
 				printf("CMP_EQ \n"); break;
 			case TAC_CMP_GE:
@@ -161,9 +161,7 @@ void print_tac (TAC *list)
 				printf("CMP_GT \n"); break;
 			case TAC_CMP_NE:
 				printf("CMP_NE \n"); break;
-
-			// Other TAC types
-			case TAC_SYMBOL:
+				
 			case TAC_LABEL:
 				printf("%s: \n", aux->res);
 		}
