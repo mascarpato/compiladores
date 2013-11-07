@@ -198,7 +198,7 @@ comando-simples: condicional { $$ = $1; }
     | ';' { $$ = NULL; }
 ;
 
-condicional: TK_PR_IF '(' expr ')' TK_PR_THEN comando { $$ = ast_criano_ifthenelse($3, $6, NULL); }
+condicional: TK_PR_IF '(' expr ')' TK_PR_THEN comando { $$ = ast_criano_ifthenelse($3, $6, ast_criano_bloco(NULL)); }
             | TK_PR_IF '(' expr ')' TK_PR_THEN comando TK_PR_ELSE comando { $$ = ast_criano_ifthenelse($3, $6, $8); }
 ;
 laco: do-while

@@ -200,25 +200,42 @@ TAC *geraCod_noIfThenElse(comp_tree_t *ifnode, TAC *expr, TAC *truecode, TAC *fa
 		// Codigo true entra aqui
 	tac1 = join_tac(tac1, truecode);
 	
-	if (next == NULL) { // Nao existe else neste nó
-		TAC *tac5 = create_tac(TAC_LABEL, labFalse, NULL, NULL);
-		tac1 = join_tac(tac1, tac5);
-		tac1 = join_tac(tac1, falsecode);
-	}
-	else { // Else existe neste nó
-		TAC *tac3 = create_tac(TAC_JUMPI, labFim, NULL, NULL);
-		tac1 = join_tac(tac1, tac3);
+	/*IF-THEN-ELSE
+		-- cond
+		-- cod-true
+		-- cod-false
+		-- next
 		
-		TAC *tac4 = create_tac(TAC_LABEL, labFalse, NULL, NULL);
-		tac1 = join_tac(tac1, tac4);
-			// Codigo false entra aqui
-		tac1 = join_tac(tac1, falsecode);
-
-		TAC *tac5 = create_tac(TAC_LABEL, labFim, NULL, NULL);
-		tac1 = join_tac(tac1, tac5);
-		tac1 = join_tac(tac1, next);
-	} 
+	IF-THEN-ELSE
+		-- cond
+		-- cod-true
+		-- next
+		
+	IF-THEN-ELSE
+		-- cond
+		-- cod-true
+		-- NULL*/
 	
+	/*
+	expr != null sempre
+	trucode != null sempre
+	3 casos
+		false code != null e next != null --- Há comando para else e há proximo comando
+		false code != null e next == null --- falsecode pode ser um else ou proximo comando
+		false code == null e next == null --- é só um if (sem else) e ultimo comando do bloco*/
+	// 
+	
+	TAC *tac3 = create_tac(TAC_JUMPI, labFim, NULL, NULL);
+	tac1 = join_tac(tac1, tac3);
+	
+	TAC *tac4 = create_tac(TAC_LABEL, labFalse, NULL, NULL);
+	tac1 = join_tac(tac1, tac4);
+		// Codigo false entra aqui
+	tac1 = join_tac(tac1, falsecode);
+
+	TAC *tac5 = create_tac(TAC_LABEL, labFim, NULL, NULL);
+	tac1 = join_tac(tac1, tac5);
+	tac1 = join_tac(tac1, next);
 	
 	return tac1;
 }
