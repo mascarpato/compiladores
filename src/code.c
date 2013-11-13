@@ -96,9 +96,13 @@ TAC* generateCode(comp_tree_t *node)
  			node->data.code = geraCod_noInversao(node); 
 			node->data.code = join_tac(babyTAC[0], node->data.code); break;
 		case IKS_AST_LOGICO_E:
-			node->data.code = geraCod_noAnd(node); break;
+			node->data.code = geraCod_noAnd(node);
+			node->data.code = join_tac(babyTAC[1], node->data.code);
+			node->data.code = join_tac(babyTAC[0], node->data.code); break;
 		case IKS_AST_LOGICO_OU:
-			node->data.code = geraCod_noOr(node); break;
+			node->data.code = geraCod_noOr(node);
+			node->data.code = join_tac(babyTAC[1], node->data.code);
+			node->data.code = join_tac(babyTAC[0], node->data.code); break;
 		case IKS_AST_LOGICO_COMP_DIF:
 			node->data.code = geraCod_noCmp(TAC_CMP_NE, node, babyTAC[0], babyTAC[1]); break;
 		case IKS_AST_LOGICO_COMP_IGUAL:
@@ -128,9 +132,24 @@ TAC* geraCod_noLiteral(comp_tree_t *node)
 
 TAC* geraCod_noIdent(comp_tree_t *node)
 {
-	TAC *tac1 = create_tac (TAC_LOADI, node->data.local, &node->data.symEntry->symbol.symAddr, NULL);
-	TAC *tac2 = create_tac (TAC_LOAD, node->data.local, node->data.local, NULL);
+	char *regbss = "rbss";
+	char *regarp = "rarp";
 	
+	/* Deve fazer distincao entre variavel local (soma endereco com inicio do reg. ativ) 
+	 * e var global (soma com pointer para regiao de dados) */
+	TAC *tac1 = create_tac (TAC_LOADI, node->data.local, &node->data.symEntry->symbol.symAddr, NULL);
+	
+	TAC *tac3;
+	if (node->data.symEntry->symbol.symType & SYM_IS_LOCALSCOPE) { // vai somar endereco com rarp
+		tac3 = create_tac (TAC_ADD, node->data.local, node->data.local, regarp);
+	}
+	else { // vai somar endereco com bss
+		tac3 = create_tac (TAC_ADD, node->data.local, node->data.local, regbss); 
+	}
+	
+	tac1 = join_tac(tac1, tac3);
+	
+	TAC *tac2 = create_tac (TAC_LOAD, node->data.local, node->data.local, NULL);
 	tac1 = join_tac(tac1, tac2);
 	
 	return tac1;
@@ -256,10 +275,24 @@ TAC *geraCod_noAtrib(comp_tree_t *node, TAC *expr)
 {
 	TAC *tac1 = create_tac(TAC_LOADI, 
 				node->data.local, &node->left->data.symEntry->symbol.symAddr, NULL);
+	tac1 = join_tac(expr, tac1);
+	char *regbss = "rbss";
+	char *regarp = "rarp";
+	
+	/* Deve fazer distincao entre variavel local (soma endereco com inicio do reg. ativ) 
+	 * e var global (soma com pointer para regiao de dados) */
+	TAC *tac3;
+	if (node->left->data.symEntry->symbol.symType & SYM_IS_LOCALSCOPE) { // vai somar endereco com rarp
+		tac3 = create_tac (TAC_ADD, node->data.local, node->data.local, regarp);
+	}
+	else { // vai somar endereco com bss
+		tac3 = create_tac (TAC_ADD, node->data.local, node->data.local, regbss); 
+	}
+	tac1 = join_tac(tac1, tac3);
+	
 	TAC *tac2 = create_tac(TAC_STORE,
 				node->left->right->data.local, node->data.local, NULL);
 
-	tac1 = join_tac(expr, tac1);
 	tac1 = join_tac(tac1, tac2);
 	
 	return tac1;	

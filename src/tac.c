@@ -69,7 +69,7 @@ void print_tac (TAC *list)
 	if (list == NULL)
 		return;
 
-	printf ("\nTAC: \n");
+	//printf ("\nTAC: \n");
 	while (aux != NULL) {
 		switch (aux->type) {
 			case TAC_NOP:
@@ -79,7 +79,7 @@ void print_tac (TAC *list)
 			case TAC_SUB:
 				printf("SUB %s, %s => %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_MUL:
-				printf("MUL \n"); break;
+				printf("MUL %s, %s => %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_DIV:
 				printf("DIV %s, %s => %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_ADDI:
@@ -150,17 +150,17 @@ void print_tac (TAC *list)
 				printf("CBR %s -> %s, %s\n", aux->res, aux->op1, aux->op2); 
 				break;
 			case TAC_CMP_LT:
-				printf("CMP_LT \n"); break;
+				printf("CMP_LT %s, %s -> %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_CMP_LE:
 				printf("CMP_LE %s, %s -> %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_CMP_EQ:
-				printf("CMP_EQ \n"); break;
+				printf("CMP_EQ %s, %s -> %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_CMP_GE:
-				printf("CMP_GE \n"); break;
+				printf("CMP_GE %s, %s -> %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_CMP_GT:
-				printf("CMP_GT \n"); break;
+				printf("CMP_GT %s, %s -> %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_CMP_NE:
-				printf("CMP_NE \n"); break;
+				printf("CMP_NE %s, %s -> %s\n", aux->op1, aux->op2, aux->res); break;
 				
 			case TAC_LABEL:
 				printf("%s: \n", aux->res);

@@ -30,7 +30,7 @@ int globalVarAddrCnt = 0;
 	/** Usado para alocar espaco para as variaveis declaradas localmente */
 int localVarAddrCnt = 0;
 	/* Marca uso do escopo local ou global durante execucao do parser. */
-	/*short usingLocalScope = 0;*/
+short usingLocalScope = 0;
 	
 %}
 
@@ -114,7 +114,7 @@ int localVarAddrCnt = 0;
 
 %%
 /* Regras (e acoes) da gramatica da Linguagem K */
-programa: s { generateCode(ast); }
+programa: s // { generateCode(ast); }
 ;
 
 s: s declaracao-varglobal ';'  { $$ = NULL; }
@@ -140,9 +140,9 @@ tipo: TK_PR_INT { $$ = SYMTYPE_INT;}
     | TK_PR_STRING { $$ = SYMTYPE_STRING;}
 ;
 
-declaracao-funcao: tipo ':' TK_IDENTIFICADOR { declara_funcao($1, $3); dict_create(SYM_TABLE_INITSIZE); }   
+declaracao-funcao: tipo ':' TK_IDENTIFICADOR { usingLocalScope=1; ($1, $3); dict_create(SYM_TABLE_INITSIZE); }   
                         '(' parametros-funcao-empty ')' { $3->symbol.params = $6; }
-                        lista-var-local comando-funcao { currentFunction = NULL; dict_pop(); $$ = ast_criano_funcao($3, $10); }
+                        lista-var-local comando-funcao { currentFunction = NULL; dict_pop(); $$ = ast_criano_funcao($3, $10); usingLocalScope=0; }
 ;
 
 lista-var-local: declaracao-var-simples ';' lista-var-local
@@ -520,10 +520,13 @@ void declara_varglobal(int tipo, DictItem *identifier)
 	identifier->symbol.symType = tipo | SYMTYPE_VAR;
 	
 	int *varAddr;
-/*	if (usingLocalScope)
-		varAddr = &localVarAddrCnt;*/
-/* 	else */
+	if (usingLocalScope) {
+		varAddr = &localVarAddrCnt;
+		identifier->symbol.symType = identifier->symbol.symType | SYM_IS_LOCALSCOPE;
+	}
+	else {
 		varAddr = &globalVarAddrCnt;
+	}
 	
 	// Evaluates var address and increments, to hold current variable being defined.
 	switch(tipo) {

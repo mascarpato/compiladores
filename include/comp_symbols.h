@@ -23,6 +23,7 @@
 #define SYMTYPE_VAR 1024
 #define SYMTYPE_VEC 2048
 #define SYMTYPE_FUN 4096
+#define SYM_IS_LOCALSCOPE 8192
 
 #define TRUE 1
 #define FALSE 0

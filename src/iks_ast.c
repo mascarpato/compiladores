@@ -46,7 +46,7 @@ comp_tree_t *ast_criano_ifthenelse(comp_tree_t *expr, comp_tree_t *com_true, com
 	data.symEntry = NULL;
 	data.local = geraTemp();
 	comp_tree_t *father = treeCreate(data);
-				
+	
 	treeInsert(expr, father);
 	treeInsert(com_true, father);
 	treeInsert(com_false, father); // Optional else
