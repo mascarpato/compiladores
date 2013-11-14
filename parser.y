@@ -66,7 +66,8 @@ short usingLocalScope = 0;
 %token TK_PR_OUTPUT
 %token TK_PR_RETURN
 %left TK_OC_LE TK_OC_GE TK_OC_EQ TK_OC_NE  '<' '>' '='
-%left TK_OC_AND TK_OC_OR
+%left TK_OC_OR
+%left TK_OC_AND
 %token <symEntry> TK_LIT_INT
 %token <symEntry> TK_LIT_FLOAT
 %token <symEntry> TK_LIT_FALSE
@@ -114,7 +115,7 @@ short usingLocalScope = 0;
 
 %%
 /* Regras (e acoes) da gramatica da Linguagem K */
-programa: s // { generateCode(ast); }
+programa: s { generateCode(ast); }
 ;
 
 s: s declaracao-varglobal ';'  { $$ = NULL; }
@@ -140,7 +141,7 @@ tipo: TK_PR_INT { $$ = SYMTYPE_INT;}
     | TK_PR_STRING { $$ = SYMTYPE_STRING;}
 ;
 
-declaracao-funcao: tipo ':' TK_IDENTIFICADOR { usingLocalScope=1; ($1, $3); dict_create(SYM_TABLE_INITSIZE); }   
+declaracao-funcao: tipo ':' TK_IDENTIFICADOR { usingLocalScope=1; declara_funcao($1, $3); dict_create(SYM_TABLE_INITSIZE); }   
                         '(' parametros-funcao-empty ')' { $3->symbol.params = $6; }
                         lista-var-local comando-funcao { currentFunction = NULL; dict_pop(); $$ = ast_criano_funcao($3, $10); usingLocalScope=0; }
 ;

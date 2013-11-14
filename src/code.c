@@ -5,8 +5,8 @@ int one = 1;
 
 TAC* geraCod_noLiteral(comp_tree_t *node);
 TAC* geraCod_noIdent(comp_tree_t *node);
-TAC *geraCod_noAnd(comp_tree_t *node);
-TAC *geraCod_noOr(comp_tree_t *node);
+TAC *geraCod_noAnd(comp_tree_t *node, TAC *expr1, TAC *expr2);
+TAC *geraCod_noOr(comp_tree_t *node, TAC *expr1, TAC *expr2);
 TAC *geraCod_noIfThenElse(comp_tree_t *ifnode, TAC *expr, TAC *truecode, TAC *falsecode, TAC *next);
 TAC* geraCod_aritOpt(comp_tree_t *node, int TAC_type);
 TAC *geraCod_noAtrib(comp_tree_t *node, TAC *expr);
@@ -96,13 +96,9 @@ TAC* generateCode(comp_tree_t *node)
  			node->data.code = geraCod_noInversao(node); 
 			node->data.code = join_tac(babyTAC[0], node->data.code); break;
 		case IKS_AST_LOGICO_E:
-			node->data.code = geraCod_noAnd(node);
-			node->data.code = join_tac(babyTAC[1], node->data.code);
-			node->data.code = join_tac(babyTAC[0], node->data.code); break;
+			node->data.code = geraCod_noAnd(node, babyTAC[0], babyTAC[1]); break;
 		case IKS_AST_LOGICO_OU:
-			node->data.code = geraCod_noOr(node);
-			node->data.code = join_tac(babyTAC[1], node->data.code);
-			node->data.code = join_tac(babyTAC[0], node->data.code); break;
+			node->data.code = geraCod_noOr(node, babyTAC[0], babyTAC[1]); break;
 		case IKS_AST_LOGICO_COMP_DIF:
 			node->data.code = geraCod_noCmp(TAC_CMP_NE, node, babyTAC[0], babyTAC[1]); break;
 		case IKS_AST_LOGICO_COMP_IGUAL:
@@ -155,52 +151,64 @@ TAC* geraCod_noIdent(comp_tree_t *node)
 	return tac1;
 }
 
-TAC *geraCod_noAnd(comp_tree_t *node)
+TAC *geraCod_noAnd(comp_tree_t *node, TAC *expr1, TAC *expr2)
 {
 	char* regZero = geraTemp();
 	char* rotContinua = geraRot();
 	char* rotFim = geraRot();
 	
-	comp_tree_t *expr1 = node->left;
-	comp_tree_t *expr2 = node->left->right;
+	comp_tree_t *expr1_node = node->left;
+	comp_tree_t *expr2_node = node->left->right;
 	
 	TAC *tac1 = create_tac(TAC_LOADI, regZero, &zero, NULL);
-	TAC *tac2 = create_tac(TAC_CMP_EQ, node->data.local, expr1->data.local, regZero);
-	TAC *tac3 = create_tac(TAC_CBR, node->data.local, rotFim, rotContinua);
-	TAC *tac4 = create_tac(TAC_LABEL, rotContinua, NULL, NULL);
-	TAC *tac5 = create_tac(TAC_CMP_EQ, node->data.local, expr2->data.local, regZero);
-	TAC *tac6 = create_tac(TAC_LABEL, rotFim, NULL, NULL);
+	tac1 = join_tac(tac1, expr1);
 	
-	tac5 = join_tac(tac5, tac6);
-	tac4 = join_tac(tac4, tac5);
-	tac3 = join_tac(tac3, tac4);
-	tac2 = join_tac(tac2, tac3);
+	TAC *tac2 = create_tac(TAC_CMP_NE, node->data.local, expr1_node->data.local, regZero);
 	tac1 = join_tac(tac1, tac2);
+	
+	TAC *tac3 = create_tac(TAC_CBR, node->data.local, rotContinua, rotFim);
+	tac1 = join_tac(tac1, tac3);
+	
+	TAC *tac4 = create_tac(TAC_LABEL, rotContinua, NULL, NULL);
+	tac1 = join_tac(tac1, tac4);
+	tac1 = join_tac(tac1, expr2);
+	
+	TAC *tac5 = create_tac(TAC_CMP_NE, node->data.local, expr2_node->data.local, regZero);
+	tac1 = join_tac(tac1, tac5);
+	
+	TAC *tac6 = create_tac(TAC_LABEL, rotFim, NULL, NULL);
+	tac1 = join_tac(tac1, tac6);
 	
 	return tac1;
 }
 
-TAC *geraCod_noOr(comp_tree_t *node)
+TAC *geraCod_noOr(comp_tree_t *node, TAC *expr1, TAC *expr2)
 {
-	char* regOne = geraTemp();
+	char* regZero = geraTemp();
 	char* rotContinua = geraRot();
 	char* rotFim = geraRot();
 	
-	comp_tree_t *expr1 = node->left;
-	comp_tree_t *expr2 = node->left->right;
+	comp_tree_t *expr1_node = node->left;
+	comp_tree_t *expr2_node = node->left->right;
 	
-	TAC *tac1 = create_tac(TAC_LOADI, regOne, &one, NULL);
-	TAC *tac2 = create_tac(TAC_CMP_EQ, node->data.local, expr1->data.local, regOne);
-	TAC *tac3 = create_tac(TAC_CBR, node->data.local, rotFim, rotContinua);
-	TAC *tac4 = create_tac(TAC_LABEL, rotContinua, NULL, NULL);
-	TAC *tac5 = create_tac(TAC_CMP_EQ, node->data.local, expr2->data.local, regOne);
-	TAC *tac6 = create_tac(TAC_LABEL, rotFim, NULL, NULL);
+	TAC *tac1 = create_tac(TAC_LOADI, regZero, &zero, NULL);
+	tac1 = join_tac(tac1, expr1);
 	
-	tac5 = join_tac(tac5, tac6);
-	tac4 = join_tac(tac4, tac5);
-	tac3 = join_tac(tac3, tac4);
-	tac2 = join_tac(tac2, tac3);
+	TAC *tac2 = create_tac(TAC_CMP_NE, node->data.local, expr1_node->data.local, regZero);
 	tac1 = join_tac(tac1, tac2);
+	
+	TAC *tac3 = create_tac(TAC_CBR, node->data.local, rotFim, rotContinua);
+	tac1 = join_tac(tac1, tac3);
+	
+	TAC *tac4 = create_tac(TAC_LABEL, rotContinua, NULL, NULL);
+	tac1 = join_tac(tac1, tac4);
+	tac1 = join_tac(tac1, expr2);
+	
+	TAC *tac5 = create_tac(TAC_CMP_NE, node->data.local, expr2_node->data.local, regZero);
+	tac1 = join_tac(tac1, tac5);
+	
+	TAC *tac6 = create_tac(TAC_LABEL, rotFim, NULL, NULL);
+	tac1 = join_tac(tac1, tac6);
 	
 	return tac1;
 }
