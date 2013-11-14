@@ -73,7 +73,7 @@ typedef struct Symbol_t_str {
 	int symAddr; //! Relative symbol address
 	SymValue_t value;
 	
-	ListNode *params; // Parameters list (used if it's a function)
+	ListNode *params; // Parameters list (used if it's a function) or dimensions list (if it's a vector)
 } Symbol_t;
 
 /**

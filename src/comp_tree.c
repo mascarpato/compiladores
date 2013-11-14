@@ -39,8 +39,14 @@ void treeInsert(comp_tree_t* newNode, comp_tree_t* fatherNode)
 		a->right = newNode;
 	}
 	
-	if (newNode != NULL) // Prevents from trying to add an empty node to the drawing
+	if (newNode != NULL){ // Prevents from trying to add an empty node to the drawing
 		gv_connect(fatherNode, newNode);
+		comp_tree_t* a = newNode->right;
+		while(a != NULL){
+		    gv_connect(fatherNode, a);  
+		    a = a->right;
+		}
+	}
 }			
 		
 

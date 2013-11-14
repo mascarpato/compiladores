@@ -21,7 +21,7 @@ struct comp_dict_item_t *currentFunction;
 	/* Acao semantica na declaracao de funcao */
 void declara_funcao(int tipo, DictItem *identifer);
 	/* Acao semantica na declaracao de vetor */
-void declara_vetor(int tipo, DictItem *identifier);
+void declara_vetor(int tipo, DictItem *identifier, ListNode *dims);
 
 void declara_varglobal(int tipo, DictItem *identifier);
 
@@ -87,7 +87,8 @@ short usingLocalScope = 0;
 %type <tree> declaracao-varglobal
 %type <tree> declaracao-var-simples
 %type <tree> declaracao-vetor
-%type <tree> lista-dimensoes /*instavel*/
+%type <tree> var-vetor
+%type <param> lista-dimensoes /*instavel*/
 %type <tree> lista-dimensoes-atr /*instavel*/
 %type <tipo> tipo
 %type <tree> comando
@@ -159,11 +160,19 @@ declaracao-var-simples: tipo ':' TK_IDENTIFICADOR { declara_varglobal($1, $3); }
 
 //modificacoes instaveis
 
-declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' expr ']' lista-dimensoes { declara_vetor($1, $3); }
+declaracao-vetor: tipo ':' TK_IDENTIFICADOR '[' TK_LIT_INT ']' lista-dimensoes { 
+		  ListNode *dims = (ListNode*)malloc(sizeof(ListNode));
+		  dims->data = $5->symbol.value.value_int;
+		  dims->next = $7;
+		  declara_vetor($1, $3, dims); }
 ;
 
-lista-dimensoes: '[' expr ']' lista-dimensoes {}
-		 | {}
+lista-dimensoes: '[' TK_LIT_INT ']' lista-dimensoes {
+		  ListNode *dims = (ListNode*)malloc(sizeof(ListNode));
+		  dims->data = $2->symbol.value.value_int;
+		  dims->next = $4;
+		  $$ = dims; }
+		 | {$$ = NULL; }
 ;
 
 //fim modificacoes instaveis
@@ -293,7 +302,41 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 		$$ = ast_criano_atrib($1, $3); }
 ;
 
-atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' lista-dimensoes-atr '=' expr { //TODO: adicionar suporte para atrib em vetor multidimens
+atribuicao-vetor: var-vetor '=' expr { //TODO: adicionar suporte para atrib em vetor multidimens
+
+	//operações de coersão	
+	int aux_coersion;
+	//Identifier's DictItem
+	DictItem *vector_ident = $1->left->data.symEntry;
+	aux_coersion = eval_atrib(vector_ident->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, &($3->data.semanticType)); // ultimo expr
+	//Checks if atrib is valid and sets right coersion
+	if (aux_coersion == SYMTYPE_UNDEF){
+		sserror(IKS_ERROR_WRONG_TYPE, NULL);
+		return (IKS_ERROR_WRONG_TYPE);
+	}else if (aux_coersion == IKS_ERROR_STRING_TO_X){
+		sserror(IKS_ERROR_STRING_TO_X, NULL);
+		return (IKS_ERROR_STRING_TO_X);
+	}else if (aux_coersion == IKS_ERROR_CHAR_TO_X){
+		sserror(IKS_ERROR_CHAR_TO_X, NULL);
+		return (IKS_ERROR_CHAR_TO_X);
+	}
+
+	$3->data.coersionType = aux_coersion; //define tipo da coersão 
+
+        Data data1;
+        data1.nodeType = IKS_AST_ATRIBUICAO;
+        data1.symEntry = NULL;
+	data1.semanticType = vector_ident->symbol.symType & MASK_SYMTYPE_TYPE;
+        comp_tree_t *attributionNode = treeCreate(data1);
+		
+	/* -- Inserts vector and expr nodes into attribution node */ 
+	treeInsert($1, attributionNode);
+	treeInsert($3, attributionNode);  //ultimo expr
+		
+        $$ = attributionNode; }
+;
+
+var-vetor: TK_IDENTIFICADOR '[' expr ']' lista-dimensoes-atr {
 		// Tests if variable has been defined.
 		if (!check_id_declr($1)) {
 			sserror(IKS_ERROR_UNDECLARED, $1);
@@ -304,7 +347,6 @@ atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' lista-dimensoes-atr '=' expr { /
 			sserror(IKS_ERROR_VARIABLE, $1);
 			return(IKS_ERROR_VARIABLE);
 		}
-// TESTE MULTIDIM
 		
 		// Checks if expression is an integer (char)
 		if ($3->data.semanticType == SYMTYPE_CHAR) {
@@ -320,56 +362,27 @@ atribuicao-vetor: TK_IDENTIFICADOR '[' expr ']' lista-dimensoes-atr '=' expr { /
 		if ($3->data.semanticType != SYMTYPE_INT) {
 			sserror(IKS_ERROR_WRONG_TYPE, NULL); //TODO futuro: incluir cod de erro para indice nao inteiro.
 			return(IKS_ERROR_WRONG_TYPE);
-		}
-//FIM_TESTE_MULTIDIM
-	//operações de coersão	
-	int aux_coersion;
-					// aqui eh dict
-					// $1->symbol.symType & MASK_SYMTYPE_TYPE
-	aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $7->data.semanticType, &($7->data.semanticType)); // ultimo expr
-	//Checks if atrib is valid and sets right coersion
-	if (aux_coersion == SYMTYPE_UNDEF){
-		sserror(IKS_ERROR_WRONG_TYPE, NULL);
-		return (IKS_ERROR_WRONG_TYPE);
-	}else if (aux_coersion == IKS_ERROR_STRING_TO_X){
-		sserror(IKS_ERROR_STRING_TO_X, NULL);
-		return (IKS_ERROR_STRING_TO_X);
-	}else if (aux_coersion == IKS_ERROR_CHAR_TO_X){
-		sserror(IKS_ERROR_CHAR_TO_X, NULL);
-		return (IKS_ERROR_CHAR_TO_X);
-	}
+		}	      
 
-	$7->data.coersionType = aux_coersion; //define tipo da coersão 
-
-        Data data1;
-        data1.nodeType = IKS_AST_ATRIBUICAO;
-        data1.symEntry = NULL;
-		data1.semanticType = $1->symbol.symType & MASK_SYMTYPE_TYPE;
-        comp_tree_t *attributionNode = treeCreate(data1);
-        
 		/* -- Creates vector node --*/
-		Data data2;
-		data2.nodeType = IKS_AST_VETOR_INDEXADO;
-		data2.symEntry = NULL;
-		comp_tree_t *vader = treeCreate(data2);
+		Data data;
+		data.nodeType = IKS_AST_VETOR_INDEXADO;
+		data.symEntry = NULL;
+		comp_tree_t *vader = treeCreate(data);
 		
-		Data data3;
-		data3.nodeType = IKS_AST_IDENTIFICADOR;
-		data3.symEntry = $1;
-		comp_tree_t *luke = treeCreate(data3);
+		Data data2;
+		data2.nodeType = IKS_AST_IDENTIFICADOR;
+		data2.symEntry = $1;
+		comp_tree_t *luke = treeCreate(data2);
 		
 		treeInsert(luke, vader);
-		treeInsert($3, vader);// TESTE MULTIDIM
-		/* -- -- */
+		treeInsert($3, vader);
+		treeInsert($5, vader);
 		
-		/* -- Inserts vector and expr nodes into attribution node */ 
-		treeInsert(vader, attributionNode);
-		treeInsert($7, attributionNode);  //ultimo expr
-		
-        $$ = attributionNode; }
+		$$ = vader;
+		}
 ;
 
-////////teste
 lista-dimensoes-atr: '[' expr ']' lista-dimensoes-atr {
 		if ($2->data.semanticType == SYMTYPE_CHAR) {
 			sserror(IKS_ERROR_CHAR_TO_X, NULL);
@@ -385,17 +398,13 @@ lista-dimensoes-atr: '[' expr ']' lista-dimensoes-atr {
 			sserror(IKS_ERROR_WRONG_TYPE, NULL); //TODO futuro: incluir cod de erro para indice nao inteiro.
 			return(IKS_ERROR_WRONG_TYPE);
 		}
-
-		Data data;
-		comp_tree_t *dimNode = treeCreate(data);
-		
-		treeInsert($2, dimNode);
-		$$=dimNode;
+	
+		$2->right = $4; //brother
+		$$ = $2;
 }	
-	| /*empty*/ {}
+	| /*empty*/ {$$ = NULL;}
 ;
 
-////////fim_de_teste
 
 expr: '(' expr ')' { $$ = $2; }
 	| termo { $$ = $1; } 
@@ -476,7 +485,8 @@ parametros-chamada-funcao: expr { DictItem *tempDictItem = (DictItem*) malloc(si
 ;
 
 termo: TK_IDENTIFICADOR { check_is_id_var($1); $$ = ast_criano_identificador($1); }
-    | TK_IDENTIFICADOR '[' expr ']' { check_is_valid_indexed_vector($1, $3); $$ = ast_criano_vetor($1, $3); }
+    | var-vetor { $$ = $1; }
+    //| TK_IDENTIFICADOR '[' expr ']' { check_is_valid_indexed_vector($1, $3); $$ = ast_criano_vetor($1, $3); }
     | chamada-funcao 
     | TK_LIT_INT { $$ = ast_criano_literal($1, SYMTYPE_INT); }
     | TK_LIT_FLOAT { $$ = ast_criano_literal($1, SYMTYPE_FLOAT); }
@@ -499,20 +509,53 @@ void declara_funcao(int tipo, DictItem *identifier)
 	dict_create(SYM_TABLE_INITSIZE);
 }
 
-void declara_vetor(int tipo, DictItem *identifier)
+void declara_vetor(int tipo, DictItem *identifier, ListNode *dims)
 {
-	// Tests if function is being redefined .
+	// Tests if variable is being redefined .
 	if (check_id_declr(identifier)) {
 		sserror(IKS_ERROR_DECLARED, identifier);
 		exit(IKS_ERROR_DECLARED);
 	}
 	
 	identifier->symbol.symType = tipo | SYMTYPE_VEC;
+	identifier->symbol.params = dims; // List of dimensions
+
+	int *varAddr;
+	if (usingLocalScope) {
+		varAddr = &localVarAddrCnt;
+		identifier->symbol.symType = identifier->symbol.symType | SYM_IS_LOCALSCOPE;
+	}
+	else {
+		varAddr = &globalVarAddrCnt;
+	}
+	
+	// Calculates the number of vector's elements
+	int vector_size = dims->data;
+	ListNode *aux = dims->next;
+	while(aux != NULL){
+	  vector_size *= aux->data;
+	  aux = aux->next;
+	}
+	
+	// Evaluates var address and increments, to hold current variable being defined.
+	switch(tipo) {
+		case SYMTYPE_INT:
+			identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_int)*vector_size; break;
+		case SYMTYPE_FLOAT:
+			identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_float)*vector_size; break;
+		case SYMTYPE_CHAR:
+			identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_char)*vector_size; break;
+		case SYMTYPE_STRING:
+			identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_string)*vector_size; break;
+		case SYMTYPE_BOOL:
+			identifier->symbol.symAddr = *varAddr; *varAddr += sizeof(iks_boolean)*vector_size; break;
+	}	
+	
 }
 
 void declara_varglobal(int tipo, DictItem *identifier)
 {
-	// Tests if function is being redefined .
+	// Tests if veriable is being redefined .
 	if (check_id_declr(identifier)) {
 		sserror(IKS_ERROR_DECLARED, identifier);
 		exit(IKS_ERROR_DECLARED);
