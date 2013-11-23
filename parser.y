@@ -460,11 +460,13 @@ parametros-funcao-empty : parametros-declaracao-funcao { $$ = $1; }
 ;
 
 parametros-declaracao-funcao: tipo ':' TK_IDENTIFICADOR { 
+							declara_varglobal($1, $3);
 							ListNode* param = (ListNode*)malloc(sizeof(ListNode));
 							param->data = $1;
 							param->next = NULL;
 							$$ = param; }
-    | tipo ':' TK_IDENTIFICADOR ',' parametros-declaracao-funcao { 
+    | tipo ':' TK_IDENTIFICADOR ',' parametros-declaracao-funcao {
+							declara_varglobal($1, $3);
 							ListNode* param = (ListNode*)malloc(sizeof(ListNode));
 							param->data = $1;
 							param->next = $5;

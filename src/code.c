@@ -285,32 +285,34 @@ TAC* geraCod_aritOpt(comp_tree_t *node, int TAC_type)
 
 TAC *geraCod_noAtrib(comp_tree_t *node, TAC *ident, TAC *expr)
 {	
-	/*
-	TAC *tac1 = create_tac(TAC_LOADI, 
-				node->data.local, &node->left->data.symEntry->symbol.symAddr, NULL);
-	tac1 = join_tac(expr, tac1);
-	char *regbss = "rbss";
-	char *regarp = "rarp";
-	
-	// Deve fazer distincao entre variavel local (soma endereco com inicio do reg. ativ) 
-	// e var global (soma com pointer para regiao de dados) 
-	TAC *tac3;
-	if (node->left->data.symEntry->symbol.symType & SYM_IS_LOCALSCOPE) { // vai somar endereco com rarp
-		tac3 = create_tac (TAC_ADD, node->data.local, node->data.local, regarp);
+	TAC *tac1;
+	if(node->left->data.nodeType == IKS_AST_VETOR_INDEXADO){
+		// Remove o último LOAD e o reg conterá o endereço
+		TAC *aux;
+		for (aux = ident; aux->next->next; aux = aux->next);
+		free(aux->next);
+		aux->next = NULL;
+		
+		tac1 = join_tac(ident, expr);		
+		
+	} else {
+		tac1 = create_tac(TAC_LOADI, 
+					node->data.local, &node->left->data.symEntry->symbol.symAddr, NULL);
+		tac1 = join_tac(expr, tac1);
+		char *regbss = "rbss";
+		char *regarp = "rarp";
+		
+		// Deve fazer distincao entre variavel local (soma endereco com inicio do reg. ativ) 
+		// e var global (soma com pointer para regiao de dados) 
+		TAC *tac3;
+		if (node->left->data.symEntry->symbol.symType & SYM_IS_LOCALSCOPE) { // vai somar endereco com rarp
+			tac3 = create_tac (TAC_ADD, node->data.local, node->data.local, regarp);
+		}
+		else { // vai somar endereco com bss
+			tac3 = create_tac (TAC_ADD, node->data.local, node->data.local, regbss); 
+		}
+		tac1 = join_tac(tac1, tac3);
 	}
-	else { // vai somar endereco com bss
-		tac3 = create_tac (TAC_ADD, node->data.local, node->data.local, regbss); 
-	}
-	tac1 = join_tac(tac1, tac3);
-	*/
-	
-	// Remove o último LOAD e o reg conterá o endereço
-	TAC *aux;
-	for (aux = ident; aux->next->next; aux = aux->next);
-	free(aux->next);
-	aux->next = NULL;
-	
-	TAC *tac1 = join_tac(ident, expr);
 	
 	TAC *tac2 = create_tac(TAC_STORE,
 				node->left->right->data.local, node->data.local, NULL);
