@@ -2,6 +2,8 @@
 
 int zero = 0;
 int one = 1;
+int four = 4;
+int eight = 8;
 
 TAC* geraCod_noLiteral(comp_tree_t *node);
 TAC* geraCod_noIdent(comp_tree_t *node);
@@ -9,11 +11,12 @@ TAC *geraCod_noAnd(comp_tree_t *node, TAC *expr1, TAC *expr2);
 TAC *geraCod_noOr(comp_tree_t *node, TAC *expr1, TAC *expr2);
 TAC *geraCod_noIfThenElse(comp_tree_t *ifnode, TAC *expr, TAC *truecode, TAC *falsecode, TAC *next);
 TAC* geraCod_aritOpt(comp_tree_t *node, int TAC_type);
-TAC *geraCod_noAtrib(comp_tree_t *node, TAC *expr);
+TAC *geraCod_noAtrib(comp_tree_t *node, TAC *ident, TAC *expr);
 TAC *geraCod_noCmp(int TAC_TYPE, comp_tree_t *node, TAC *expr1, TAC *expr2);
 TAC *geraCod_noInversao(comp_tree_t *node);
 TAC *geraCod_noWhile(comp_tree_t *node, TAC *expr, TAC *comm);
 TAC *geraCod_noDoWhile(comp_tree_t *node, TAC *comm, TAC *expr);
+TAC *geraCod_noVetor(comp_tree_t *node, TAC *dim1, TAC *dim2, TAC *dim3);
 
 TAC* generateCode(comp_tree_t *node)
 {
@@ -59,7 +62,7 @@ TAC* generateCode(comp_tree_t *node)
 		case IKS_AST_INPUT:
 		case IKS_AST_OUTPUT:
 		case IKS_AST_ATRIBUICAO:
-			node->data.code = geraCod_noAtrib(node, babyTAC[1]);
+			node->data.code = geraCod_noAtrib(node, babyTAC[0], babyTAC[1]);
 			//printf("TAC Atrib: \n"); print_tac(node->data.code);
 			node->data.code = join_tac(node->data.code, babyTAC[2]); // Chain com proximo comando
 			//printf("TAC Atrib+chain: \n"); print_tac(node->data.code);
@@ -111,8 +114,9 @@ TAC* generateCode(comp_tree_t *node)
 			node->data.code = geraCod_noCmp(TAC_CMP_LT, node, babyTAC[0], babyTAC[1]); break;
 		case IKS_AST_LOGICO_COMP_G:
 			node->data.code = geraCod_noCmp(TAC_CMP_GT, node, babyTAC[0], babyTAC[1]); break;
-		case IKS_AST_LOGICO_COMP_NEGACAO: // TODO Errado
-		case IKS_AST_VETOR_INDEXADO: break;
+		case IKS_AST_LOGICO_COMP_NEGACAO: break;// TODO Errado
+		case IKS_AST_VETOR_INDEXADO: 
+			node->data.code = geraCod_noVetor(node, babyTAC[1], babyTAC[2], babyTAC[3]) ; break;
 		case IKS_AST_CHAMADA_DE_FUNCAO: break;
   }
   
@@ -279,16 +283,17 @@ TAC* geraCod_aritOpt(comp_tree_t *node, int TAC_type)
 	return tac;
 }
 
-TAC *geraCod_noAtrib(comp_tree_t *node, TAC *expr)
-{
+TAC *geraCod_noAtrib(comp_tree_t *node, TAC *ident, TAC *expr)
+{	
+	/*
 	TAC *tac1 = create_tac(TAC_LOADI, 
 				node->data.local, &node->left->data.symEntry->symbol.symAddr, NULL);
 	tac1 = join_tac(expr, tac1);
 	char *regbss = "rbss";
 	char *regarp = "rarp";
 	
-	/* Deve fazer distincao entre variavel local (soma endereco com inicio do reg. ativ) 
-	 * e var global (soma com pointer para regiao de dados) */
+	// Deve fazer distincao entre variavel local (soma endereco com inicio do reg. ativ) 
+	// e var global (soma com pointer para regiao de dados) 
 	TAC *tac3;
 	if (node->left->data.symEntry->symbol.symType & SYM_IS_LOCALSCOPE) { // vai somar endereco com rarp
 		tac3 = create_tac (TAC_ADD, node->data.local, node->data.local, regarp);
@@ -297,12 +302,21 @@ TAC *geraCod_noAtrib(comp_tree_t *node, TAC *expr)
 		tac3 = create_tac (TAC_ADD, node->data.local, node->data.local, regbss); 
 	}
 	tac1 = join_tac(tac1, tac3);
+	*/
+	
+	// Remove o último LOAD e o reg conterá o endereço
+	TAC *aux;
+	for (aux = ident; aux->next->next; aux = aux->next);
+	free(aux->next);
+	aux->next = NULL;
+	
+	TAC *tac1 = join_tac(ident, expr);
 	
 	TAC *tac2 = create_tac(TAC_STORE,
 				node->left->right->data.local, node->data.local, NULL);
 
 	tac1 = join_tac(tac1, tac2);
-	
+
 	return tac1;	
 }
 
@@ -376,6 +390,94 @@ TAC *geraCod_noDoWhile(comp_tree_t *node, TAC *comm, TAC *expr)
 	TAC *tac3 = create_tac(TAC_LABEL,
 			rotContinua, NULL, NULL);
 	tac1 = join_tac(tac1, tac3);
+	
+	return tac1;
+}
+
+TAC *geraCod_noVetor(comp_tree_t *node, TAC *dim1, TAC *dim2, TAC *dim3)
+{
+ 	char *regbss = "rbss";
+	char *regarp = "rarp";
+	
+	/* Todas informações são guardadas no primeiro filho, o identificador */
+	comp_tree_t *ident = node->left;
+	
+	/* Deve fazer distincao entre variavel local (soma endereco com inicio do reg. ativ) 
+	 * e var global (soma com pointer para regiao de dados) */
+	TAC *tac1 = create_tac (TAC_LOADI, ident->data.local, &ident->data.symEntry->symbol.symAddr, NULL);
+	
+	TAC *tac2;
+
+	if (ident->data.symEntry->symbol.symType & SYM_IS_LOCALSCOPE) { // vai somar endereco com rarp
+		tac2 = create_tac (TAC_ADD, ident->data.local, ident->data.local, regarp);
+	}
+	else { // vai somar endereco com bss
+		tac2 = create_tac (TAC_ADD, ident->data.local, ident->data.local, regbss); 
+	}
+	
+	tac1 = join_tac(tac1, tac2);
+	
+	/* Cálculo do índice */
+	/* Péssimo código, mas funciona... */
+	
+	ListNode *dims = ident->data.symEntry->symbol.params;
+	if(dim1 == NULL)
+		printf("Ops, array not indexed...\n");
+		
+	char *regIndex = dim1->res;
+	tac1 = join_tac(tac1, dim1);
+	
+	// 3 dimensões
+	if(dim3 != NULL) {
+		tac1 = join_tac(tac1, dim2);
+		tac1 = join_tac(tac1, dim3);
+		TAC *tacIndex1 = create_tac (TAC_MULTI, regIndex, regIndex, &dims->next->data);
+		tac1 = join_tac(tac1, tacIndex1);
+		TAC *tacIndex2 = create_tac (TAC_MULTI, regIndex, regIndex, &dims->next->next->data);
+		tac1 = join_tac(tac1, tacIndex2);
+		TAC *tacIndex3 = create_tac (TAC_MULTI, dim2->res, dim2->res, &dims->next->next->data);
+		tac1 = join_tac(tac1, tacIndex3);
+		TAC *tacIndex4 = create_tac (TAC_ADD, regIndex, regIndex, dim2->res);
+		tac1 = join_tac(tac1, tacIndex4);
+		TAC *tacIndex5 = create_tac (TAC_ADD, regIndex, regIndex, dim3->res);
+		tac1 = join_tac(tac1, tacIndex5);		
+	  
+	// 2 dimensões
+	} else if(dim2 != NULL) {
+		tac1 = join_tac(tac1, dim2);
+		TAC *tacIndex1 = create_tac (TAC_MULTI, regIndex, regIndex, &dims->next->data);
+		tac1 = join_tac(tac1, tacIndex1);
+		TAC *tacIndex2 = create_tac (TAC_ADD, regIndex, regIndex, dim2->res);
+		tac1 = join_tac(tac1, tacIndex2);
+	}
+	
+	/* Multiplicando pelo tamanho do tipo */
+	int type = ident->data.symEntry->symbol.symType & MASK_SYMTYPE_TYPE; 
+	TAC *tacType;
+	switch(type){
+	  case SYMTYPE_INT:
+	      tacType = create_tac (TAC_MULTI, regIndex, regIndex, &four);
+	      tac1 = join_tac(tac1, tacType);
+	      break;
+	  case SYMTYPE_FLOAT:
+	      tacType = create_tac (TAC_MULTI, regIndex, regIndex, &eight);
+	      tac1 = join_tac(tac1, tacType);
+	      break;
+	  case SYMTYPE_BOOL:
+	      /* Boolean size = 1 */
+	      break;
+	  default: printf("Unnaceptable type for arrays"); exit(0); /* erro */
+	}
+
+	/* Adicionando ao endereço base */
+	TAC *tac3 = create_tac (TAC_ADD, ident->data.local, ident->data.local, regIndex);
+	tac1 = join_tac(tac1, tac3);
+	
+	/* Loading... */
+	TAC *tac4 = create_tac (TAC_LOAD, ident->data.local, ident->data.local, NULL);
+	tac1 = join_tac(tac1, tac4);
+	
+	node->data.local = ident->data.local;
 	
 	return tac1;
 }

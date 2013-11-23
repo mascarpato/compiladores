@@ -83,37 +83,37 @@ void print_tac (TAC *list)
 			case TAC_DIV:
 				printf("DIV %s, %s => %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_ADDI:
-				printf("ADDI \n"); break;
+				printf("ADDI %s, %d => %s\n", aux->op1, *((int*)aux->op2), aux->res); break;
 			case TAC_SUBI:
-				printf("SUBI \n"); break;
+				printf("SUBI %s, %d => %s\n", aux->op1, *((int*)aux->op2), aux->res); break;
 			case TAC_RSUBI:
-				printf("RSUBI \n"); break;
+				printf("RSUBI %s, %d => %s\n", aux->op1, *((int*)aux->op2), aux->res); break;
 			case TAC_MULTI:
-				printf("MULTI \n"); break;
+				printf("MULTI %s, %d => %s\n", aux->op1, *((int*)aux->op2), aux->res); break;
 			case TAC_DIVI:
-				printf("DIVI \n"); break;
+				printf("DIVI %s, %d => %s\n", aux->op1, *((int*)aux->op2), aux->res); break;
 			case TAC_RDIVI:
-				printf("RDIVI \n"); break;
+				printf("RDIVI %s, %d => %s\n", aux->op1, *((int*)aux->op2), aux->res); break;
 			case TAC_LSHIFT:
-				printf("LSHIFT \n"); break;
+				printf("LSHIFT %s, %s => %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_LSHIFTI:
-				printf("LSHIFTI \n"); break;
+				printf("LSHIFTI %s, %d => %s\n", aux->op1, *((int*)aux->op2), aux->res); break;
 			case TAC_RSHIFT:
-				printf("RSHIFT \n"); break;
+				printf("RSHIFT %s, %s => %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_RSHIFTI:
-				printf("RSHIFTI \n"); break;
+				printf("RSHIFTI %s, %d => %s\n", aux->op1, *((int*)aux->op2), aux->res); break;
 			case TAC_AND:
-				printf("AND \n"); break;
+				printf("AND %s, %s => %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_ANDI:
-				printf("ANDI \n"); break;
+				printf("ANDI %s, %d => %s\n", aux->op1, *((int*)aux->op2), aux->res); break;
 			case TAC_OR:
-				printf("OR \n"); break;
+				printf("OR %s, %s => %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_ORI:
-				printf("ORI \n"); break;
+				printf("ORI %s, %d => %s\n", aux->op1, *((int*)aux->op2), aux->res); break;
 			case TAC_XOR:
-				printf("XOR \n"); break;
+				printf("XOR %s, %s => %s\n", aux->op1, aux->op2, aux->res); break;
 			case TAC_XORI:
-				printf("XORI \n"); break;
+				printf("XORI %s, %d => %s\n", aux->op1, *((int*)aux->op2), aux->res); break;
 			case TAC_LOADI:
 				printf("LOADI %d => %s\n", *((int*) aux->op1), aux->res); break;
 			case TAC_LOAD:

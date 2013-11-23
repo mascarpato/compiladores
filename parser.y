@@ -282,8 +282,14 @@ atribuicao-simples: TK_IDENTIFICADOR '=' expr {
 		int aux_coersion;
 		//printf("tipo 1: %d tipo2: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
 		
-					// Aqui eh um dict_item
-		aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, &($3->data.semanticType));
+		// Aqui eh um dict_item
+		int *semanticType;
+		if($3->data.nodeType == IKS_AST_VETOR_INDEXADO){
+			semanticType = &($3->left->data.semanticType);
+		} else {
+			semanticType = &($3->data.semanticType);
+		}
+		aux_coersion = eval_atrib($1->symbol.symType & MASK_SYMTYPE_TYPE, *semanticType, semanticType);
 		//printf("tipo esquerda: %d, tipo direita: %d", $1->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType);
 		//Checks if atrib is valid and sets right coersion
 		if (aux_coersion == SYMTYPE_UNDEF){
@@ -308,7 +314,13 @@ atribuicao-vetor: var-vetor '=' expr { //TODO: adicionar suporte para atrib em v
 	int aux_coersion;
 	//Identifier's DictItem
 	DictItem *vector_ident = $1->left->data.symEntry;
-	aux_coersion = eval_atrib(vector_ident->symbol.symType & MASK_SYMTYPE_TYPE, $3->data.semanticType, &($3->data.semanticType)); // ultimo expr
+	int *semanticType;
+	if($3->data.nodeType == IKS_AST_VETOR_INDEXADO){
+		semanticType = &($3->left->data.semanticType);
+	} else {
+		semanticType = &($3->data.semanticType);
+	}
+	aux_coersion = eval_atrib(vector_ident->symbol.symType & MASK_SYMTYPE_TYPE, *semanticType, semanticType); // ultimo expr
 	//Checks if atrib is valid and sets right coersion
 	if (aux_coersion == SYMTYPE_UNDEF){
 		sserror(IKS_ERROR_WRONG_TYPE, NULL);
@@ -327,6 +339,7 @@ atribuicao-vetor: var-vetor '=' expr { //TODO: adicionar suporte para atrib em v
         data1.nodeType = IKS_AST_ATRIBUICAO;
         data1.symEntry = NULL;
 	data1.semanticType = vector_ident->symbol.symType & MASK_SYMTYPE_TYPE;
+        data1.local = geraTemp();
         comp_tree_t *attributionNode = treeCreate(data1);
 		
 	/* -- Inserts vector and expr nodes into attribution node */ 
@@ -370,10 +383,7 @@ var-vetor: TK_IDENTIFICADOR '[' expr ']' lista-dimensoes-atr {
 		data.symEntry = NULL;
 		comp_tree_t *vader = treeCreate(data);
 		
-		Data data2;
-		data2.nodeType = IKS_AST_IDENTIFICADOR;
-		data2.symEntry = $1;
-		comp_tree_t *luke = treeCreate(data2);
+		comp_tree_t *luke = ast_criano_identificador($1);
 		
 		treeInsert(luke, vader);
 		treeInsert($3, vader);
