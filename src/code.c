@@ -286,6 +286,7 @@ TAC* geraCod_aritOpt(comp_tree_t *node, int TAC_type)
 TAC *geraCod_noAtrib(comp_tree_t *node, TAC *ident, TAC *expr)
 {	
 	TAC *tac1;
+	char *regDest;
 	if(node->left->data.nodeType == IKS_AST_VETOR_INDEXADO){
 		// Remove o último LOAD e o reg conterá o endereço
 		TAC *aux;
@@ -293,7 +294,8 @@ TAC *geraCod_noAtrib(comp_tree_t *node, TAC *ident, TAC *expr)
 		free(aux->next);
 		aux->next = NULL;
 		
-		tac1 = join_tac(ident, expr);		
+		tac1 = join_tac(ident, expr);
+		regDest = node->left->data.local;
 		
 	} else {
 		tac1 = create_tac(TAC_LOADI, 
@@ -312,10 +314,11 @@ TAC *geraCod_noAtrib(comp_tree_t *node, TAC *ident, TAC *expr)
 			tac3 = create_tac (TAC_ADD, node->data.local, node->data.local, regbss); 
 		}
 		tac1 = join_tac(tac1, tac3);
+		regDest = node->data.local;
 	}
 	
 	TAC *tac2 = create_tac(TAC_STORE,
-				node->left->right->data.local, node->data.local, NULL);
+				regDest, node->left->right->data.local, NULL);
 
 	tac1 = join_tac(tac1, tac2);
 
@@ -426,30 +429,33 @@ TAC *geraCod_noVetor(comp_tree_t *node, TAC *dim1, TAC *dim2, TAC *dim3)
 	if(dim1 == NULL)
 		printf("Ops, array not indexed...\n");
 		
-	char *regIndex = dim1->res;
+	char *regIndex = node->left->right->data.local;
 	tac1 = join_tac(tac1, dim1);
 	
 	// 3 dimensões
 	if(dim3 != NULL) {
+		char *regDim2 = node->left->right->right->data.local;
+		char *regDim3 = node->left->right->right->right->data.local;
 		tac1 = join_tac(tac1, dim2);
 		tac1 = join_tac(tac1, dim3);
 		TAC *tacIndex1 = create_tac (TAC_MULTI, regIndex, regIndex, &dims->next->data);
 		tac1 = join_tac(tac1, tacIndex1);
 		TAC *tacIndex2 = create_tac (TAC_MULTI, regIndex, regIndex, &dims->next->next->data);
 		tac1 = join_tac(tac1, tacIndex2);
-		TAC *tacIndex3 = create_tac (TAC_MULTI, dim2->res, dim2->res, &dims->next->next->data);
+		TAC *tacIndex3 = create_tac (TAC_MULTI, regDim2, regDim2, &dims->next->next->data);
 		tac1 = join_tac(tac1, tacIndex3);
-		TAC *tacIndex4 = create_tac (TAC_ADD, regIndex, regIndex, dim2->res);
+		TAC *tacIndex4 = create_tac (TAC_ADD, regIndex, regIndex, regDim2);
 		tac1 = join_tac(tac1, tacIndex4);
-		TAC *tacIndex5 = create_tac (TAC_ADD, regIndex, regIndex, dim3->res);
+		TAC *tacIndex5 = create_tac (TAC_ADD, regIndex, regIndex, regDim3);
 		tac1 = join_tac(tac1, tacIndex5);		
 	  
 	// 2 dimensões
 	} else if(dim2 != NULL) {
+		char *regDim2 = node->left->right->right->data.local;
 		tac1 = join_tac(tac1, dim2);
 		TAC *tacIndex1 = create_tac (TAC_MULTI, regIndex, regIndex, &dims->next->data);
 		tac1 = join_tac(tac1, tacIndex1);
-		TAC *tacIndex2 = create_tac (TAC_ADD, regIndex, regIndex, dim2->res);
+		TAC *tacIndex2 = create_tac (TAC_ADD, regIndex, regIndex, regDim2);
 		tac1 = join_tac(tac1, tacIndex2);
 	}
 	

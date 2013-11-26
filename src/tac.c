@@ -123,7 +123,7 @@ void print_tac (TAC *list)
 			case TAC_LOADAO:
 				printf("LOADAO \n"); break;
 			case TAC_STORE:
-				printf("STORE %s => %s\n", aux->res, aux->op1); break;
+				printf("STORE %s => %s\n", aux->op1, aux->res); break;
 			case TAC_STOREAI:
 				printf("STOREAI \n"); break;
 			case TAC_STOREAO:
